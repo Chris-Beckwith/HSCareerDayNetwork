@@ -1,0 +1,9 @@
+Do we want to store Student addresses?
+Do we want to store Student grade/year/graduation year?
+Do we want to store Speaker addresses?
+Can classrooms have an 'overflow'? IE. Max capacity is 30 but, could hold 35 if needed.
+How would you like to add Subjects to Events at a School? 
+    Drop down of existing subjects, with option to add new?
+    For ease of use, it might make sense to have an option to add 'base' subjects to event.  IE common subjects.
+    Was also planning to have a separate page to add Subjects.
+Do we want to assign speakers a set of subjects?  Was going to have subjects attach to events, but I think it makes more sense to assign them to the speaker.

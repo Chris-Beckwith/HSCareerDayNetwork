@@ -1,0 +1,277 @@
+{
+  "Files": [
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\index-BUet-CU8.css",
+      "PackagePath": "staticwebassets\\assets\\index-BUet-CU8.css"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\index-CwHem46p.js",
+      "PackagePath": "staticwebassets\\assets\\index-CwHem46p.js"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-300-normal-D6mjswgs.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-300-normal-D6mjswgs.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-300-normal-UX5PCucy.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-300-normal-UX5PCucy.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-400-normal-DCQqOlfN.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-400-normal-DCQqOlfN.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-400-normal-DVDTZtmW.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-400-normal-DVDTZtmW.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-500-normal-DAkZhMOh.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-500-normal-DAkZhMOh.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-500-normal-QpWeYsca.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-500-normal-QpWeYsca.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-700-normal-B5ZBKWCH.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-700-normal-B5ZBKWCH.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-700-normal-DAIxw5xX.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-700-normal-DAIxw5xX.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-ext-300-normal-C7AGhuC_.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-ext-300-normal-C7AGhuC_.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-ext-300-normal-TzZWIuiO.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-ext-300-normal-TzZWIuiO.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-ext-400-normal--KougVX-.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-ext-400-normal--KougVX-.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-ext-400-normal-DORK9bGA.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-ext-400-normal-DORK9bGA.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-ext-500-normal-G9W8hgzQ.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-ext-500-normal-G9W8hgzQ.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-ext-500-normal-sraxM_lR.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-ext-500-normal-sraxM_lR.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-ext-700-normal-CsrCEJIc.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-ext-700-normal-CsrCEJIc.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-ext-700-normal-dDOtDc5i.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-ext-700-normal-dDOtDc5i.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-greek-300-normal-Dgbe-dnN.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-greek-300-normal-Dgbe-dnN.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-greek-300-normal-ndiuWqED.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-greek-300-normal-ndiuWqED.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-greek-400-normal-BRWHCUYo.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-greek-400-normal-BRWHCUYo.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-greek-400-normal-BnGNaKeW.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-greek-400-normal-BnGNaKeW.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-greek-500-normal-CVjdsdX9.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-greek-500-normal-CVjdsdX9.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-greek-500-normal-CpESfwfG.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-greek-500-normal-CpESfwfG.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-greek-700-normal-Cc2Tq8FV.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-greek-700-normal-Cc2Tq8FV.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-greek-700-normal-CjuTpGfE.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-greek-700-normal-CjuTpGfE.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-300-normal-ThHrQhYb.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-300-normal-ThHrQhYb.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-300-normal-lq7MgJXa.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-300-normal-lq7MgJXa.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-400-normal-BU1SoK4h.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-400-normal-BU1SoK4h.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-400-normal-mTIRXP6Y.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-400-normal-mTIRXP6Y.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-500-normal-Dcm-rhWF.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-500-normal-Dcm-rhWF.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-500-normal-Dxdx3aXO.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-500-normal-Dxdx3aXO.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-700-normal-Bh431LEL.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-700-normal-Bh431LEL.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-700-normal-CeM5gOv8.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-700-normal-CeM5gOv8.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-ext-300-normal-CaUuWeqj.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-ext-300-normal-CaUuWeqj.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-ext-300-normal-DEsNdRC-.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-ext-300-normal-DEsNdRC-.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-ext-400-normal-4bLplyDh.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-ext-400-normal-4bLplyDh.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-ext-400-normal-DloBNwoc.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-ext-400-normal-DloBNwoc.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-ext-500-normal-B9pAx_JH.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-ext-500-normal-B9pAx_JH.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-ext-500-normal-BWKy6SgX.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-ext-500-normal-BWKy6SgX.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-ext-700-normal-BYGCo3Go.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-ext-700-normal-BYGCo3Go.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-latin-ext-700-normal-DwUXTeTv.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-latin-ext-700-normal-DwUXTeTv.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-vietnamese-300-normal-CnPrVvBs.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-vietnamese-300-normal-CnPrVvBs.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-vietnamese-300-normal-DOxDZ6bW.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-vietnamese-300-normal-DOxDZ6bW.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-vietnamese-400-normal-BkEBOAV9.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-vietnamese-400-normal-BkEBOAV9.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-vietnamese-400-normal-kCRe3VZk.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-vietnamese-400-normal-kCRe3VZk.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-vietnamese-500-normal-Bwg8Dbh6.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-vietnamese-500-normal-Bwg8Dbh6.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-vietnamese-500-normal-CcijQRVW.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-vietnamese-500-normal-CcijQRVW.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-vietnamese-700-normal-Mc0c6qif.woff",
+      "PackagePath": "staticwebassets\\assets\\roboto-vietnamese-700-normal-Mc0c6qif.woff"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-vietnamese-700-normal-SekShQfT.woff2",
+      "PackagePath": "staticwebassets\\assets\\roboto-vietnamese-700-normal-SekShQfT.woff2"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\Loading.gif",
+      "PackagePath": "staticwebassets\\images\\Loading.gif"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\borat.jpg",
+      "PackagePath": "staticwebassets\\images\\borat.jpg"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\chris.png",
+      "PackagePath": "staticwebassets\\images\\chris.png"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\cure.jpg",
+      "PackagePath": "staticwebassets\\images\\cure.jpg"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\err\\RoyalCat.jpg",
+      "PackagePath": "staticwebassets\\images\\err\\RoyalCat.jpg"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\err\\adminCat.jpg",
+      "PackagePath": "staticwebassets\\images\\err\\adminCat.jpg"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\err\\catWoman.jpg",
+      "PackagePath": "staticwebassets\\images\\err\\catWoman.jpg"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\err\\flyingCat.gif",
+      "PackagePath": "staticwebassets\\images\\err\\flyingCat.gif"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\err\\relaxingCat.gif",
+      "PackagePath": "staticwebassets\\images\\err\\relaxingCat.gif"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\err\\suitCat.jpg",
+      "PackagePath": "staticwebassets\\images\\err\\suitCat.jpg"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\pirate.jpg",
+      "PackagePath": "staticwebassets\\images\\pirate.jpg"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\wat.jpg",
+      "PackagePath": "staticwebassets\\images\\wat.jpg"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\index.html",
+      "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\vite.svg",
+      "PackagePath": "staticwebassets\\vite.svg"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.CareerDayApi.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.CareerDayApi.props",
+      "PackagePath": "build\\CareerDayApi.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.CareerDayApi.props",
+      "PackagePath": "buildMultiTargeting\\CareerDayApi.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.CareerDayApi.props",
+      "PackagePath": "buildTransitive\\CareerDayApi.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

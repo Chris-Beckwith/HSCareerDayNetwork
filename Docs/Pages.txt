@@ -1,0 +1,12 @@
+Student Subject Selection
+
+Login
+School Creation
+School Edit / Add/Edit Rooms
+Student Attendee Upload/Update
+Subject List Creation/Modification
+Speaker Creation or Confirmation
+Schedule Generator and Manual Adjustment
+Student/Speaker/Room Schedule Export
+Event Creation
+Event Status Lookup

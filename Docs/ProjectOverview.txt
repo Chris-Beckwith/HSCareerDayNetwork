@@ -1,0 +1,97 @@
+Run API
+-------
+dotnet watch run
+
+Run Frontend
+------------
+npm run dev
+
+Deploy to Fly.io
+----------------
+flyctl auth login
+flyctl launch --image beckwithc/careerday:latest
+flyctl deploy
+
+API
+---
+Entity Framework
+    Create Migration: > dotnet ef migrations add [name] -o Data/Migrations
+    Update Database: > dotnet ef database update
+//Secret Storage: dotnet user-secrets init
+debug:: .Net Core Attach > CareerDayApi.exe
+
+Client
+------
+Node.js
+Typescript + SWC
+Material UI
+React Dev Tools
+React Router
+Axios
+React-Toastify
+React Context
+Redux
+React-Redux
+Redux Toolkit
+Redux Dev Tools
+React Hook Form
+
+
+
+VSCode Extensions
+-----------------
+.NET Install Tool
+.NET Watch Attach
+Auto Rename Tag
+C#
+C# Dev Kit
+C# Extensions
+Dev Containers
+Docker
+ESLint
+GitHub Actions
+Material Icon Theme (Just for file/folder icons)
+NuGet Gallery
+PostgreSQL (for production)
+SQLite (for development)
+
+
+NuGet Gallery
+-------------
+Microsoft.EntityFrameworkCore.Sqlite
+Microsoft.EntityFrameworkCore.Design
+Npgsql.EntityFrameworkCore.PostgreSQL
+Microsoft.AspNetCore.Authentication.JwtBearer
+Microsoft.AspNetCore.Identity.EntityFrameworkCore
+
+Commands to create project
+--------------------------
+API
+---
+> dotnet new sln
+> dotnet new webapi -o CareerDayApi --use-controllers
+> dotnet sln add CareerDayApi
+View > Command Palette: >.NET: Generate Assets for Build and Debug
+> dotnet tool install --global dotnet-ef --version 8.0.7
+> docker run --name dev -e POSTGRES_USER=appuser -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres:latest
+> docker build -t beckwithc/careerday .
+> docker push beckwithc/careerday:latest
+> docker run --rm -it -p 8080:8080 beckwithc/careerday
+
+Client
+------
+npm create vite@latest
+    React
+    TypeScript + SWC
+npm install
+npm install @mui/material @emotion/react @emotion/styled
+npm install @fontsource/roboto
+npm install @mui/icons-material
+npm install react-router-dom
+npm install axios
+npm install react-toastify
+npm install redux react-redux
+npm install @reduxjs/toolkit
+npm install react-hook-form
+npm install @hookform/resolvers yup
+npm install @mui/lab
