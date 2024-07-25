@@ -6,11 +6,21 @@ Run Frontend
 ------------
 npm run dev
 
+
 Deploy to Fly.io
 ----------------
 flyctl auth login
 flyctl launch --image beckwithc/careerday:latest
 flyctl deploy
+
+Proxy to db
+-----------
+fly apps list
+fly proxy 6543:5432 -a careerday-db
+new database connection:
+    localhost
+    postgres // pw
+    6543
 
 API
 ---
@@ -19,6 +29,7 @@ Entity Framework
     Update Database: > dotnet ef database update
 //Secret Storage: dotnet user-secrets init
 debug:: .Net Core Attach > CareerDayApi.exe
+
 
 Client
 ------

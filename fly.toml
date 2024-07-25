@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for careerday on 2024-07-16T14:18:33-07:00
+# fly.toml app configuration file generated for careerday on 2024-07-16T16:51:11-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -10,7 +10,7 @@ primary_region = 'sjc'
   image = 'beckwithc/careerday:latest'
 
 [env]
-  ASPNETCORE_URL='http://+:8080'
+  ASPNETCORE_URL="http://+:8080"
 
 [http_service]
   internal_port = 8080
