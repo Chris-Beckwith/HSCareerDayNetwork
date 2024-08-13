@@ -63,7 +63,6 @@ Redux Dev Tools
 React Hook Form
 
 
-
 VSCode Extensions
 -----------------
 .NET Install Tool
