@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -6,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CareerDayApi.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class PostgresInitial : Migration
+    public partial class BuildingNewMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -56,8 +57,11 @@ namespace CareerDayApi.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true)
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    CourseId = table.Column<int>(type: "integer", nullable: false),
+                    Category = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Note = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -98,21 +102,24 @@ namespace CareerDayApi.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SpeakerAddress",
+                name: "Speakers",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Address1 = table.Column<string>(type: "text", nullable: true),
-                    Address2 = table.Column<string>(type: "text", nullable: true),
-                    City = table.Column<string>(type: "text", nullable: true),
-                    State = table.Column<string>(type: "text", nullable: true),
-                    Zip = table.Column<string>(type: "text", nullable: true),
-                    Country = table.Column<string>(type: "text", nullable: true)
+                    FirstName = table.Column<string>(type: "text", nullable: true),
+                    MiddleName = table.Column<string>(type: "text", nullable: true),
+                    LastName = table.Column<string>(type: "text", nullable: true),
+                    Title = table.Column<string>(type: "text", nullable: true),
+                    Company = table.Column<string>(type: "text", nullable: true),
+                    PortraitUrl = table.Column<string>(type: "text", nullable: true),
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PublicId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SpeakerAddress", x => x.Id);
+                    table.PrimaryKey("PK_Speakers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -296,32 +303,6 @@ namespace CareerDayApi.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Speakers",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    FirstName = table.Column<string>(type: "text", nullable: true),
-                    MiddleName = table.Column<string>(type: "text", nullable: true),
-                    LastName = table.Column<string>(type: "text", nullable: true),
-                    Title = table.Column<string>(type: "text", nullable: true),
-                    Company = table.Column<string>(type: "text", nullable: true),
-                    PortraitUrl = table.Column<string>(type: "text", nullable: true),
-                    Email = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
-                    AddressId = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Speakers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Speakers_SpeakerAddress_AddressId",
-                        column: x => x.AddressId,
-                        principalTable: "SpeakerAddress",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "CareerSpeaker",
                 columns: table => new
                 {
@@ -340,6 +321,29 @@ namespace CareerDayApi.Data.Migrations
                     table.ForeignKey(
                         name: "FK_CareerSpeaker_Speakers_SpeakerId",
                         column: x => x.SpeakerId,
+                        principalTable: "Speakers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SpeakerAddress",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false),
+                    Address1 = table.Column<string>(type: "text", nullable: true),
+                    Address2 = table.Column<string>(type: "text", nullable: true),
+                    City = table.Column<string>(type: "text", nullable: true),
+                    State = table.Column<string>(type: "text", nullable: true),
+                    Zip = table.Column<string>(type: "text", nullable: true),
+                    Country = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SpeakerAddress", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SpeakerAddress_Speakers_Id",
+                        column: x => x.Id,
                         principalTable: "Speakers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -372,7 +376,7 @@ namespace CareerDayApi.Data.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "1a6047fa-3385-4002-8e9b-6e456cd1ec1b", null, "Admin", "ADMIN" });
+                values: new object[] { "c5edf336-70ec-4ff7-a04c-4d40e92e42f5", null, "Admin", "ADMIN" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -437,11 +441,6 @@ namespace CareerDayApi.Data.Migrations
                 column: "SpeakersId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Speakers_AddressId",
-                table: "Speakers",
-                column: "AddressId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Students_SchoolId",
                 table: "Students",
                 column: "SchoolId");
@@ -475,6 +474,9 @@ namespace CareerDayApi.Data.Migrations
                 name: "EventSpeaker");
 
             migrationBuilder.DropTable(
+                name: "SpeakerAddress");
+
+            migrationBuilder.DropTable(
                 name: "Students");
 
             migrationBuilder.DropTable(
@@ -497,9 +499,6 @@ namespace CareerDayApi.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Schools");
-
-            migrationBuilder.DropTable(
-                name: "SpeakerAddress");
         }
     }
 }

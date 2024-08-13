@@ -375,7 +375,7 @@ namespace CareerDayApi.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "e39bbb20-8e10-45db-9298-9ae0991b3e5c",
+                            Id = "c5edf336-70ec-4ff7-a04c-4d40e92e42f5",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
