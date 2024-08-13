@@ -30,10 +30,21 @@ namespace CareerDayApi.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Note")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -155,9 +166,6 @@ namespace CareerDayApi.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AddressId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Company")
                         .HasColumnType("text");
 
@@ -179,12 +187,13 @@ namespace CareerDayApi.Data.Migrations
                     b.Property<string>("PortraitUrl")
                         .HasColumnType("text");
 
+                    b.Property<string>("PublicId")
+                        .HasColumnType("text");
+
                     b.Property<string>("Title")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AddressId");
 
                     b.ToTable("Speakers");
                 });
@@ -192,10 +201,7 @@ namespace CareerDayApi.Data.Migrations
             modelBuilder.Entity("CareerDayApi.Entities.SpeakerAddress", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address1")
                         .HasColumnType("text");
@@ -369,7 +375,7 @@ namespace CareerDayApi.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "1a6047fa-3385-4002-8e9b-6e456cd1ec1b",
+                            Id = "e39bbb20-8e10-45db-9298-9ae0991b3e5c",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -546,13 +552,13 @@ namespace CareerDayApi.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("CareerDayApi.Entities.Speaker", b =>
+            modelBuilder.Entity("CareerDayApi.Entities.SpeakerAddress", b =>
                 {
-                    b.HasOne("CareerDayApi.Entities.SpeakerAddress", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressId");
-
-                    b.Navigation("Address");
+                    b.HasOne("CareerDayApi.Entities.Speaker", null)
+                        .WithOne("Address")
+                        .HasForeignKey("CareerDayApi.Entities.SpeakerAddress", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CareerDayApi.Entities.Student", b =>
@@ -643,6 +649,11 @@ namespace CareerDayApi.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("CareerDayApi.Entities.Speaker", b =>
+                {
+                    b.Navigation("Address");
                 });
 #pragma warning restore 612, 618
         }

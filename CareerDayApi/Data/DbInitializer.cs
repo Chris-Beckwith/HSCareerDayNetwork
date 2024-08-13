@@ -73,10 +73,14 @@ namespace CareerDayApi.Data
                     Careers = [
                         new() {
                             Name = "Test Career",
+                            CourseId = 1234,
+                            Category = "TestCategory1",
                             Description = "Test Career Description"
                         },
                         new() {
                             Name = "Test Career2",
+                            CourseId = 5432,
+                            Category = "TestCategory22",
                             Description = "Test Career Description2"
                         }
                     ]

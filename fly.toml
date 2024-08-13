@@ -11,6 +11,8 @@ primary_region = 'sjc'
 
 [env]
   ASPNETCORE_URL="http://+:8080"
+  Cloudinary__CloudName="da7nuaie7"
+  Cloudinary__ApiKey="832726646735491"
 
 [http_service]
   internal_port = 8080

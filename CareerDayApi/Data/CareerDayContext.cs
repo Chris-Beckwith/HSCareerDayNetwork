@@ -28,6 +28,12 @@ namespace CareerDayApi.Data
                 .HasMany(c => c.Careers)
                 .WithMany();
 
+            builder.Entity<Speaker>()
+                .HasOne(s => s.Address)
+                .WithOne()
+                .HasForeignKey<SpeakerAddress>(a => a.Id)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.Entity<IdentityRole>()
                 .HasData(
                     new IdentityRole{Name = "Admin", NormalizedName = "ADMIN"}

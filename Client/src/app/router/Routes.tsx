@@ -1,6 +1,5 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import App from "../layout/App";
-import CareerEventDetails from "../../features/careerEvents/CareerEventDetails";
 import Speakers from "../../features/speaker/Speakers";
 import Careers from "../../features/careers/Careers";
 import Schools from "../../features/school/Schools";
@@ -11,13 +10,14 @@ import Login from "../../features/account/Login";
 import Register from "../../features/account/Register";
 import RequireAuth from "./RequireAuth";
 import Survey from "../../features/survey/Survey";
+import BuggyTester from "../../features/buggyTester/BuggyTester";
 
 export const router = createBrowserRouter([
     {
         path: '/',
         element: <App />,
         children: [
-            {element: <RequireAuth />, children: [
+            {element: <RequireAuth roles={['Admin']}/>, children: [
                 { path: 'speakers', element: <Speakers /> },
             ]},
             { path: '', element: <CareerEvents /> },
@@ -25,10 +25,10 @@ export const router = createBrowserRouter([
             { path: 'register', element: <Register /> },
             { path: 'schools', element: <Schools /> },
             { path: 'careers', element: <Careers /> },
-            { path: 'event/:id', element: <CareerEventDetails /> },
-            { path: 'server-error', element: <ServerError /> },
             { path: 'survey', element: <Survey /> },
+            { path: 'server-error', element: <ServerError /> },
             { path: 'not-found', element: <NotFound /> },
+            { path: 'buggy-test', element: <BuggyTester /> },
             { path: '*', element: <Navigate replace to='/not-found' />}
         ]
     }
