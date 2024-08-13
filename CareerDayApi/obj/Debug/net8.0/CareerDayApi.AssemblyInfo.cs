@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CareerDayApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+56913804f12c0cefb1642377ccdf428988effa2b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+317a102fd92b6b730581a5c7a933dff16b0fb759")]
 [assembly: System.Reflection.AssemblyProductAttribute("CareerDayApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CareerDayApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
