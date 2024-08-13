@@ -31,6 +31,10 @@ new database connection:
     postgres // pw
     6543
 
+If you need to drop database (ie migrations failed):
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+
 
 API
 ---
