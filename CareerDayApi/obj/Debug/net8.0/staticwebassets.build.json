@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "RRy6GauOud5Jc2RiOIBf6YoYpHttCd3UfNHSlyi40hk=",
+  "Hash": "2vPsbYAjE9rDFAMzK7ovmvkdBMLvCYY0XbTWJFzTUL8=",
   "Source": "CareerDayApi",
   "BasePath": "_content/CareerDayApi",
   "Mode": "Default",
@@ -53,6 +53,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\assets\\index-CwHem46p.js"
+    },
+    {
+      "Identity": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\index-DDS9qSkj.js",
+      "SourceId": "CareerDayApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\",
+      "BasePath": "_content/CareerDayApi",
+      "RelativePath": "assets/index-DDS9qSkj.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\assets\\index-DDS9qSkj.js"
     },
     {
       "Identity": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-300-normal-D6mjswgs.woff2",
@@ -1174,6 +1193,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\pirate.jpg"
+    },
+    {
+      "Identity": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\Silhouette_No_Profile_Pic.png",
+      "SourceId": "CareerDayApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\",
+      "BasePath": "_content/CareerDayApi",
+      "RelativePath": "images/Silhouette_No_Profile_Pic.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\Silhouette_No_Profile_Pic.png"
     },
     {
       "Identity": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\wat.jpg",

@@ -9,6 +9,10 @@
       "PackagePath": "staticwebassets\\assets\\index-CwHem46p.js"
     },
     {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\index-DDS9qSkj.js",
+      "PackagePath": "staticwebassets\\assets\\index-DDS9qSkj.js"
+    },
+    {
       "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\assets\\roboto-cyrillic-300-normal-D6mjswgs.woff2",
       "PackagePath": "staticwebassets\\assets\\roboto-cyrillic-300-normal-D6mjswgs.woff2"
     },
@@ -203,6 +207,10 @@
     {
       "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\Loading.gif",
       "PackagePath": "staticwebassets\\images\\Loading.gif"
+    },
+    {
+      "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\Silhouette_No_Profile_Pic.png",
+      "PackagePath": "staticwebassets\\images\\Silhouette_No_Profile_Pic.png"
     },
     {
       "Id": "D:\\Workspace\\HSCareerDayNetwork\\CareerDayApi\\wwwroot\\images\\borat.jpg",
