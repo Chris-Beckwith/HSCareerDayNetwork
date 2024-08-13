@@ -13,11 +13,14 @@ npm run build
 push branch to github
 merge branch to 'main'
 
+manually:
+---------
 docker build -t beckwithc/careerday .
 docker push beckwithc/careerday:latest
 flyctl auth login
-flyctl launch --image beckwithc/careerday:latest
+// flyctl launch --image beckwithc/careerday:latest // only need on first creation
 flyctl deploy
+
 
 Proxy to db
 -----------
@@ -27,6 +30,7 @@ new database connection:
     localhost
     postgres // pw
     6543
+
 
 API
 ---
