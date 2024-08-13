@@ -51,11 +51,16 @@ namespace CareerDayApi.Controllers
             EventPhase eventPhase = await _context.EventPhases.FindAsync(eventDto.EventPhaseId);
             School school = await _context.Schools.FindAsync(eventDto.SchoolId);
 
+            List<Speaker> speakers = await _context.Speakers.Where(s => eventDto.SpeakerIds.Any(id => id == s.Id)).ToListAsync();
+
             if (eventPhase == null) {
                 return BadRequest(new ProblemDetails{Title = "Problem creating new event: Event Phase not found"});
             }
             if (school == null) {
                 return BadRequest(new ProblemDetails{Title = "Problem creating new event: School not found"});
+            }
+            if (speakers == null) {
+                return BadRequest(new ProblemDetails{Title = "Problem creating new event: Speakers not found"});
             }
 
             Event newEvent = new()
@@ -64,7 +69,7 @@ namespace CareerDayApi.Controllers
                 Description = eventDto.Description,
                 SurveyCompletePercent = eventDto.SurveyCompletePercent,
                 EventPhase = eventPhase,
-                Speakers = eventDto.Speakers,
+                Speakers = speakers,
                 School = school,
                 EventDate = eventDto.EventDate
             };

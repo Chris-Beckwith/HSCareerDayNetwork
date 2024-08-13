@@ -1,13 +1,13 @@
 import { Box, Button, Card, CardActions, CardContent, CardHeader, Typography } from "@mui/material"
 import { CareerEvent } from "../../app/models/event"
 import LinearProgressWithLabel from "../../app/components/LinearProgressWithLabel"
-import { Link } from "react-router-dom"
 
 interface Props {
-    careerEvent: CareerEvent
+    careerEvent: CareerEvent,
+    viewEvent: (event: CareerEvent) => void
 }
 
-export default function CareerEventCard({ careerEvent }: Props) {
+export default function CareerEventCard({ careerEvent, viewEvent }: Props) {
     return (
         <Card>
             <CardHeader
@@ -35,7 +35,7 @@ export default function CareerEventCard({ careerEvent }: Props) {
             </CardContent>
             <CardActions>
                 <Button size="small">Speakers</Button>
-                <Button component={Link} to={`/event/${careerEvent.id}`} size="small">View</Button>
+                <Button onClick={() => viewEvent(careerEvent)} size="small">View</Button>
             </CardActions>
         </Card>
     )

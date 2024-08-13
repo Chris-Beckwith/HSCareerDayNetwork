@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using CareerDayApi.Entities;
 
 namespace CareerDayApi.DTOs
 {
@@ -16,7 +15,7 @@ namespace CareerDayApi.DTOs
 
         [Required]
         public int EventPhaseId { get; set; }
-        public List<Speaker> Speakers { get; set; }
+        public List<int> SpeakerIds { get; set; }
 
         [Required]
         public int SchoolId { get; set; }

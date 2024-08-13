@@ -45,6 +45,9 @@ axios.interceptors.response.use(async response => {
         case 401:
             toast.error(data.title)
             break;
+        case 403:
+            toast.error("You are not allowed to do that.")
+            break;
         case 500:
             router.navigate('/server-error', {state: {error: data}})
             break;
@@ -60,6 +63,35 @@ const requests = {
     post: (url: string, body: object) => axios.post(url, body).then(responseBody),
     put: (url: string, body: object) => axios.put(url, body).then(responseBody),
     delete: (url: string) => axios.delete(url).then(responseBody),
+    postForm: (url: string, data: FormData) => axios.post(url, data, {
+        headers: {'Content-Type': 'multipart/form-data'}
+    }).then(responseBody),
+    putForm: (url: string, data: FormData) => axios.put(url, data, {
+        headers: {'Content-Type': 'multipart/form-data'}
+    }).then(responseBody)
+}
+
+function createFormData(item: any, parentKey?: string) {
+    const formData = new FormData()
+
+    function appendFormData(data: any, parentKey?: string) {
+        if (data instanceof Object && !(data instanceof File)) {
+            for (const key in data) {
+                const value = data[key];
+                const formKey = parentKey ? `${parentKey}[${key}]` : key;
+                if (value instanceof Object && !(data instanceof File)) {
+                    appendFormData(value, formKey);
+                } else {
+                    formData.append(formKey, value);
+                }
+            }
+        } else {
+            formData.append(parentKey || '', data);
+        }
+    }
+    
+    appendFormData(item, parentKey)
+    return formData;
 }
 
 const Event = {
@@ -74,7 +106,15 @@ const School = {
 }
 
 const Speaker = {
-    list: () => requests.get('speakers')
+    list: (params: URLSearchParams) => requests.get('speakers', params),
+    create: (speaker: any) => requests.postForm('speakers', createFormData(speaker)),
+    update: (speaker: any) => requests.putForm('speakers', createFormData(speaker)),
+    delete: (id: number) => requests.delete(`speakers/${id}`)
+}
+
+const Career = {
+    list: () => requests.get('careers'),
+    categories: () => requests.get('careers/careerCategories')
 }
 
 const Account = {
@@ -99,6 +139,7 @@ const agent = {
     Event,
     School,
     Speaker,
+    Career,
     Account,
     Survey,
     TestErrors

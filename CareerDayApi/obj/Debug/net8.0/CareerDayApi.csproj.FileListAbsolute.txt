@@ -283,3 +283,8 @@ D:\Workspace\HSCareerDayNetwork\Api\obj\Debug\net8.0\ref\CareerDayApi.dll
 D:\Workspace\HSCareerDayNetwork\CareerDayApi\bin\Debug\net8.0\CareerDayApi.staticwebassets.runtime.json
 D:\Workspace\HSCareerDayNetwork\CareerDayApi\bin\Debug\net8.0\Npgsql.dll
 D:\Workspace\HSCareerDayNetwork\CareerDayApi\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+D:\Workspace\HSCareerDayNetwork\CareerDayApi\obj\Debug\net8.0\CareerDayApi.sourcelink.json
+D:\Workspace\HSCareerDayNetwork\CareerDayApi\bin\Debug\net8.0\AutoMapper.dll
+D:\Workspace\HSCareerDayNetwork\CareerDayApi\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+D:\Workspace\HSCareerDayNetwork\CareerDayApi\bin\Debug\net8.0\CloudinaryDotNet.dll
+D:\Workspace\HSCareerDayNetwork\CareerDayApi\bin\Debug\net8.0\Newtonsoft.Json.dll

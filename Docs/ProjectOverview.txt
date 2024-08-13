@@ -9,6 +9,7 @@ npm run dev
 
 Deploy to Fly.io
 ----------------
+npm run build
 flyctl auth login
 flyctl launch --image beckwithc/careerday:latest
 flyctl deploy
@@ -29,6 +30,7 @@ Entity Framework
     Update Database: > dotnet ef database update
 //Secret Storage: dotnet user-secrets init
 debug:: .Net Core Attach > CareerDayApi.exe
+Cloudinary
 
 
 Client
@@ -74,6 +76,9 @@ Microsoft.EntityFrameworkCore.Design
 Npgsql.EntityFrameworkCore.PostgreSQL
 Microsoft.AspNetCore.Authentication.JwtBearer
 Microsoft.AspNetCore.Identity.EntityFrameworkCore
+AutoMapper.Extensions.Microsoft.DependencyInjection  //Might not use this
+CloudinaryDotNet
+
 
 Commands to create project
 --------------------------
@@ -106,3 +111,4 @@ npm install @reduxjs/toolkit
 npm install react-hook-form
 npm install @hookform/resolvers yup
 npm install @mui/lab
+npm install react-dropzone

@@ -14,6 +14,7 @@ export default function AppTextInput(props: Props) {
         <TextField
             {...props}
             {...field}
+            value={field.value || ''}
             multiline={props.multiline}
             rows={props.rows}
             type={props.type}

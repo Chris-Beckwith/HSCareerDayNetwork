@@ -54,7 +54,7 @@ export const schoolSlice = createSlice({
             state.status = 'idle'
         })
         builder.addCase(getAllSchoolsAsync.rejected, (state, action) => {
-            console.log(action.payload)
+            console.log("Get all schools rejected:", action.payload)
             state.status = 'idle'
         })
         builder.addCase(fetchSchoolAsync.pending, (state) => {
