@@ -54,7 +54,7 @@ export const careerSlice = createSlice({
         })
         builder.addCase(getAllCareerCategoriesAsync.fulfilled, (state, action) => {
             state.categories = action.payload
-            state.careersLoaded = true
+            state.categoriesLoaded = true
             state.status = 'idle'
         })
         builder.addCase(getAllCareerCategoriesAsync.rejected, (state, action) => {

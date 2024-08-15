@@ -1,15 +1,34 @@
 import { createAsyncThunk, createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import { School } from "../../app/models/school";
+import { School, SchoolParams } from "../../app/models/school";
 import agent from "../../app/api/agent";
 import { RootState } from "../../app/store/configureStore";
+import { MetaData } from "../../app/models/pagination";
+
+interface SchoolState {
+    schoolsLoaded: boolean
+    status: string
+    schoolParams: SchoolParams
+    metaData: MetaData | null
+}
 
 const schoolAdapter = createEntityAdapter<School>()
 
-export const getAllSchoolsAsync = createAsyncThunk<School[]>(
+function getAxiosParams(schoolParams: SchoolParams) {
+    const params = new URLSearchParams()
+    params.append('pageNumber', schoolParams.pageNumber.toString())
+    params.append('pageSize', schoolParams.pageSize.toString())
+    if (schoolParams.searchTerm) params.append('searchTerm', schoolParams.searchTerm)
+    return params
+}
+
+export const getAllSchoolsAsync = createAsyncThunk<School[], void, {state: RootState}>(
     'school/getAllSchoolsAsync',
     async (_, thunkAPI) => {
+        const params = getAxiosParams(thunkAPI.getState().schools.schoolParams)
         try {
-            return await agent.School.list()
+            const response = await agent.School.list(params)
+            thunkAPI.dispatch(setMetaData(response.metaData))
+            return response.items
         } catch (error: any) {
             return thunkAPI.rejectWithValue({error: error.data})
         }
@@ -27,16 +46,36 @@ export const fetchSchoolAsync = createAsyncThunk<School, number>(
     }
 )
 
+function initParams() {
+    return {
+        pageNumber: 1,
+        pageSize: 10
+    }
+}
+
 export const schoolSlice = createSlice({
     name: 'school',
-    initialState: schoolAdapter.getInitialState({
+    initialState: schoolAdapter.getInitialState<SchoolState>({
         schoolsLoaded: false,
-        status: 'idle'
+        status: 'idle',
+        schoolParams: initParams(),
+        metaData: null
     }),
     reducers: {
-        // setAllSchools: (state, action) => {
-        //     state.allSchools = action.payload
+        // setSchool: (state) => {
+        //     // schoolAdapter.upsertOne(state, action.payload)
+        //     state.schoolsLoaded = false
         // },
+        reloadSchools: (state) => {
+            state.schoolsLoaded = false
+        },
+        setPageNumber: (state, action) => {
+            state.schoolsLoaded = false
+            state.schoolParams = {...state.schoolParams, ...action.payload}
+        },
+        setMetaData: (state, action) => {
+            state.metaData = action.payload
+        }
         // setCurrentSchool: (state, action) => {
         //     state.currentSchool = action.payload
         // },
@@ -71,5 +110,5 @@ export const schoolSlice = createSlice({
     })
 })
 
-// export const {setAllSchools, setCurrentSchool, clearCurrentSchool} = schoolSlice.actions
+export const {reloadSchools, setPageNumber, setMetaData} = schoolSlice.actions
 export const schoolSelectors = schoolAdapter.getSelectors((state: RootState) => state.schools)

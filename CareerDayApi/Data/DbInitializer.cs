@@ -35,6 +35,9 @@ namespace CareerDayApi.Data
                         Zip = "90245",
                         Country = "USA",
                     },
+                    ContactName = "Principal Skinner",
+                    ContactPhone = "(310) 555-0078",
+                    ContactEmail = "pskinner@springfield.com",
                     EstimatedNumOfStudents = 1300
                 },
                 new() {
@@ -46,6 +49,9 @@ namespace CareerDayApi.Data
                         Zip = "12345",
                         Country = "USA",
                     },
+                    ContactName = "Homer Simpson",
+                    ContactPhone = "(310) 555-1239",
+                    ContactEmail = "hsimpson@nuclear.com",
                     EstimatedNumOfStudents = 123
                 }
             };
