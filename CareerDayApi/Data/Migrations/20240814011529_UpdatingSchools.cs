@@ -13,7 +13,7 @@ namespace CareerDayApi.Data.Migrations
             migrationBuilder.DeleteData(
                 table: "AspNetRoles",
                 keyColumn: "Id",
-                keyValue: "c5edf336-70ec-4ff7-a04c-4d40e92e42f5");
+                keyValue: "e39bbb20-8e10-45db-9298-9ae0991b3e5c");
 
             migrationBuilder.AddColumn<string>(
                 name: "ContactEmail",
@@ -62,7 +62,7 @@ namespace CareerDayApi.Data.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "c5edf336-70ec-4ff7-a04c-4d40e92e42f5", null, "Admin", "ADMIN" });
+                values: new object[] { "e39bbb20-8e10-45db-9298-9ae0991b3e5c", null, "Admin", "ADMIN" });
         }
     }
 }
