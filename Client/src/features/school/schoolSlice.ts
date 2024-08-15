@@ -88,6 +88,7 @@ export const schoolSlice = createSlice({
             state.status = 'pendingGetAllSchools'
         })
         builder.addCase(getAllSchoolsAsync.fulfilled, (state, action) => {
+            console.log(action.payload)
             schoolAdapter.setAll(state, action.payload)
             state.schoolsLoaded = true
             state.status = 'idle'
