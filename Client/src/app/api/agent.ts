@@ -101,8 +101,11 @@ const Event = {
 }
 
 const School = {
-    list: () => requests.get('schools'),
-    details: (id: number) => requests.get(`schools/${id}`)
+    list: (params: URLSearchParams) => requests.get('schools', params),
+    details: (id: number) => requests.get(`schools/${id}`),
+    create: (school: any) => requests.post('schools', school),
+    update: (school: any) => requests.putForm('schools', createFormData(school)),
+    delete: (id: number) => requests.delete(`schools/${id}`)
 }
 
 const Speaker = {

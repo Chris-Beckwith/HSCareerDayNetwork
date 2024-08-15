@@ -65,8 +65,6 @@ namespace CareerDayApi.Controllers
             var speaker = _mapper.Map<Speaker>(speakerDto);
             speaker.Careers = careers;
 
-            _logger.LogWarning("speaker address: {address}", speaker.Address);
-
             if (speakerDto.File != null)
             {
                 var imageResult = await _imageService.AddImageAsync(speakerDto.File);

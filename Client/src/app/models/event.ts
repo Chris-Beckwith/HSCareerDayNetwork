@@ -1,3 +1,5 @@
+import { School } from "./school"
+
 export interface CareerEvent {
     id: number
     school: School
@@ -7,23 +9,6 @@ export interface CareerEvent {
     surveyCompletePercent: number
     eventPhase: EventPhase
     isDeleted: boolean
-  }
-  
-  export interface School {
-    id: number
-    name: string
-    address: Address
-    estimatedNumOfStudents: number
-  }
-  
-  export interface Address {
-    id: number
-    address1: string
-    address2?: string
-    city: string
-    state: string
-    zip: string
-    country: string
   }
   
   export interface EventPhase {
