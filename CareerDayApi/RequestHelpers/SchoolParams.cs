@@ -1,6 +1,6 @@
 namespace CareerDayApi.RequestHelpers
 {
-    public class SpeakerParams : PaginationParams
+    public class SchoolParams : PaginationParams
     {
         public string SearchTerm { get; set; }
     }
