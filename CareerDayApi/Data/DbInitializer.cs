@@ -7,15 +7,19 @@ namespace CareerDayApi.Data
     {
         public static async Task Initialize(CareerDayContext context, UserManager<User> userManager)
         {
-            if (!userManager.Users.Any())
+            var admin = await userManager.FindByNameAsync("TempAdmin");
+            
+            if (admin == null)
             {
-                var admin = new User
+                admin = new User
                 {
                     UserName = "TempAdmin",
                     Email = "srappaport@hscareerdaynetwork.com"
                 };
-
                 await userManager.CreateAsync(admin, "P@ssw0rd");
+            }
+            if (!await userManager.IsInRoleAsync(admin, "Admin"))
+            {
                 await userManager.AddToRoleAsync(admin, "Admin");
             }
 

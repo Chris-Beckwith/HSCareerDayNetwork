@@ -48,6 +48,9 @@ axios.interceptors.response.use(async response => {
         case 403:
             toast.error("You are not allowed to do that.")
             break;
+        case 409:
+            toast.error(data.message)
+            break;
         case 500:
             router.navigate('/server-error', {state: {error: data}})
             break;
@@ -117,7 +120,10 @@ const Speaker = {
 
 const Career = {
     list: () => requests.get('careers'),
-    categories: () => requests.get('careers/careerCategories')
+    categories: () => requests.get('careers/careerCategories'),
+    create: (career: any) => requests.post('careers', career),
+    update: (career: any) => requests.putForm('careers', createFormData(career)),
+    delete: (id: number) => requests.delete(`careers/${id}`)
 }
 
 const Account = {

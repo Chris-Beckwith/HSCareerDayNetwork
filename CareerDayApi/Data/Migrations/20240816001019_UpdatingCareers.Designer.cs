@@ -3,6 +3,7 @@ using System;
 using CareerDayApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CareerDayApi.Data.Migrations
 {
     [DbContext(typeof(CareerDayContext))]
-    partial class CareerDayContextModelSnapshot : ModelSnapshot
+    [Migration("20240816001019_UpdatingCareers")]
+    partial class UpdatingCareers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,6 +48,9 @@ namespace CareerDayApi.Data.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Category")
+                        .IsUnique();
 
                     b.HasIndex("CourseId")
                         .IsUnique();
@@ -387,7 +393,7 @@ namespace CareerDayApi.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "ae129b59-05ac-4063-87cb-a3e6903ba701",
+                            Id = "e05810fd-c5c8-4c76-bbc8-2e89e9def423",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });

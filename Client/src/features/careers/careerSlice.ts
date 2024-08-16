@@ -35,7 +35,12 @@ export const careerSlice = createSlice({
         categories: [],
         status: 'idle'
     }),
-    reducers: {},
+    reducers: {
+        reloadCareers: (state) => {
+            state.careersLoaded = false
+            state.categoriesLoaded = false
+        }
+    },
     extraReducers: (builder => {
         builder.addCase(getAllCareersAsync.pending, (state) => {
             state.status = 'pendingGetAllCareers'
@@ -65,4 +70,5 @@ export const careerSlice = createSlice({
 })
 
 export const careerSelectors = careerAdapter.getSelectors((state: RootState) => state.careers)
+export const {reloadCareers} = careerSlice.actions
 
