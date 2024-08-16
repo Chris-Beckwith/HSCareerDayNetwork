@@ -34,6 +34,14 @@ namespace CareerDayApi.Data
                 .HasForeignKey<SpeakerAddress>(a => a.Id)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<Career>()
+                .HasIndex(c => c.CourseId)
+                .IsUnique();
+
+            builder.Entity<Career>()
+                .HasIndex(c => c.Name)
+                .IsUnique();
+
             builder.Entity<IdentityRole>()
                 .HasData(
                     new IdentityRole{Name = "Admin", NormalizedName = "ADMIN"}
