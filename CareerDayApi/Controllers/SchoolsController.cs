@@ -50,7 +50,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult<Speaker>> UpdateSchool([FromForm] UpdateSchoolDto schoolDto)
+        public async Task<ActionResult<School>> UpdateSchool([FromForm] UpdateSchoolDto schoolDto)
         {
             var school = await _context.Schools.FindAsync(schoolDto.Id);
 
