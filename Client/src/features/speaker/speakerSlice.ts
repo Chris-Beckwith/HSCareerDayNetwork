@@ -91,4 +91,4 @@ export const speakerSlice = createSlice({
 })
 
 export const speakerSelectors = speakerAdapter.getSelectors((state: RootState) => state.speakers)
-export const {setSpeaker, removeSpeaker, setPageNumber, setMetaData} = speakerSlice.actions
+export const {setSpeaker, removeSpeaker, setSpeakerParams, setPageNumber, setMetaData} = speakerSlice.actions

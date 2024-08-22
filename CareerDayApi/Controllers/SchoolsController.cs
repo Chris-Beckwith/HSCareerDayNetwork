@@ -21,7 +21,9 @@ namespace CareerDayApi.Controllers
         [HttpGet]
         public async Task<ActionResult<PagedList<School>>> GetSchools([FromQuery]SchoolParams schoolParams)
         {
-            var query = _context.Schools.Include(a => a.Address);
+            var query = _context.Schools
+                .Search(schoolParams.SearchTerm)
+                .Include(a => a.Address);
 
             var schools = await PagedList<School>.ToPagedList(query,
                 schoolParams.PageNumber, schoolParams.PageSize);
