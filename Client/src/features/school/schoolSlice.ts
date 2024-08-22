@@ -62,10 +62,6 @@ export const schoolSlice = createSlice({
         metaData: null
     }),
     reducers: {
-        // setSchool: (state) => {
-        //     // schoolAdapter.upsertOne(state, action.payload)
-        //     state.schoolsLoaded = false
-        // },
         reloadSchools: (state) => {
             state.schoolsLoaded = false
         },
@@ -75,13 +71,11 @@ export const schoolSlice = createSlice({
         },
         setMetaData: (state, action) => {
             state.metaData = action.payload
+        },
+        setSchoolParams: (state, action) => {
+            state.schoolsLoaded = false
+            state.schoolParams = {...state.schoolParams, ...action.payload}
         }
-        // setCurrentSchool: (state, action) => {
-        //     state.currentSchool = action.payload
-        // },
-        // clearCurrentSchool: (state) => {
-        //     state.currentSchool = null
-        // }
     },
     extraReducers: (builder => {
         builder.addCase(getAllSchoolsAsync.pending, (state) => {
@@ -111,5 +105,5 @@ export const schoolSlice = createSlice({
     })
 })
 
-export const {reloadSchools, setPageNumber, setMetaData} = schoolSlice.actions
+export const {reloadSchools, setPageNumber, setMetaData, setSchoolParams} = schoolSlice.actions
 export const schoolSelectors = schoolAdapter.getSelectors((state: RootState) => state.schools)

@@ -24,6 +24,7 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult<PagedList<Speaker>>> GetSpeakers([FromQuery]SpeakerParams speakerParams)
         {
             var query = _context.Speakers
+                .Search(speakerParams.SearchTerm)
                 .Include(a => a.Address)
                 .Include(c => c.Careers);
             
