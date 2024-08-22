@@ -9,6 +9,7 @@ import { School } from "../../app/models/school"
 import AppPagination from "../../app/components/AppPagination"
 import SchoolForm from "./SchoolForm"
 import agent from "../../app/api/agent"
+import SchoolSearch from "./SchoolSearch"
 
 export default function Schools() {
     const schools = useAppSelector(schoolSelectors.selectAll)
@@ -54,6 +55,9 @@ export default function Schools() {
         <>
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
                 <Typography variant="h3">School</Typography>
+                <Box>
+                    <SchoolSearch />
+                </Box>
                 <Button variant="contained" onClick={() => setEditMode(true)}>New School</Button>
             </Box>
             <TableContainer component={Paper}>

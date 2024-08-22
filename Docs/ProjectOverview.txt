@@ -11,7 +11,7 @@ Deploy to Fly.io
 ----------------
 npm run build
 push branch to github
-merge branch to 'main'
+merge branch to 'release'
 
 manually:
 ---------

@@ -9,6 +9,7 @@ import { Delete } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 import agent from "../../app/api/agent"
 import AppPagination from "../../app/components/AppPagination"
+import SpeakerSearch from "./components/SpeakerSearch"
 
 export default function Speakers() {
     const speakers = useAppSelector(speakerSelectors.selectAll)
@@ -51,6 +52,9 @@ export default function Speakers() {
         <>
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
                 <Typography variant="h3">Speakers</Typography>
+                <Box>
+                    <SpeakerSearch />
+                </Box>
                 <Button variant="contained" onClick={() => setEditMode(true)}>New Speaker</Button>
             </Box>
             <TableContainer component={Paper}>
