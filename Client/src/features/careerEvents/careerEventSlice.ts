@@ -1,5 +1,5 @@
 import { createAsyncThunk, createEntityAdapter, createSlice } from "@reduxjs/toolkit"
-import { CareerEvent, EventParams } from "../../app/models/event"
+import { CareerEvent, EventParams, EventPhase } from "../../app/models/event"
 import agent from "../../app/api/agent"
 import { RootState } from "../../app/store/configureStore";
 import { MetaData } from "../../app/models/pagination";
@@ -8,7 +8,7 @@ interface CareerEventState {
     careerEventsLoaded: boolean
     eventPhasesLoaded: boolean
     status: string
-    eventPhases: string[]
+    eventPhases: EventPhase[]
     includeDeleted: boolean
     eventParams: EventParams
     metaData: MetaData | null
@@ -100,6 +100,9 @@ export const careerEventSlice = createSlice({
         },
         setMetaData: (state, action) => {
             state.metaData = action.payload
+        },
+        reloadEvents: (state) => {
+            state.careerEventsLoaded = false
         }
     },
     extraReducers: (builder => {
@@ -142,4 +145,4 @@ export const careerEventSlice = createSlice({
 })
 
 export const careerEventSelectors = careerEventAdapter.getSelectors((state: RootState) => state.careerEvents)
-export const {setEventParams, setPageNumber, resetEventParams, setMetaData} = careerEventSlice.actions
+export const {setEventParams, setPageNumber, resetEventParams, setMetaData, reloadEvents} = careerEventSlice.actions

@@ -1,8 +1,8 @@
-import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { careerEventSelectors, fetchEventPhasesAsync, fetchAllCareerEventsAsync, setEventParams, setPageNumber } from "./careerEventSlice";
-import { useEffect, useState } from "react";
+import { useAppDispatch } from "../../app/store/configureStore";
+import { setEventParams, setPageNumber } from "./careerEventSlice";
+import { useState } from "react";
 import LoadingComponent from "../../app/components/LoadingComponent";
-import { Grid, Paper } from "@mui/material";
+import { Button, Grid, Paper } from "@mui/material";
 import CareerEventSearch from "./CareerEventSearch";
 import RadioButtonGroup from "../../app/components/RadioButtonGroup";
 import CheckboxButtons from "../../app/components/CheckboxButtons";
@@ -13,44 +13,37 @@ import CareerEventCard from "./CareerEventCard";
 import CareerEventCardSkeleton from "./CareerEventCardSkeleton";
 import { CareerEvent } from "../../app/models/event";
 import CareerEventDetails from "./CareerEventDetails";
+import useEvents from "../../app/hooks/useEvents";
+import CareerEventForm from "./CareerEventForm";
 
 const sortOptions = [
     { value: 'name', label: 'Alphabetical' },
-    { value: 'date', label: 'Date - Newest to Oldest' },
-    { value: 'dateDesc', label: 'Date - Oldest to Newest' },
-    { value: 'surveyComplete', label: 'Survey Complete - Highest to Lowest' },
-    { value: 'surveyCompleteDesc', label: 'Survey Complete - Lowest to Highest' },
+    { value: 'date', label: 'Date - Soonest' },
+    { value: 'dateDesc', label: 'Date - Latest' },
+    { value: 'surveyComplete', label: 'Survey Complete - Least' },
+    { value: 'surveyCompleteDesc', label: 'Survey Complete - Most' },
 ]
 
 export default function CareerEvents() {
-    const careerEvents = useAppSelector(careerEventSelectors.selectAll)
-    const { careerEventsLoaded, eventPhasesLoaded, eventPhases, eventParams, metaData } = useAppSelector(state => state.careerEvents)
-    const dispatch = useAppDispatch()
+    const { careerEvents, careerEventsLoaded, eventPhases, eventPhasesLoaded, eventParams, metaData } = useEvents()
     const [selectedEvent, setSelectedEvent] = useState<CareerEvent | undefined>(undefined)
     const [viewMode, setViewMode] = useState(false)
     const [editMode, setEditMode] = useState(false)
-
-    useEffect(() => {
-        if (!careerEventsLoaded) dispatch(fetchAllCareerEventsAsync())
-    }, [careerEventsLoaded, dispatch])
-
-    useEffect(() => {
-        if (!eventPhasesLoaded) dispatch(fetchEventPhasesAsync())
-    }, [eventPhasesLoaded, dispatch])
+    const dispatch = useAppDispatch()
 
     const viewEvent = (event: CareerEvent) => {
         setViewMode(true)
         setSelectedEvent(event)
     }
 
-    const cancelView = () => {
-        setViewMode(false)
-        if (selectedEvent) setSelectedEvent(undefined)
-    }
-
     const editEvent = (event: CareerEvent) => {
         setEditMode(true)
         setSelectedEvent(event)
+    }
+
+    const cancelView = () => {
+        setViewMode(false)
+        if (selectedEvent) setSelectedEvent(undefined)
     }
 
     const cancelEdit = () => {
@@ -60,14 +53,17 @@ export default function CareerEvents() {
 
     if (!eventPhasesLoaded) return <LoadingComponent message="Loading Career Events.." />
 
-    if (viewMode) return <CareerEventDetails careerEvent={selectedEvent} cancelView={cancelView} editEvent={editEvent} cancelEdit={cancelEdit} />
+    if (viewMode) return <CareerEventDetails careerEvent={selectedEvent!} cancelView={cancelView} />
 
-    if (editMode) return <></>
+    if (editMode) return <CareerEventForm selectedEvent={selectedEvent} cancelEdit={cancelEdit} saveEdit={cancelEdit} />
 
     return (
         <Grid container columnSpacing={4}>
             <Grid item xs={3}>
-                <Paper sx={{ mb: 2 }}>
+                <Button onClick={() => setEditMode(true)}
+                    variant="contained"
+                    color="primary">New Event</Button>
+                <Paper sx={{ my: 2 }}>
                     <CareerEventSearch />
                 </Paper>
                 <Paper sx={{ mb: 2, p: 2 }}>
@@ -79,7 +75,7 @@ export default function CareerEvents() {
                 </Paper>
                 <Paper sx={{ mb: 2, p: 2 }}>
                     <CheckboxButtons
-                        items={eventPhases}
+                        items={eventPhases.map(e => e.phaseName)}
                         checked={eventParams.eventPhases}
                         onChange={(items: string[]) => dispatch(setEventParams({ eventPhases: items }))}
                     />
@@ -94,14 +90,14 @@ export default function CareerEvents() {
                 </Paper>
             </Grid>
             <Grid item xs={9}>
-                <Grid container spacing={4}>
+                <Grid container spacing={2}>
                     {careerEvents?.map(event => {
                         return (
                             <Grid item xs={4} key={event.id}>
                                 {!careerEventsLoaded ? (
                                     <CareerEventCardSkeleton />
                                 ) : (
-                                    <CareerEventCard careerEvent={event} viewEvent={viewEvent} />
+                                    <CareerEventCard careerEvent={event} viewEvent={viewEvent} editEvent={editEvent} />
                                 )}
                             </Grid>
                         )

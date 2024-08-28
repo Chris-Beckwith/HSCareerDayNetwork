@@ -124,3 +124,5 @@ npm install react-hook-form
 npm install @hookform/resolvers yup
 npm install @mui/lab
 npm install react-dropzone
+npm install dayjs
+npm install @mui/x-date-pickers
