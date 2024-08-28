@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Controllers
 {
-    public class EventsController(CareerDayContext context) : BaseApiController
+    public class EventsController(CareerDayContext context,
+        ILogger<EventsController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
+        private readonly ILogger<EventsController> _logger = logger;
 
         [HttpGet]
         public async Task<ActionResult<PagedList<Event>>> GetEvents([FromQuery]CareerEventParams careerEventParams)
@@ -46,32 +48,29 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Event>> CreateEvent(EventDto eventDto)
+        public async Task<ActionResult<Event>> CreateEvent([FromForm] EventDto eventDto)
         {
-            EventPhase eventPhase = await _context.EventPhases.FindAsync(eventDto.EventPhaseId);
-            School school = await _context.Schools.FindAsync(eventDto.SchoolId);
-
-            List<Speaker> speakers = await _context.Speakers.Where(s => eventDto.SpeakerIds.Any(id => id == s.Id)).ToListAsync();
+            EventPhase eventPhase = await _context.EventPhases.FindAsync(eventDto.EventPhase.Id);
+            School school = await _context.Schools.FindAsync(eventDto.School.Id);
 
             if (eventPhase == null) {
+                _logger.LogError("Error creating new Event: Event Phase not found: {eventPhase}", eventDto.EventPhase);
                 return BadRequest(new ProblemDetails{Title = "Problem creating new event: Event Phase not found"});
             }
             if (school == null) {
+                _logger.LogError("Error creating new Event: School not found: {school}", eventDto.School);
                 return BadRequest(new ProblemDetails{Title = "Problem creating new event: School not found"});
             }
-            if (speakers == null) {
-                return BadRequest(new ProblemDetails{Title = "Problem creating new event: Speakers not found"});
-            }
 
+            //TODO create mapper
             Event newEvent = new()
             {
+                School = school,
+                EventDate = eventDto.EventDate,
                 Name = eventDto.Name,
                 Description = eventDto.Description,
-                SurveyCompletePercent = eventDto.SurveyCompletePercent,
+                SurveyCompletePercent = 0,
                 EventPhase = eventPhase,
-                Speakers = speakers,
-                School = school,
-                EventDate = eventDto.EventDate
             };
             _context.Events.Add(newEvent);
             
@@ -86,7 +85,55 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails{Title = "Problem creating new event"});
         }
 
-        [HttpPut]
+        [HttpPut("update")]
+        public async Task<ActionResult<Event>> UpdateEvent([FromForm] UpdateEventDto updateEventDto)
+        {
+            var updateEvent = await _context.Events.FindAsync(updateEventDto.Id);
+            if (updateEvent == null) return NotFound();
+
+            EventPhase eventPhase = await _context.EventPhases.FindAsync(updateEventDto.EventPhase.Id);
+            School school = await _context.Schools.FindAsync(updateEventDto.School.Id);
+            List<Speaker> speakers = await _context.Speakers.Where(s => updateEventDto.SpeakerIds.Any(id => id == s.Id)).ToListAsync();
+            List<Career> careers = await _context.Careers.Where(c => updateEventDto.CareerIds.Any(id => id == c.Id)).ToListAsync();
+
+            if (eventPhase == null) {
+                _logger.LogError("Error updating new Event: Event Phase not found: {eventPhase}, {eventName}, {eventId}",
+                    updateEventDto.EventPhase, updateEventDto.Name, updateEventDto.Id);
+                return BadRequest(new ProblemDetails{Title = "Problem creating new event: Event Phase not found"});
+            }
+            if (school == null) {
+                _logger.LogError("Error updating new Event: School not found: {school}, {eventName}, {eventId}",
+                    updateEventDto.School, updateEventDto.Name, updateEventDto.Id);
+                return BadRequest(new ProblemDetails{Title = "Problem creating new event: School not found"});
+            }
+            if (speakers == null) {
+                _logger.LogError("Error updating new Event: Speakers not found: {speakerIds}, {eventName}, {eventId}",
+                    updateEventDto.SpeakerIds, updateEventDto.Name, updateEventDto.Id);
+                return BadRequest(new ProblemDetails{Title = "Problem creating new event: Speakers not found"});
+            }
+            if (careers == null) {
+                _logger.LogError("Error updating new Event: Careers not found: {careerIds}, {eventName}, {eventId}",
+                    updateEventDto.CareerIds, updateEventDto.Name, updateEventDto.Id);
+                return BadRequest(new ProblemDetails{Title = "Problem creating new event: Careers not found"});
+            }
+
+            updateEvent.School = school;
+            updateEvent.EventDate = updateEventDto.EventDate;
+            updateEvent.Name = updateEventDto.Name;
+            updateEvent.Description = updateEventDto.Description;
+            updateEvent.SurveyCompletePercent = updateEventDto.SurveyCompletePercent;
+            updateEvent.EventPhase = eventPhase;
+            updateEvent.Speakers = speakers;
+            updateEvent.Careers = careers;
+
+            var result = await _context.SaveChangesAsync() > 0;
+
+            if (result) return Ok(updateEvent);
+
+            return BadRequest(new ProblemDetails { Title = "Problem updating Event" });
+        }
+
+        [HttpPut("delete")]
         public async void DeleteEvent(int eventId)
         {
             var singleEvent = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId);
@@ -95,10 +142,10 @@ namespace CareerDayApi.Controllers
             _context.SaveChanges();
         }
 
-        [HttpGet("eventPhases")]
-        public async Task<ActionResult<string[]>> GetEventPhases()
+        [HttpGet("phases")]
+        public async Task<ActionResult<EventPhase[]>> GetEventPhases()
         {
-            var eventPhases = await _context.EventPhases.Select(e => e.PhaseName).Distinct().ToListAsync();
+            var eventPhases = await _context.EventPhases.Select(e => e).Distinct().ToListAsync();
 
             return Ok(eventPhases);
         }

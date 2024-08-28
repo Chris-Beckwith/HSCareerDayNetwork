@@ -1,7 +1,7 @@
 import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material"
-import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
-import { getAllSchoolsAsync, reloadSchools, schoolSelectors, setPageNumber } from "./schoolSlice"
-import { MouseEvent, useEffect, useState } from "react"
+import { useAppDispatch } from "../../app/store/configureStore"
+import { reloadSchools, setPageNumber } from "./schoolSlice"
+import { MouseEvent, useState } from "react"
 import LoadingComponent from "../../app/components/LoadingComponent"
 import { Delete } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
@@ -10,20 +10,16 @@ import AppPagination from "../../app/components/AppPagination"
 import SchoolForm from "./SchoolForm"
 import agent from "../../app/api/agent"
 import SchoolSearch from "./SchoolSearch"
+import useSchools from "../../app/hooks/useSchools"
 
 export default function Schools() {
-    const schools = useAppSelector(schoolSelectors.selectAll)
-    const {schoolsLoaded, status, metaData} = useAppSelector(state => state.schools)
+    const { schools, status, metaData } = useSchools()
     const dispatch = useAppDispatch()
 
     const [editMode, setEditMode] = useState(false)
     const [loading, setLoading] = useState(false)
     const [target, setTarget] = useState(0)
     const [selectedSchool, setSelectedSchool] = useState<School | undefined>(undefined)
-
-    useEffect(() => {
-        if (!schoolsLoaded) dispatch(getAllSchoolsAsync())
-        }, [schoolsLoaded, dispatch])
     
     function handleSelectSchool(school: School) {
         setSelectedSchool(school)
