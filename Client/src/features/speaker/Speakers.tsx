@@ -1,8 +1,8 @@
 import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material"
-import { MouseEvent, useEffect, useState } from "react"
-import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
+import { MouseEvent, useState } from "react"
+import { useAppDispatch } from "../../app/store/configureStore"
 import LoadingComponent from "../../app/components/LoadingComponent"
-import { getAllSpeakersAsync, removeSpeaker, setPageNumber, speakerSelectors } from "./speakerSlice"
+import { removeSpeaker, setPageNumber } from "./speakerSlice"
 import { Speaker } from "../../app/models/speaker"
 import SpeakerForm from "./SpeakerForm"
 import { Delete } from "@mui/icons-material"
@@ -10,19 +10,15 @@ import { LoadingButton } from "@mui/lab"
 import agent from "../../app/api/agent"
 import AppPagination from "../../app/components/AppPagination"
 import SpeakerSearch from "./components/SpeakerSearch"
+import useSpeakers from "../../app/hooks/useSpeakers"
 
 export default function Speakers() {
-    const speakers = useAppSelector(speakerSelectors.selectAll)
     const dispatch = useAppDispatch();
-    const { speakersLoaded, status, metaData } = useAppSelector(state => state.speakers)
+    const { speakers, speakersLoaded, status, metaData } = useSpeakers()
     const [editMode, setEditMode] = useState(false)
     const [loading, setLoading] = useState(false)
     const [target, setTarget] = useState(0)
     const [selectedSpeaker, setSelectedSpeaker] = useState<Speaker | undefined>(undefined)
-
-    useEffect(() => {
-        if (!speakersLoaded) dispatch(getAllSpeakersAsync())
-    }, [speakersLoaded, dispatch])
 
     function handleSelectSpeaker(speaker: Speaker) {
         setSelectedSpeaker(speaker)

@@ -100,7 +100,10 @@ function createFormData(item: any, parentKey?: string) {
 const Event = {
     list: (params: URLSearchParams) => requests.get('events', params),
     details: (id: number) => requests.get(`events/${id}`),
-    eventPhases: () => requests.get('events/eventPhases')
+    create: (careerEvent: any) => requests.postForm('events', createFormData(careerEvent)),
+    update: (careerEvent: any) => requests.putForm('events/update', createFormData(careerEvent)),
+    delete: (id: number) => requests.delete(`events/${id}`),
+    eventPhases: () => requests.get('events/phases')
 }
 
 const School = {

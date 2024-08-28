@@ -1,4 +1,6 @@
+import { Career } from "./career"
 import { School } from "./school"
+import { Speaker } from "./speaker"
 
 export interface CareerEvent {
     id: number
@@ -8,6 +10,8 @@ export interface CareerEvent {
     description: string
     surveyCompletePercent: number
     eventPhase: EventPhase
+    speakers: Speaker[]
+    careers: Career[]
     isDeleted: boolean
   }
   
