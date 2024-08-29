@@ -11,17 +11,24 @@ import CareerEventForm from "./CareerEventForm";
 import { useState } from "react";
 import useEvents from "../../app/hooks/useEvents";
 import LoadingComponent from "../../app/components/LoadingComponent";
+import ConfirmDelete from "../../app/components/ConfirmDelete";
+import CareerEventSpeakers from "./components/CareerEventSpeakers";
+import { Speaker } from "../../app/models/speaker";
 
 interface Props {
-    careerEvent: CareerEvent,
+    careerEvent: CareerEvent
     cancelView: () => void
+    closeSpeakers: (speakers: Speaker[]) => void
 }
 
-export default function CareerEventDetails({careerEvent, cancelView}: Props) {
+export default function CareerEventDetails({ careerEvent, cancelView, closeSpeakers }: Props) {
     const dispatch = useAppDispatch()
     const { careerEventsLoaded } = useEvents()
     const [editMode, setEditMode] = useState(false)
+    const [deleteMode, setDeleteMode] = useState(false)
+    const [speakerMode, setSpeakerMode] = useState(false)
     const { eventPhases } = useAppSelector(state => state.careerEvents)
+    const date = new Date(careerEvent.eventDate)
 
     const cancelEdit = () => {
         setEditMode(false)
@@ -31,12 +38,49 @@ export default function CareerEventDetails({careerEvent, cancelView}: Props) {
         setEditMode(false)
         cancelView()
     }
-    
+
+    const backFromSpeakers = () => {
+        setSpeakerMode(false)
+    }
+
+    const deleteEvent = () => {
+        setDeleteMode(true)
+    }
+
+    const cancelDelete = () => {
+        setDeleteMode(false)
+    }
+
+    async function restoreEvent() {
+        await agent.Event.restore(careerEvent.id)
+        dispatch(reloadEvents())
+        cancelView()
+    }
+
+    async function confirmDelete() {
+        try {
+            if (careerEvent) {
+                console.log("Confirm Delete")
+                await agent.Event.delete(careerEvent.id)
+                dispatch(reloadEvents())
+                setDeleteMode(false)
+                cancelView()
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     if (!careerEventsLoaded) return <LoadingComponent message="Loading Career Events.." />
 
     if (!careerEvent) return <NotFound />
 
     if (editMode) return <CareerEventForm selectedEvent={careerEvent} cancelEdit={cancelEdit} saveEdit={saveEdit} />
+
+    if (speakerMode) return <CareerEventSpeakers
+                                careerEventName={careerEvent.name}
+                                careerEventSpeakers={careerEvent.speakers}
+                                closeSpeakers={closeSpeakers} back={backFromSpeakers}/>
 
     const nextEventPhaseText = () => {
         switch (careerEvent.eventPhase.phaseName) {
@@ -68,7 +112,7 @@ export default function CareerEventDetails({careerEvent, cancelView}: Props) {
     const findNextEventPhaseId = (phaseName: string) => {
         let eventPhase;
         switch (phaseName) {
-            case EVENT_PHASES.CREATED: 
+            case EVENT_PHASES.CREATED:
                 eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYINPROGRESS)
                 break;
             case EVENT_PHASES.SURVEYINPROGRESS:
@@ -155,8 +199,6 @@ export default function CareerEventDetails({careerEvent, cancelView}: Props) {
         }
     }
 
-    const date = new Date(careerEvent.eventDate)
-
     return (
         <Grid container spacing={6}>
             <Grid container item xs={12}>
@@ -168,7 +210,7 @@ export default function CareerEventDetails({careerEvent, cancelView}: Props) {
                             <Button
                                 variant="contained"
                                 color="error">
-                                    {prevEventPhaseText()}
+                                {prevEventPhaseText()}
                             </Button>
                         }
                     </Grid>
@@ -176,21 +218,21 @@ export default function CareerEventDetails({careerEvent, cancelView}: Props) {
                         <Button onClick={progressEventPhaseAction}
                             variant="contained"
                             color="primary">
-                                {nextEventPhaseText()}
+                            {nextEventPhaseText()}
                         </Button>
                     </Grid>
                     <Grid item xs={12}>
                         <Button onClick={() => setEditMode(true)}
-                            variant="contained" 
+                            variant="contained"
                             color="secondary">
-                                Edit Event
+                            Edit Event
                         </Button>
                     </Grid>
                     <Grid item xs={12}>
                         <Button onClick={cancelView}
-                            variant="contained" 
+                            variant="contained"
                             color="inherit">
-                                Back
+                            Back
                         </Button>
                     </Grid>
                     <Grid item xs={12}></Grid>
@@ -201,6 +243,10 @@ export default function CareerEventDetails({careerEvent, cancelView}: Props) {
                 <Grid container item xs={8} rowSpacing={4}>
                     <Grid item xs={12} display='flex' justifyContent='center'>
                         <Typography variant="h3">{careerEvent.name}</Typography>
+                    </Grid>
+                    <Grid item xs={12} display='flex' justifyContent='center'>
+                        {careerEvent.isDeleted &&
+                            <Typography variant="h5" color="error">This Event is marked as deleted</Typography>}
                     </Grid>
 
                     <Grid item xs={6} display='flex' justifyContent='center'>
@@ -214,7 +260,7 @@ export default function CareerEventDetails({careerEvent, cancelView}: Props) {
 
                     <Grid container item xs={6}>
                         <Grid item xs={12} display='flex' justifyContent='center'>
-                        {careerEvent.school.address.address1} {careerEvent.school.address.address2}
+                            {careerEvent.school.address.address1} {careerEvent.school.address.address2}
                         </Grid>
                         <Grid item xs={12} display='flex' justifyContent='center'>
                             {careerEvent.school.address.city}, {careerEvent.school.address.state} {careerEvent.school.address.zip}
@@ -228,30 +274,48 @@ export default function CareerEventDetails({careerEvent, cancelView}: Props) {
                         </Grid>
                     </Grid>
 
-                    <Grid item xs={12} sx={{pl: 0}}>
-                        <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 1}}>
+                    <Grid item xs={12} sx={{ pl: 0 }}>
+                        <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
                             <Typography>Event Phase: <strong>{careerEvent.eventPhase.phaseName}</strong></Typography>
-                            <Typography sx={{mr: 2}}>Survey Progress</Typography>
+                            <Typography sx={{ mr: 2 }}>Survey Progress</Typography>
                         </Box>
                         <LinearProgressWithLabel value={careerEvent.surveyCompletePercent} />
                     </Grid>
 
-                    <Grid item xs={12} sx={{pl: 0}}>
-                        <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 1}}>
+                    <Grid item xs={12} sx={{ pl: 0 }}>
+                        <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
                             <Button
-                                variant="contained" 
+                                variant="contained"
                                 color="primary">
-                                    View Careers
+                                Careers
                             </Button>
-                            <Button
-                                variant="contained" 
+                            <Button onClick={() => setSpeakerMode(true)}
+                                variant="contained"
                                 color="primary">
-                                    View Speakers
+                                Speakers
                             </Button>
                         </Box>
                     </Grid>
                 </Grid>
+                <Grid container item xs={2}>
+                    <Grid item xs={12}></Grid>
+                    <Grid item xs={12}>
+                        <Button onClick={careerEvent.isDeleted ? restoreEvent : deleteEvent}
+                            variant="contained"
+                            color={careerEvent.isDeleted ? "success" : "error"}>
+                            {careerEvent.isDeleted ? "Restore Event" : "Delete Event"}
+                        </Button>
+                    </Grid>
+                    <Grid item xs={12}></Grid>
+                    <Grid item xs={12}></Grid>
+                    <Grid item xs={12}></Grid>
+                    <Grid item xs={12}></Grid>
+                    <Grid item xs={12}></Grid>
+                    <Grid item xs={12}></Grid>
+                </Grid>
             </Grid>
+            <ConfirmDelete open={deleteMode} itemName={careerEvent.name} itemType="Event"
+                handleClose={cancelDelete} confirmDelete={confirmDelete} />
         </Grid>
     )
 }

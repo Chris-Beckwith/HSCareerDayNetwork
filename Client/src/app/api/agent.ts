@@ -66,6 +66,7 @@ const requests = {
     post: (url: string, body: object) => axios.post(url, body).then(responseBody),
     put: (url: string, body: object) => axios.put(url, body).then(responseBody),
     delete: (url: string) => axios.delete(url).then(responseBody),
+    deleteEvent: (url: string) => axios.put(url).then(responseBody),
     postForm: (url: string, data: FormData) => axios.post(url, data, {
         headers: {'Content-Type': 'multipart/form-data'}
     }).then(responseBody),
@@ -102,7 +103,8 @@ const Event = {
     details: (id: number) => requests.get(`events/${id}`),
     create: (careerEvent: any) => requests.postForm('events', createFormData(careerEvent)),
     update: (careerEvent: any) => requests.putForm('events/update', createFormData(careerEvent)),
-    delete: (id: number) => requests.delete(`events/${id}`),
+    delete: (id: number) => requests.deleteEvent(`events/${id}/${true}`),
+    restore: (id: number) => requests.deleteEvent(`events/${id}/${false}`),
     eventPhases: () => requests.get('events/phases')
 }
 

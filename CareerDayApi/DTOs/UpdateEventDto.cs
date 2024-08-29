@@ -22,7 +22,7 @@ namespace CareerDayApi.DTOs
 
         [Required]
         public EventPhase EventPhase { get; set; }
-        public List<int> SpeakerIds { get; set; }
-        public List<int> CareerIds { get; set; }
+        public List<Speaker> Speakers { get; set; }
+        public List<Career> Careers { get; set; }
     }
 }
