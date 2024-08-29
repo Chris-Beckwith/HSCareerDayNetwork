@@ -1,6 +1,6 @@
 import { FormGroup, FormControlLabel, Checkbox } from "@mui/material";
-import { useAppDispatch } from "../../app/store/configureStore";
-import { setEventParams } from "./careerEventSlice";
+import { useAppDispatch } from "../../../app/store/configureStore";
+import { setEventParams } from "../careerEventSlice";
 
 interface Props {
     isChecked: boolean

@@ -23,7 +23,9 @@ namespace CareerDayApi.Controllers
                 .Filter(careerEventParams.EventPhases, careerEventParams.SurveyCompletePercent, careerEventParams.IsDeleted)
                 .AsQueryable()
                 .Include(e => e.School).ThenInclude(s => s.Address)
-                .Include(e => e.EventPhase);
+                .Include(e => e.EventPhase)
+                .Include(e => e.Speakers)
+                .Include(e => e.Careers);
 
             var events = await PagedList<Event>.ToPagedList(query, 
                 careerEventParams.PageNumber, careerEventParams.PageSize);
@@ -88,13 +90,30 @@ namespace CareerDayApi.Controllers
         [HttpPut("update")]
         public async Task<ActionResult<Event>> UpdateEvent([FromForm] UpdateEventDto updateEventDto)
         {
-            var updateEvent = await _context.Events.FindAsync(updateEventDto.Id);
+            var updateEvent = await _context.Events
+                                            .Include(e => e.Speakers)
+                                            .Include(e => e.Careers)
+                                            .FirstOrDefaultAsync(e => e.Id == updateEventDto.Id);
             if (updateEvent == null) return NotFound();
 
             EventPhase eventPhase = await _context.EventPhases.FindAsync(updateEventDto.EventPhase.Id);
             School school = await _context.Schools.FindAsync(updateEventDto.School.Id);
-            List<Speaker> speakers = await _context.Speakers.Where(s => updateEventDto.SpeakerIds.Any(id => id == s.Id)).ToListAsync();
-            List<Career> careers = await _context.Careers.Where(c => updateEventDto.CareerIds.Any(id => id == c.Id)).ToListAsync();
+            List<Speaker> newSpeakers = [];
+            if (updateEventDto.Speakers != null && updateEventDto.Speakers.Count != 0) {
+                newSpeakers = await _context.Speakers
+                                            .Where(s => updateEventDto.Speakers
+                                                            .Select(dto => dto.Id)
+                                                            .Contains(s.Id))
+                                            .ToListAsync();
+            }
+            List<Career> newCareers = [];
+            if (updateEventDto.Careers != null && updateEventDto.Careers.Count != 0) {
+                newCareers = await _context.Careers
+                                            .Where(c => updateEventDto.Careers
+                                                            .Select(dto => dto.Id)
+                                                            .Contains(c.Id))
+                                            .ToListAsync();
+            }
 
             if (eventPhase == null) {
                 _logger.LogError("Error updating new Event: Event Phase not found: {eventPhase}, {eventName}, {eventId}",
@@ -106,15 +125,50 @@ namespace CareerDayApi.Controllers
                     updateEventDto.School, updateEventDto.Name, updateEventDto.Id);
                 return BadRequest(new ProblemDetails{Title = "Problem creating new event: School not found"});
             }
-            if (speakers == null) {
-                _logger.LogError("Error updating new Event: Speakers not found: {speakerIds}, {eventName}, {eventId}",
-                    updateEventDto.SpeakerIds, updateEventDto.Name, updateEventDto.Id);
+            if (newSpeakers == null) {
+                _logger.LogError("Error updating new Event: Speakers not found: {speakers}, {eventName}, {eventId}",
+                    updateEventDto.Speakers, updateEventDto.Name, updateEventDto.Id);
                 return BadRequest(new ProblemDetails{Title = "Problem creating new event: Speakers not found"});
             }
-            if (careers == null) {
-                _logger.LogError("Error updating new Event: Careers not found: {careerIds}, {eventName}, {eventId}",
-                    updateEventDto.CareerIds, updateEventDto.Name, updateEventDto.Id);
+            if (newCareers == null) {
+                _logger.LogError("Error updating new Event: Careers not found: {careers}, {eventName}, {eventId}",
+                    updateEventDto.Careers, updateEventDto.Name, updateEventDto.Id);
                 return BadRequest(new ProblemDetails{Title = "Problem creating new event: Careers not found"});
+            }
+
+            // Update Speakers
+            var existingSpeakerIds = updateEvent.Speakers.Select(s => s.Id).ToHashSet();
+            var newSpeakerIds = newSpeakers.Select(s => s.Id).ToHashSet();
+            _logger.LogWarning("Existing Speakers: {existingSpeakers}", updateEvent.Speakers.ToList());
+            _logger.LogWarning("New Speakers: {newSpeakers}", newSpeakers.ToList());
+
+            var speakersToRemove = updateEvent.Speakers.Where(s => !newSpeakerIds.Contains(s.Id)).ToList();
+            foreach (var speaker in speakersToRemove)
+            {
+                updateEvent.Speakers.Remove(speaker);
+            }
+
+            var speakersToAdd = newSpeakers.Where(s => !existingSpeakerIds.Contains(s.Id)).ToList();
+            _logger.LogWarning("Speakers to add: {speakersToAdd}", speakersToAdd);
+            foreach (var speaker in speakersToAdd)
+            {
+                updateEvent.Speakers.Add(speaker);
+            }
+
+            // Update Careers
+            var existingCareerIds = updateEvent.Careers.Select(c => c.Id).ToHashSet();
+            var newCareerIds = newCareers.Select(c => c.Id).ToHashSet();
+
+            var careersToRemove = updateEvent.Careers.Where(c => !newCareerIds.Contains(c.Id)).ToList();
+            foreach (var career in careersToRemove)
+            {
+                updateEvent.Careers.Remove(career);
+            }
+
+            var careersToAdd = newCareers.Where(c => !existingCareerIds.Contains(c.Id)).ToList();
+            foreach (var career in careersToAdd)
+            {
+                updateEvent.Careers.Add(career);
             }
 
             updateEvent.School = school;
@@ -123,8 +177,6 @@ namespace CareerDayApi.Controllers
             updateEvent.Description = updateEventDto.Description;
             updateEvent.SurveyCompletePercent = updateEventDto.SurveyCompletePercent;
             updateEvent.EventPhase = eventPhase;
-            updateEvent.Speakers = speakers;
-            updateEvent.Careers = careers;
 
             var result = await _context.SaveChangesAsync() > 0;
 
@@ -133,13 +185,21 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails { Title = "Problem updating Event" });
         }
 
-        [HttpPut("delete")]
-        public async void DeleteEvent(int eventId)
+        [HttpPut("{eventId}/{isDeleted}")]
+        public async Task<ActionResult<Event>> DeleteEvent(int eventId, bool isDeleted)
         {
             var singleEvent = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId);
-            singleEvent.IsDeleted = true;
 
-            _context.SaveChanges();
+            if (singleEvent != null) {
+                singleEvent.IsDeleted = isDeleted;
+
+                var result = await _context.SaveChangesAsync() > 0;
+
+                if (result) return Ok(singleEvent);   
+            }
+
+            _logger.LogError("Error deleting Event: {eventId}", singleEvent.Id);
+            return BadRequest(new ProblemDetails { Title = "Problem deleting Event" });
         }
 
         [HttpGet("phases")]
