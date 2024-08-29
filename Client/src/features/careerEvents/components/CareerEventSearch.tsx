@@ -1,7 +1,7 @@
 import { TextField, debounce } from "@mui/material";
-import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { setEventParams } from "./careerEventSlice";
 import { useState } from "react";
+import { useAppSelector, useAppDispatch } from "../../../app/store/configureStore";
+import { setEventParams } from "../careerEventSlice";
 
 export default function CareerEventSearch() {
     const {eventParams} = useAppSelector(state => state.careerEvents)

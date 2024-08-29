@@ -44,8 +44,6 @@ export default function Schools() {
     if (status.includes('pending')) return <LoadingComponent message="Loading Schools.." />
     
     if (editMode) return <SchoolForm school={selectedSchool} cancelEdit={cancelEdit} />
-
-    console.log(schools)
     
     return (
         <>

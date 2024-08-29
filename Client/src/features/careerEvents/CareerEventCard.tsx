@@ -8,9 +8,10 @@ interface Props {
     careerEvent: CareerEvent,
     viewEvent: (event: CareerEvent) => void
     editEvent: (event: CareerEvent) => void
+    openSpeakers: (event: CareerEvent) => void
 }
 
-export default function CareerEventCard({ careerEvent, viewEvent, editEvent }: Props) {
+export default function CareerEventCard({ careerEvent, viewEvent, editEvent, openSpeakers }: Props) {
     const date = dayjs(careerEvent.eventDate).toDate()
 
     return (
@@ -42,7 +43,7 @@ export default function CareerEventCard({ careerEvent, viewEvent, editEvent }: P
             </CardContent>
             <CardActions disableSpacing>
                 <Button size="small">Careers</Button>
-                <Button sx={{ml: 2}} size="small">Speakers</Button>
+                <Button sx={{ml: 2}} onClick={() => openSpeakers(careerEvent)} size="small">Speakers</Button>
                 <Button sx={{ml: 1}} onClick={() => viewEvent(careerEvent)} size="small">View</Button>
                 <Button sx={{ml: -1, pl: 0}} size="small" onClick={() => editEvent(careerEvent)}><Edit /></Button>
             </CardActions>

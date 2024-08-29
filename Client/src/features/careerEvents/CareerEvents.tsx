@@ -1,20 +1,23 @@
 import { useAppDispatch } from "../../app/store/configureStore";
-import { setEventParams, setPageNumber } from "./careerEventSlice";
+import { reloadEvents, setEventParams, setPageNumber } from "./careerEventSlice";
 import { useState } from "react";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import { Button, Grid, Paper } from "@mui/material";
-import CareerEventSearch from "./CareerEventSearch";
 import RadioButtonGroup from "../../app/components/RadioButtonGroup";
 import CheckboxButtons from "../../app/components/CheckboxButtons";
 import AppPagination from "../../app/components/AppPagination";
-import SurveyCompleteSlider from "./SurveyCompleteSlider";
-import IncludeDeletedCheckbox from "./IncludeDeletedCheckbox";
 import CareerEventCard from "./CareerEventCard";
 import CareerEventCardSkeleton from "./CareerEventCardSkeleton";
 import { CareerEvent } from "../../app/models/event";
 import CareerEventDetails from "./CareerEventDetails";
 import useEvents from "../../app/hooks/useEvents";
 import CareerEventForm from "./CareerEventForm";
+import CareerEventSearch from "./components/CareerEventSearch";
+import IncludeDeletedCheckbox from "./components/IncludeDeletedCheckbox";
+import SurveyCompleteSlider from "./components/SurveyCompleteSlider";
+import agent from "../../app/api/agent";
+import { Speaker } from "../../app/models/speaker";
+import CareerEventSpeakers from "./components/CareerEventSpeakers";
 
 const sortOptions = [
     { value: 'name', label: 'Alphabetical' },
@@ -29,6 +32,7 @@ export default function CareerEvents() {
     const [selectedEvent, setSelectedEvent] = useState<CareerEvent | undefined>(undefined)
     const [viewMode, setViewMode] = useState(false)
     const [editMode, setEditMode] = useState(false)
+    const [speakerMode, setSpeakerMode] = useState(false)
     const dispatch = useAppDispatch()
 
     const viewEvent = (event: CareerEvent) => {
@@ -51,11 +55,44 @@ export default function CareerEvents() {
         if (selectedEvent) setSelectedEvent(undefined)
     }
 
+    const openSpeakers = (event: CareerEvent) => {
+        setSpeakerMode(true)
+        setSelectedEvent(event)
+    }
+
+    const backFromSpeakers = () => {
+        setSpeakerMode(false)
+        if (selectedEvent) setSelectedEvent(undefined)
+    }
+
+    async function closeSpeakers(speakers: Speaker[]) {
+        try {
+            if (selectedEvent) {
+                const updateCareerEvent: CareerEvent = {
+                    ...selectedEvent,
+                    speakers: speakers
+                }
+                await agent.Event.update(updateCareerEvent)
+                dispatch(reloadEvents())
+            }
+            setSpeakerMode(false)
+            cancelView()
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     if (!eventPhasesLoaded) return <LoadingComponent message="Loading Career Events.." />
 
-    if (viewMode) return <CareerEventDetails careerEvent={selectedEvent!} cancelView={cancelView} />
+    if (viewMode) return <CareerEventDetails careerEvent={selectedEvent!}
+                            cancelView={cancelView} 
+                            closeSpeakers={closeSpeakers} />
 
     if (editMode) return <CareerEventForm selectedEvent={selectedEvent} cancelEdit={cancelEdit} saveEdit={cancelEdit} />
+
+    if (speakerMode) return <CareerEventSpeakers careerEventName={selectedEvent!.name}
+                                careerEventSpeakers={selectedEvent!.speakers}
+                                closeSpeakers={closeSpeakers} back={backFromSpeakers} />
 
     return (
         <Grid container columnSpacing={4}>
@@ -97,7 +134,7 @@ export default function CareerEvents() {
                                 {!careerEventsLoaded ? (
                                     <CareerEventCardSkeleton />
                                 ) : (
-                                    <CareerEventCard careerEvent={event} viewEvent={viewEvent} editEvent={editEvent} />
+                                    <CareerEventCard careerEvent={event} viewEvent={viewEvent} editEvent={editEvent} openSpeakers={openSpeakers} />
                                 )}
                             </Grid>
                         )

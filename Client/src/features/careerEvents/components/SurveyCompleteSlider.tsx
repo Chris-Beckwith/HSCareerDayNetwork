@@ -1,7 +1,7 @@
 import { Box, FormLabel, Grid, Slider, Input } from "@mui/material";
 import { useState } from "react";
-import { setEventParams } from "./careerEventSlice";
-import { useAppDispatch } from "../../app/store/configureStore";
+import { useAppDispatch } from "../../../app/store/configureStore";
+import { setEventParams } from "../careerEventSlice";
 
 interface Props {
     surveyComplete: string
