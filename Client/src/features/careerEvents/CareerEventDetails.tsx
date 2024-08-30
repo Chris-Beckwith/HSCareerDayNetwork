@@ -14,19 +14,22 @@ import LoadingComponent from "../../app/components/LoadingComponent";
 import ConfirmDelete from "../../app/components/ConfirmDelete";
 import CareerEventSpeakers from "./components/CareerEventSpeakers";
 import { Speaker } from "../../app/models/speaker";
+import CareerEventCareers from "./components/CareerEventCareers";
+import { Career } from "../../app/models/career";
 
 interface Props {
     careerEvent: CareerEvent
     cancelView: () => void
-    closeSpeakers: (speakers: Speaker[]) => void
+    updateCareerEvent: (speakers?: Speaker[], careers?: Career[]) => void
 }
 
-export default function CareerEventDetails({ careerEvent, cancelView, closeSpeakers }: Props) {
+export default function CareerEventDetails({ careerEvent, cancelView, updateCareerEvent }: Props) {
     const dispatch = useAppDispatch()
     const { careerEventsLoaded } = useEvents()
     const [editMode, setEditMode] = useState(false)
     const [deleteMode, setDeleteMode] = useState(false)
     const [speakerMode, setSpeakerMode] = useState(false)
+    const [careerMode, setCareerMode] = useState(false)
     const { eventPhases } = useAppSelector(state => state.careerEvents)
     const date = new Date(careerEvent.eventDate)
 
@@ -39,8 +42,9 @@ export default function CareerEventDetails({ careerEvent, cancelView, closeSpeak
         cancelView()
     }
 
-    const backFromSpeakers = () => {
+    const back = () => {
         setSpeakerMode(false)
+        setCareerMode(false)
     }
 
     const deleteEvent = () => {
@@ -80,7 +84,12 @@ export default function CareerEventDetails({ careerEvent, cancelView, closeSpeak
     if (speakerMode) return <CareerEventSpeakers
                                 careerEventName={careerEvent.name}
                                 careerEventSpeakers={careerEvent.speakers}
-                                closeSpeakers={closeSpeakers} back={backFromSpeakers}/>
+                                updateCareerEvent={updateCareerEvent} back={back} />
+                                
+    if (careerMode) return <CareerEventCareers
+                                careerEventName={careerEvent.name}
+                                careerEventCareers={careerEvent.careers}
+                                updateCareerEvent={updateCareerEvent} back={back} />
 
     const nextEventPhaseText = () => {
         switch (careerEvent.eventPhase.phaseName) {
@@ -284,7 +293,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, closeSpeak
 
                     <Grid item xs={12} sx={{ pl: 0 }}>
                         <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
-                            <Button
+                            <Button onClick={() => setCareerMode(true)}
                                 variant="contained"
                                 color="primary">
                                 Careers

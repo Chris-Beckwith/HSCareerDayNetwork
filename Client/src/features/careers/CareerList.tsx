@@ -2,14 +2,17 @@ import { Box, Button, Grid, Paper, Table, TableBody, TableCell, TableContainer, 
 import { Career } from "../../app/models/career"
 import CareerCard from "./CareerCard"
 import { useState } from "react"
+import useCareers from "../../app/hooks/useCareers"
 
 interface Props {
-    careers: Career[] | null
-    categories: string[] | null
     handleSelectCareer: (career: Career) => void
+    hideDescription?: boolean
+    hideDelete?: boolean
+    eventCareers?: Career[]
 }
 
-export default function CareerList({ careers, categories, handleSelectCareer }: Props) {
+export default function CareerList({ handleSelectCareer, hideDescription, hideDelete, eventCareers }: Props) {
+    const { careers, categories } = useCareers()
     const [hiddenCategories, setHiddenCategories] = useState<string[]>([])
 
     const hideShowCategory = (category: string) => {
@@ -32,7 +35,7 @@ export default function CareerList({ careers, categories, handleSelectCareer }: 
                 </Button>
             </Grid>
             {categories?.map(category => (
-                <Grid item xs={6} key={category}>
+                <Grid item xs={hideDescription ? 4 : 6} key={category}>
                     <TableContainer component={Paper}>
                         <Box display='flex' justifyContent='space-between' sx={{ pt: 1, pl: 2 }}>
                             <Typography variant="h6">{category}</Typography>
@@ -45,14 +48,16 @@ export default function CareerList({ careers, categories, handleSelectCareer }: 
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Course ID - Name</TableCell>
-                                        <TableCell>Description</TableCell>
-                                        <TableCell></TableCell>
+                                        {!hideDescription && <TableCell>Description</TableCell>}
+                                        {!hideDelete && <TableCell></TableCell>}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {careers?.filter(career => career.category == category).map(career => (
                                         <CareerCard key={career.id} career={career}
-                                            handleSelectCareer={handleSelectCareer} />
+                                            handleSelectCareer={handleSelectCareer}
+                                            hideDescription={hideDescription} hideDelete={hideDelete}
+                                            highlightRow={eventCareers?.some(c => c.id == career.id)} />
                                     ))}
                                 </TableBody>
                             </Table>

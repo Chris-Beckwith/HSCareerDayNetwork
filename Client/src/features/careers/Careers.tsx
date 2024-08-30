@@ -7,7 +7,7 @@ import { Career } from "../../app/models/career";
 import CareerForm from "./CareerForm";
 
 export default function Careers() {
-    const {careers, categories, status} = useCareers()
+    const { status } = useCareers()
     const [editMode, setEditMode] = useState(false)
     const [selectedCareer, setSelectedCareer] = useState<Career | undefined>(undefined)
 
@@ -23,7 +23,7 @@ export default function Careers() {
         setEditMode(false)
     }
 
-    if (editMode) return <CareerForm selectedCareer={selectedCareer} categories={categories} cancelEdit={cancelEdit} />
+    if (editMode) return <CareerForm selectedCareer={selectedCareer} cancelEdit={cancelEdit} />
 
     return (
         <>
@@ -31,7 +31,7 @@ export default function Careers() {
                 <Typography variant="h3">Careers</Typography>
                 <Button variant="contained" onClick={() => setEditMode(true)}>New Career</Button>
             </Box>
-            <CareerList careers={careers} categories={categories} handleSelectCareer={handleSelectCareer} />
+            <CareerList handleSelectCareer={handleSelectCareer} />
         </>
 
     )
