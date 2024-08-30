@@ -18,6 +18,9 @@ import SurveyCompleteSlider from "./components/SurveyCompleteSlider";
 import agent from "../../app/api/agent";
 import { Speaker } from "../../app/models/speaker";
 import CareerEventSpeakers from "./components/CareerEventSpeakers";
+import { Career } from "../../app/models/career";
+import CareerEventCareers from "./components/CareerEventCareers";
+import { EVENT_PANEL_BUTTON } from "../../app/util/constants";
 
 const sortOptions = [
     { value: 'name', label: 'Alphabetical' },
@@ -33,17 +36,18 @@ export default function CareerEvents() {
     const [viewMode, setViewMode] = useState(false)
     const [editMode, setEditMode] = useState(false)
     const [speakerMode, setSpeakerMode] = useState(false)
+    const [careerMode, setCareerMode] = useState(false)
     const dispatch = useAppDispatch()
 
-    const viewEvent = (event: CareerEvent) => {
-        setViewMode(true)
-        setSelectedEvent(event)
-    }
+    // const viewEvent = (event: CareerEvent) => {
+    //     setViewMode(true)
+    //     setSelectedEvent(event)
+    // }
 
-    const editEvent = (event: CareerEvent) => {
-        setEditMode(true)
-        setSelectedEvent(event)
-    }
+    // const editEvent = (event: CareerEvent) => {
+    //     setEditMode(true)
+    //     setSelectedEvent(event)
+    // }
 
     const cancelView = () => {
         setViewMode(false)
@@ -55,27 +59,62 @@ export default function CareerEvents() {
         if (selectedEvent) setSelectedEvent(undefined)
     }
 
-    const openSpeakers = (event: CareerEvent) => {
-        setSpeakerMode(true)
+    // const openSpeakers = (event: CareerEvent) => {
+    //     setSpeakerMode(true)
+    //     setSelectedEvent(event)
+    // }
+
+    // const openCareers = (event: CareerEvent) => {
+    //     setCareerMode(true)
+    //     setSelectedEvent(event)
+    // }
+
+    const handleEventCardClick = (event: CareerEvent, button: string) => {
+        switch(button) {
+            case EVENT_PANEL_BUTTON.CAREERS: setCareerMode(true)
+                break;
+            case EVENT_PANEL_BUTTON.SPEAKERS: setSpeakerMode(true)
+                break;
+            case EVENT_PANEL_BUTTON.VIEW: setViewMode(true)
+                break;
+            case EVENT_PANEL_BUTTON.EDIT: setEditMode(true)
+                break;
+        }
         setSelectedEvent(event)
     }
 
-    const backFromSpeakers = () => {
+    const back = () => {
         setSpeakerMode(false)
+        setCareerMode(false)
         if (selectedEvent) setSelectedEvent(undefined)
     }
 
-    async function closeSpeakers(speakers: Speaker[]) {
+    async function updateCareerEvent(speakers?: Speaker[], careers?: Career[]) {
         try {
             if (selectedEvent) {
-                const updateCareerEvent: CareerEvent = {
-                    ...selectedEvent,
-                    speakers: speakers
+                let updateCareerEvent: CareerEvent | undefined = undefined
+                if (speakers) {
+                    console.log("Update Speakers")
+                    updateCareerEvent = {
+                        ...selectedEvent,
+                        speakers: speakers
+                    }
                 }
-                await agent.Event.update(updateCareerEvent)
-                dispatch(reloadEvents())
+                if (careers) {
+                    console.log("Update Careers")
+                    updateCareerEvent = {
+                        ...selectedEvent,
+                        careers: careers
+                    }
+                }
+                if (updateCareerEvent) {
+                    console.log("Updating....")
+                    await agent.Event.update(updateCareerEvent)
+                    dispatch(reloadEvents())
+                }
             }
             setSpeakerMode(false)
+            setCareerMode(false)
             cancelView()
         } catch (error) {
             console.log(error)
@@ -86,13 +125,17 @@ export default function CareerEvents() {
 
     if (viewMode) return <CareerEventDetails careerEvent={selectedEvent!}
                             cancelView={cancelView} 
-                            closeSpeakers={closeSpeakers} />
+                            updateCareerEvent={updateCareerEvent} />
 
     if (editMode) return <CareerEventForm selectedEvent={selectedEvent} cancelEdit={cancelEdit} saveEdit={cancelEdit} />
 
     if (speakerMode) return <CareerEventSpeakers careerEventName={selectedEvent!.name}
                                 careerEventSpeakers={selectedEvent!.speakers}
-                                closeSpeakers={closeSpeakers} back={backFromSpeakers} />
+                                updateCareerEvent={updateCareerEvent} back={back} />
+
+    if (careerMode) return <CareerEventCareers careerEventName={selectedEvent!.name}
+                                careerEventCareers={selectedEvent!.careers} 
+                                updateCareerEvent={updateCareerEvent} back={back} />
 
     return (
         <Grid container columnSpacing={4}>
@@ -134,7 +177,7 @@ export default function CareerEvents() {
                                 {!careerEventsLoaded ? (
                                     <CareerEventCardSkeleton />
                                 ) : (
-                                    <CareerEventCard careerEvent={event} viewEvent={viewEvent} editEvent={editEvent} openSpeakers={openSpeakers} />
+                                    <CareerEventCard careerEvent={event} handleEventCardClick={handleEventCardClick} />
                                 )}
                             </Grid>
                         )

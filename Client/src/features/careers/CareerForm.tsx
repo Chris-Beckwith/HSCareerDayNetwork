@@ -9,14 +9,15 @@ import { LoadingButton } from "@mui/lab";
 import agent from "../../app/api/agent";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { reloadCareers } from "./careerSlice";
+import useCareers from "../../app/hooks/useCareers";
 
 interface Props {
     selectedCareer: Career | undefined
-    categories: string[] | never[]
     cancelEdit: () => void
 }
 
-export default function CareerForm({ selectedCareer, categories, cancelEdit }: Props) {
+export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
+    const { categories } = useCareers()
     const [category, setCategory] = useState('')
     const dispatch = useAppDispatch()
     const { control, reset, handleSubmit, formState: { isDirty, isSubmitting } } = useForm({
