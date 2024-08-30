@@ -2,15 +2,16 @@ import { Box, Typography, TableContainer, Paper, Table, TableHead, TableRow, Tab
 import { Speaker } from "../../../app/models/speaker";
 import { SetStateAction, useEffect, useState } from "react";
 import useSpeakers from "../../../app/hooks/useSpeakers";
+import { Career } from "../../../app/models/career";
 
 interface Props {
     careerEventName: string
     careerEventSpeakers: Speaker[]
-    closeSpeakers: (speakers: Speaker[]) => void
+    updateCareerEvent: (speakers?: Speaker[], careers?: Career[]) => void
     back: () => void
 }
 
-export default function CareerEventSpeakers({careerEventName, careerEventSpeakers, closeSpeakers, back}: Props) {
+export default function CareerEventSpeakers({careerEventName, careerEventSpeakers, updateCareerEvent, back}: Props) {
     const { speakers } = useSpeakers()
     const [availableSpeakers, setAvailableSpeakers] = useState<Speaker[]>([])
     const [eventSpeakers, setEventSpeakers] = useState<Speaker[]>([])
@@ -80,7 +81,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
 
     return (
         <>
-            <Typography variant="h3">{careerEventName}</Typography>
+            <Typography variant="h3" display='flex' justifyContent='center' sx={{mb: 4}}>{careerEventName}</Typography>
 
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 2 }}>
                 <Typography variant="h5">Event Speakers</Typography>
@@ -89,16 +90,16 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                     <TextField
                         label="Search"
                         variant="outlined"
+                        size="small"
                         fullWidth
                         value={searchEventQuery}
                         onChange={(e) => setSearchEventQuery(e.target.value)}
-                        sx={{ mb: 2 }}
                     />
                 </Box>
 
                 <Box>
                     <Button variant="contained" color="inherit" onClick={back} sx={{mr: 2}}>Back</Button>
-                    <Button variant="contained" onClick={() => closeSpeakers(eventSpeakers)}>Update Speakers</Button>
+                    <Button variant="contained" onClick={() => updateCareerEvent(eventSpeakers)}>Update Speakers</Button>
                 </Box>
             </Box>
             <TableContainer component={Paper}>
@@ -157,10 +158,10 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                     <TextField
                         label="Search"
                         variant="outlined"
+                        size="small"
                         fullWidth
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        sx={{ mb: 2 }}
                     />
                 </Box>
             </Box>

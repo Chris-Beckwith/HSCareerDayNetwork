@@ -24,6 +24,10 @@ namespace CareerDayApi.Data
                 .HasMany(s => s.Speakers)
                 .WithMany();
 
+            builder.Entity<Event>()
+                .HasMany(c => c.Careers)
+                .WithMany();
+
             builder.Entity<Speaker>()
                 .HasMany(c => c.Careers)
                 .WithMany();

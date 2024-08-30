@@ -3,15 +3,14 @@ import { CareerEvent } from "../../app/models/event"
 import LinearProgressWithLabel from "../../app/components/LinearProgressWithLabel"
 import { Edit } from "@mui/icons-material"
 import dayjs from "dayjs"
+import { EVENT_PANEL_BUTTON } from "../../app/util/constants"
 
 interface Props {
     careerEvent: CareerEvent,
-    viewEvent: (event: CareerEvent) => void
-    editEvent: (event: CareerEvent) => void
-    openSpeakers: (event: CareerEvent) => void
+    handleEventCardClick: (event: CareerEvent, button: string) => void
 }
 
-export default function CareerEventCard({ careerEvent, viewEvent, editEvent, openSpeakers }: Props) {
+export default function CareerEventCard({ careerEvent, handleEventCardClick }: Props) {
     const date = dayjs(careerEvent.eventDate).toDate()
 
     return (
@@ -42,10 +41,22 @@ export default function CareerEventCard({ careerEvent, viewEvent, editEvent, ope
                 </Typography>
             </CardContent>
             <CardActions disableSpacing>
-                <Button size="small">Careers</Button>
-                <Button sx={{ml: 2}} onClick={() => openSpeakers(careerEvent)} size="small">Speakers</Button>
-                <Button sx={{ml: 1}} onClick={() => viewEvent(careerEvent)} size="small">View</Button>
-                <Button sx={{ml: -1, pl: 0}} size="small" onClick={() => editEvent(careerEvent)}><Edit /></Button>
+                <Button sx={{ ml: 0.5 }}
+                    onClick={() => handleEventCardClick(careerEvent, EVENT_PANEL_BUTTON.CAREERS)}>
+                    {EVENT_PANEL_BUTTON.CAREERS}
+                </Button>
+                <Button sx={{ ml: 2.5 }}
+                    onClick={() => handleEventCardClick(careerEvent, EVENT_PANEL_BUTTON.SPEAKERS)}>
+                    {EVENT_PANEL_BUTTON.SPEAKERS}
+                </Button>
+                <Button sx={{ ml: 1 }}
+                    onClick={() => handleEventCardClick(careerEvent, EVENT_PANEL_BUTTON.VIEW)}>
+                    {EVENT_PANEL_BUTTON.VIEW}
+                </Button>
+                <Button sx={{ ml: -1.2, pl: 0 }}
+                    onClick={() => handleEventCardClick(careerEvent, EVENT_PANEL_BUTTON.EDIT)}>
+                    <Edit />
+                </Button>
             </CardActions>
         </Card>
     )

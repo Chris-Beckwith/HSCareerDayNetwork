@@ -9,3 +9,10 @@ export const EVENT_PHASES = {
     COMPLETED: 'Completed',
     CANCELLED: 'Cancelled'
 }
+
+export const EVENT_PANEL_BUTTON = {
+    CAREERS: 'Careers',
+    SPEAKERS: 'Speakers',
+    VIEW: 'View',
+    EDIT: 'Edit'
+}
