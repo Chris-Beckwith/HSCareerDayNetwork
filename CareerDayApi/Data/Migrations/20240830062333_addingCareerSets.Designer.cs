@@ -3,6 +3,7 @@ using System;
 using CareerDayApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CareerDayApi.Data.Migrations
 {
     [DbContext(typeof(CareerDayContext))]
-    partial class CareerDayContextModelSnapshot : ModelSnapshot
+    [Migration("20240830062333_addingCareerSets")]
+    partial class addingCareerSets
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,21 +25,6 @@ namespace CareerDayApi.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("CareerCareerSet", b =>
-                {
-                    b.Property<int>("CareerSetId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("CareersId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("CareerSetId", "CareersId");
-
-                    b.HasIndex("CareersId");
-
-                    b.ToTable("CareerCareerSet");
-                });
-
             modelBuilder.Entity("CareerDayApi.Entities.Career", b =>
                 {
                     b.Property<int>("Id")
@@ -44,6 +32,9 @@ namespace CareerDayApi.Data.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CareerSetId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -60,6 +51,8 @@ namespace CareerDayApi.Data.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CareerSetId");
 
                     b.HasIndex("CourseId")
                         .IsUnique();
@@ -433,7 +426,7 @@ namespace CareerDayApi.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "578b8a6c-c4ad-4f48-a94b-cf9a7367f89c",
+                            Id = "92f3aeff-d34f-4bc9-aca1-ee504078fac9",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -545,19 +538,11 @@ namespace CareerDayApi.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("CareerCareerSet", b =>
+            modelBuilder.Entity("CareerDayApi.Entities.Career", b =>
                 {
                     b.HasOne("CareerDayApi.Entities.CareerSet", null)
-                        .WithMany()
-                        .HasForeignKey("CareerSetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CareerDayApi.Entities.Career", null)
-                        .WithMany()
-                        .HasForeignKey("CareersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Careers")
+                        .HasForeignKey("CareerSetId");
                 });
 
             modelBuilder.Entity("CareerDayApi.Entities.Classroom", b =>
@@ -737,6 +722,11 @@ namespace CareerDayApi.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("CareerDayApi.Entities.CareerSet", b =>
+                {
+                    b.Navigation("Careers");
                 });
 
             modelBuilder.Entity("CareerDayApi.Entities.Speaker", b =>

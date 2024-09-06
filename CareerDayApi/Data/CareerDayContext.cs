@@ -15,6 +15,7 @@ namespace CareerDayApi.Data
         public DbSet<Event> Events { get; set; }
         public DbSet<EventPhase> EventPhases { get; set; }
         public DbSet<Classroom> Classrooms { get; set; }
+        public DbSet<CareerSet> CareerSets { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -45,6 +46,10 @@ namespace CareerDayApi.Data
             builder.Entity<Career>()
                 .HasIndex(c => c.Name)
                 .IsUnique();
+
+            builder.Entity<CareerSet>()
+                .HasMany(cs => cs.Careers)
+                .WithMany();
 
             builder.Entity<IdentityRole>()
                 .HasData(

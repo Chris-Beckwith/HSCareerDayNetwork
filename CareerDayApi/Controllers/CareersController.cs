@@ -5,7 +5,6 @@ using CareerDayApi.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace CareerDayApi.Controllers
 {
@@ -89,7 +88,7 @@ namespace CareerDayApi.Controllers
             if (result) return Ok();
 
             return BadRequest(new ProblemDetails { Title = "Problem deleting career" });
-        }
+        }        
 
         private static bool IsUniqueConstraintException(DbUpdateException e)
         {

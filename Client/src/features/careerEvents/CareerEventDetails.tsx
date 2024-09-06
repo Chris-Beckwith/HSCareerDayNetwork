@@ -20,7 +20,7 @@ import { Career } from "../../app/models/career";
 interface Props {
     careerEvent: CareerEvent
     cancelView: () => void
-    updateCareerEvent: (speakers?: Speaker[], careers?: Career[]) => void
+    updateCareerEvent: (speakers?: Speaker[], careers?: Career[], saveCareerSet?: boolean) => void
 }
 
 export default function CareerEventDetails({ careerEvent, cancelView, updateCareerEvent }: Props) {
@@ -64,7 +64,6 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     async function confirmDelete() {
         try {
             if (careerEvent) {
-                console.log("Confirm Delete")
                 await agent.Event.delete(careerEvent.id)
                 dispatch(reloadEvents())
                 setDeleteMode(false)
