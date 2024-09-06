@@ -131,6 +131,13 @@ const Career = {
     delete: (id: number) => requests.delete(`careers/${id}`)
 }
 
+const CareerSet = {
+    list: () => requests.get('careerSets'),
+    create: (careerSet: any) => requests.post('careerSets', careerSet),
+    update: (careerSet: any) => requests.putForm('careerSets', createFormData(careerSet)),
+    delete: (id: number) => requests.delete(`careerSets/${id}`)
+}
+
 const Account = {
     login: (values: any) => requests.post('account/login', values),
     register: (values: any) => requests.post('account/register', values),
@@ -154,6 +161,7 @@ const agent = {
     School,
     Speaker,
     Career,
+    CareerSet,
     Account,
     Survey,
     TestErrors
