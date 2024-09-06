@@ -39,16 +39,6 @@ export default function CareerEvents() {
     const [careerMode, setCareerMode] = useState(false)
     const dispatch = useAppDispatch()
 
-    // const viewEvent = (event: CareerEvent) => {
-    //     setViewMode(true)
-    //     setSelectedEvent(event)
-    // }
-
-    // const editEvent = (event: CareerEvent) => {
-    //     setEditMode(true)
-    //     setSelectedEvent(event)
-    // }
-
     const cancelView = () => {
         setViewMode(false)
         if (selectedEvent) setSelectedEvent(undefined)
@@ -58,16 +48,6 @@ export default function CareerEvents() {
         setEditMode(false)
         if (selectedEvent) setSelectedEvent(undefined)
     }
-
-    // const openSpeakers = (event: CareerEvent) => {
-    //     setSpeakerMode(true)
-    //     setSelectedEvent(event)
-    // }
-
-    // const openCareers = (event: CareerEvent) => {
-    //     setCareerMode(true)
-    //     setSelectedEvent(event)
-    // }
 
     const handleEventCardClick = (event: CareerEvent, button: string) => {
         switch(button) {
@@ -94,21 +74,18 @@ export default function CareerEvents() {
             if (selectedEvent) {
                 let updateCareerEvent: CareerEvent | undefined = undefined
                 if (speakers) {
-                    console.log("Update Speakers")
                     updateCareerEvent = {
                         ...selectedEvent,
                         speakers: speakers
                     }
                 }
                 if (careers) {
-                    console.log("Update Careers")
                     updateCareerEvent = {
                         ...selectedEvent,
                         careers: careers
                     }
                 }
                 if (updateCareerEvent) {
-                    console.log("Updating....")
                     await agent.Event.update(updateCareerEvent)
                     dispatch(reloadEvents())
                 }
@@ -121,7 +98,7 @@ export default function CareerEvents() {
         }
     }
 
-    if (!eventPhasesLoaded) return <LoadingComponent message="Loading Career Events.." />
+    if (!eventPhasesLoaded || !careerEventsLoaded) return <LoadingComponent message="Loading Career Events.." />
 
     if (viewMode) return <CareerEventDetails careerEvent={selectedEvent!}
                             cancelView={cancelView} 

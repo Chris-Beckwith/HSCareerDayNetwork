@@ -2,6 +2,16 @@ import { createAsyncThunk, createEntityAdapter, createSlice } from "@reduxjs/too
 import { Career } from "../../app/models/career";
 import agent from "../../app/api/agent";
 import { RootState } from "../../app/store/configureStore";
+import { CareerSet } from "../../app/models/careerSet";
+
+interface CareerState {
+    careersLoaded: boolean,
+    categoriesLoaded: boolean,
+    careerSetsLoaded: boolean,
+    categories: string[],
+    careerSets: CareerSet[],
+    status: string
+}
 
 const careerAdapter = createEntityAdapter<Career>()
 
@@ -27,18 +37,34 @@ export const getAllCareerCategoriesAsync = createAsyncThunk(
     }
 )
 
+export const getAllCareerSetsAsync = createAsyncThunk<CareerSet[]>(
+    'careerSets/getAllCareerSetsAsync',
+    async (_, thunkAPI) => {
+        try {
+            return await agent.CareerSet.list()
+        } catch (error: any) {
+            return thunkAPI.rejectWithValue({error: error.data})
+        }
+    }
+)
+
 export const careerSlice = createSlice({
     name: 'career',
-    initialState: careerAdapter.getInitialState({
+    initialState: careerAdapter.getInitialState<CareerState>({
         careersLoaded: false,
         categoriesLoaded: false,
+        careerSetsLoaded: false,
         categories: [],
+        careerSets: [],
         status: 'idle'
     }),
     reducers: {
         reloadCareers: (state) => {
             state.careersLoaded = false
             state.categoriesLoaded = false
+        },
+        reloadCareerSets: (state) => {
+            state.careerSetsLoaded = false
         }
     },
     extraReducers: (builder => {
@@ -66,9 +92,21 @@ export const careerSlice = createSlice({
             console.log("Get all career categories rejected:", action.payload)
             state.status = 'idle'
         })
+        builder.addCase(getAllCareerSetsAsync.pending, (state) => {
+            state.status = 'pendingGetAllCareerSets'
+        })
+        builder.addCase(getAllCareerSetsAsync.fulfilled, (state, action) => {
+            state.careerSets = action.payload
+            state.careerSetsLoaded = true
+            state.status = 'idle'
+        })
+        builder.addCase(getAllCareerSetsAsync.rejected, (state, action) => {
+            console.log("Get all career sets rejected:", action.payload)
+            state.status = 'idle'
+        })
     })
 })
 
 export const careerSelectors = careerAdapter.getSelectors((state: RootState) => state.careers)
-export const {reloadCareers} = careerSlice.actions
+export const {reloadCareers, reloadCareerSets} = careerSlice.actions
 
