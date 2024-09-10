@@ -59,6 +59,7 @@ export default function Students({ eventId, back }: Props) {
     const rows = students
     const [openImport, setOpenImport] = useState(false)
     const [openDelete, setOpenDelete] = useState(false)
+    const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
 
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: metaData?.pageSize || 20,
@@ -74,8 +75,10 @@ export default function Students({ eventId, back }: Props) {
     }
 
     const deleteAllStudents = async () => {
+        setConfirmDeleteLoading(true)
         await agent.Student.deleteAll(eventId)
         dispatch(reloadStudents())
+        setConfirmDeleteLoading(false)
         setOpenDelete(false)
     }
 
@@ -138,7 +141,7 @@ export default function Students({ eventId, back }: Props) {
             <ConfirmDelete open={openDelete} itemName="All Students" itemType={""}
                 customText="Are you sure you want to delete all students for this event?"
                 handleClose={() => setOpenDelete(false)}
-                confirmDelete={deleteAllStudents} />
+                confirmDelete={deleteAllStudents} loading={confirmDeleteLoading} />
         </Grid>
     )
 }

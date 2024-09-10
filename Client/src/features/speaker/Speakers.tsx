@@ -1,23 +1,23 @@
 import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material"
 import { MouseEvent, useState } from "react"
 import { useAppDispatch } from "../../app/store/configureStore"
-import LoadingComponent from "../../app/components/LoadingComponent"
-import { removeSpeaker, setPageNumber, setSpeakerParams } from "./speakerSlice"
+import { reloadSpeakers, setPageNumber, setSpeakerParams } from "./speakerSlice"
 import { Speaker } from "../../app/models/speaker"
 import SpeakerForm from "./SpeakerForm"
 import { Delete } from "@mui/icons-material"
-import { LoadingButton } from "@mui/lab"
 import agent from "../../app/api/agent"
 import AppPagination from "../../app/components/AppPagination"
 import useSpeakers from "../../app/hooks/useSpeakers"
 import AppTextSearch from "../../app/components/AppTextSearch"
+import ConfirmDelete from "../../app/components/ConfirmDelete"
+import SpeakerSkeleton from "./components/SpeakerSkeleton"
 
 export default function Speakers() {
     const dispatch = useAppDispatch();
-    const { speakers, speakersLoaded, status, metaData, speakerParams } = useSpeakers()
+    const { speakers, speakersLoaded, metaData, speakerParams } = useSpeakers()
     const [editMode, setEditMode] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [target, setTarget] = useState(0)
+    const [showDeletePopup, setShowDeletePopup] = useState(false)
     const [selectedSpeaker, setSelectedSpeaker] = useState<Speaker | undefined>(undefined)
 
     function handleSelectSpeaker(speaker: Speaker) {
@@ -25,22 +25,35 @@ export default function Speakers() {
         setEditMode(true)
     }
 
-    function handleDeleteSpeaker(event: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>, id: number) {
+    function handleShowDeletePopup(event: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>, speaker: Speaker) {
         event.stopPropagation()
-        setLoading(true);
-        setTarget(id);
-        agent.Speaker.delete(id)
-            .then(() => dispatch(removeSpeaker(id)))
-            .catch(error => console.log(error))
-            .finally(() => setLoading(false))
+        setSelectedSpeaker(speaker)
+        setShowDeletePopup(true)
+    }
+
+    async function handleDeleteSpeaker() {
+        setLoading(true)
+        if (selectedSpeaker) {
+            await agent.Speaker.delete(selectedSpeaker.id)
+                .then(() => dispatch(reloadSpeakers()))
+                .catch(error => console.log(error))
+                .finally(() => {
+                    setLoading(false)
+                    setShowDeletePopup(false)
+                    setSelectedSpeaker(undefined)
+                })
+        }
+    }
+
+    function handleCloseDelete() {
+        if (selectedSpeaker) setSelectedSpeaker(undefined)
+        setShowDeletePopup(false)
     }
 
     function cancelEdit() {
         if (selectedSpeaker) setSelectedSpeaker(undefined)
         setEditMode(false)
     }
-
-    if (!speakersLoaded && status != 'idle') return <LoadingComponent message="Loading Speakers.." />
 
     if (editMode) return <SpeakerForm speaker={selectedSpeaker} cancelEdit={cancelEdit} />
 
@@ -75,30 +88,35 @@ export default function Speakers() {
                                 sx={{cursor: "pointer"}}
                                 hover
                             >
-                                <TableCell component="th" scope="row">
-                                    <Box display='flex' alignItems='center'>
-                                        {speaker.portraitUrl ? 
-                                            <img src={speaker.portraitUrl} alt={speaker.lastName} style={{ height: 50, marginRight: 20 }} />
-                                            :
-                                            <img src="/images/Silhouette_No_Profile_Pic.png" alt={speaker.lastName} style={{ height: 50, marginRight: 20 }} />
-                                        }
-                                    </Box>    
-                                </TableCell>
-                                <TableCell>
-                                    {speaker.firstName} {speaker.middleName} {speaker.lastName}
-                                </TableCell>
-                                <TableCell>{speaker.title}</TableCell>
-                                <TableCell>{speaker.company}</TableCell>
-                                <TableCell>{speaker.email}</TableCell>
-                                <TableCell>{speaker.phoneNumber}</TableCell>
-                                <TableCell align="right">
-                                    <LoadingButton
-                                            loading={loading && target === speaker.id}
-                                            startIcon={<Delete />}
-                                            color='error'
-                                            onClick={(e) => handleDeleteSpeaker(e, speaker.id)}
-                                    />
-                                </TableCell>
+                                {!speakersLoaded ? (
+                                    <SpeakerSkeleton />
+                                ) : (
+                                    <>
+                                        <TableCell component="th" scope="row">
+                                            <Box display='flex' alignItems='center'>
+                                                {speaker.portraitUrl ?
+                                                    <img src={speaker.portraitUrl} alt={speaker.lastName} style={{ height: 50, marginRight: 20 }} />
+                                                    :
+                                                    <img src="/images/Silhouette_No_Profile_Pic.png" alt={speaker.lastName} style={{ height: 50, marginRight: 20 }} />
+                                                }
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>
+                                            {speaker.firstName} {speaker.middleName} {speaker.lastName}
+                                        </TableCell>
+                                        <TableCell>{speaker.title}</TableCell>
+                                        <TableCell>{speaker.company}</TableCell>
+                                        <TableCell>{speaker.email}</TableCell>
+                                        <TableCell>{speaker.phoneNumber}</TableCell>
+                                        <TableCell align="right">
+                                            <Button
+                                                startIcon={<Delete />}
+                                                color='error'
+                                                onClick={(e) => handleShowDeletePopup(e, speaker)}
+                                            />
+                                        </TableCell>
+                                    </>
+                                )}
                             </TableRow>
                         ))}
                     </TableBody>
@@ -112,6 +130,9 @@ export default function Speakers() {
                     />
                 }
             </Box>
+            
+            <ConfirmDelete open={showDeletePopup} itemType="Speaker" itemName={`${selectedSpeaker?.firstName || ''} ${selectedSpeaker?.lastName || ''}`}
+                handleClose={handleCloseDelete} confirmDelete={handleDeleteSpeaker} loading={loading} />
         </>
     )
 }
