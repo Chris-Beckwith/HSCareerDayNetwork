@@ -1,6 +1,6 @@
 import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material"
 import { useAppDispatch } from "../../app/store/configureStore"
-import { reloadSchools, setPageNumber } from "./schoolSlice"
+import { reloadSchools, setPageNumber, setSchoolParams } from "./schoolSlice"
 import { MouseEvent, useState } from "react"
 import LoadingComponent from "../../app/components/LoadingComponent"
 import { Delete } from "@mui/icons-material"
@@ -9,11 +9,11 @@ import { School } from "../../app/models/school"
 import AppPagination from "../../app/components/AppPagination"
 import SchoolForm from "./SchoolForm"
 import agent from "../../app/api/agent"
-import SchoolSearch from "./SchoolSearch"
 import useSchools from "../../app/hooks/useSchools"
+import AppTextSearch from "../../app/components/AppTextSearch"
 
 export default function Schools() {
-    const { schools, status, metaData } = useSchools()
+    const { schools, status, metaData, schoolParams } = useSchools()
     const dispatch = useAppDispatch()
 
     const [editMode, setEditMode] = useState(false)
@@ -50,7 +50,8 @@ export default function Schools() {
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
                 <Typography variant="h3">School</Typography>
                 <Box>
-                    <SchoolSearch />
+                    <AppTextSearch label="Search Schools"
+                        stateSearchTerm={schoolParams.searchTerm} setParams={setSchoolParams} />
                 </Box>
                 <Button variant="contained" onClick={() => setEditMode(true)}>New School</Button>
             </Box>

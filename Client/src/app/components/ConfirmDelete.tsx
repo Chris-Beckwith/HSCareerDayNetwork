@@ -4,11 +4,13 @@ interface Props {
     open: boolean
     itemName: string
     itemType: string
+    customText?: string
     handleClose: () => void
     confirmDelete: () => Promise<void>
 }
 
-export default function ConfirmDelete({ open, itemName, itemType, handleClose, confirmDelete }: Props) {
+export default function ConfirmDelete({ open, itemName, itemType, customText, handleClose, confirmDelete }: Props) {
+    const contentText = customText ? customText : `Are you sure you want to delete the ${itemType}: ${itemName}?`
     return (
         <Dialog
             open={open}
@@ -21,7 +23,7 @@ export default function ConfirmDelete({ open, itemName, itemType, handleClose, c
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    Are you sure you want to delete the {itemType}: {itemName}?
+                    {contentText}
                 </DialogContentText>
             </DialogContent>
             <DialogActions>

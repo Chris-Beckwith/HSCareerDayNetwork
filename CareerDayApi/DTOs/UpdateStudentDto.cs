@@ -1,6 +1,8 @@
-namespace CareerDayApi.Entities
+using CareerDayApi.Entities;
+
+namespace CareerDayApi.DTOs
 {
-    public class Student
+    public class UpdateStudentDto
     {
         public int Id { get; set; }
         public School School { get; set; }
@@ -13,8 +15,7 @@ namespace CareerDayApi.Entities
         public string Email { get; set; }
         public string HomeroomTeacher { get; set; }
         public string HomeroomNumber { get; set; }
-        public int EventId { get; set; }
-        public bool SurveyComplete { get; set; }
         public Event Event { get; set; }
+        public bool SurveyComplete { get; set; }
     }
 }

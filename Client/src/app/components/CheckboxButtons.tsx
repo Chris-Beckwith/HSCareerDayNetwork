@@ -2,12 +2,13 @@ import { Checkbox, FormControlLabel, FormGroup, FormLabel } from "@mui/material"
 import { useState } from "react";
 
 interface Props {
+    label: string
     items: string[]
     checked?: string[]
     onChange: (items: string[]) => void
 }
 
-export default function CheckboxButtons({items, checked, onChange}: Props) {
+export default function CheckboxButtons({label, items, checked, onChange}: Props) {
     const [checkedItems, setCheckedItems] = useState(checked || [])
 
     function handleChecked(value: string) {
@@ -21,7 +22,7 @@ export default function CheckboxButtons({items, checked, onChange}: Props) {
 
     return (
         <FormGroup>
-            <FormLabel id="demo-radio-buttons-group-label">Event Phases</FormLabel>
+            <FormLabel id="demo-radio-buttons-group-label">{label}</FormLabel>
             {items.map(item => (
                 <FormControlLabel
                     control={<Checkbox 

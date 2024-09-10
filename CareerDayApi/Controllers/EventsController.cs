@@ -32,6 +32,8 @@ namespace CareerDayApi.Controllers
 
             Response.AddPaginationHeader(events.MetaData);
 
+            _logger.LogWarning("EVENTS RESPONSE {response}", events.Count);
+
             return events;
         }
 

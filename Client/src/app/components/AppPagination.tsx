@@ -1,19 +1,27 @@
-import { Box, Typography, Pagination } from "@mui/material";
+import { Box, Typography, Pagination, Select, MenuItem } from "@mui/material";
 import { MetaData } from "../models/pagination";
 import { useState } from "react";
 
 interface Props {
     metaData: MetaData;
     onPageChange: (page: number) => void
+    onPageSizeChange?: (pageSize: number) => void
 }
 
-export default function AppPagination({metaData, onPageChange}: Props) {
+export default function AppPagination({metaData, onPageChange, onPageSizeChange}: Props) {
     const {currentPage, totalCount, totalPages, pageSize} = metaData
     const [pageNumber, setPageNumber] = useState(currentPage)
+    const [rowsPerPage, setRowsPerPage] = useState(metaData.pageSize)
 
     function handlePageChange(page: number) {
         setPageNumber(page)
         onPageChange(page)
+    }
+
+    function handleRowsPerPageChange(event: any) {
+        setRowsPerPage(event.target.value)
+        if (onPageSizeChange)
+            onPageSizeChange(event.target.value)
     }
 
     return (
@@ -24,6 +32,17 @@ export default function AppPagination({metaData, onPageChange}: Props) {
                     ? totalCount 
                     : currentPage*pageSize} of {totalCount} items
             </Typography>
+            {onPageSizeChange &&
+                <Box>
+                    Rows Per Page:
+                    <Select size="small" sx={{ml: 1}}
+                        value={rowsPerPage} onChange={handleRowsPerPageChange}>
+                        <MenuItem value={10}>10</MenuItem>
+                        <MenuItem value={20}>20</MenuItem>
+                        <MenuItem value={50}>50</MenuItem>
+                    </Select>
+                </Box>
+            }
             <Pagination
                 color="secondary"
                 size="large"
