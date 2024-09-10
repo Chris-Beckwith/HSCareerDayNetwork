@@ -12,7 +12,7 @@ export const EVENT_PHASES = {
 
 export const EVENT_PANEL_BUTTON = {
     CAREERS: 'Careers',
-    SPEAKERS: 'Speakers',
+    STUDENTS: 'Students',
     VIEW: 'View',
     EDIT: 'Edit'
 }

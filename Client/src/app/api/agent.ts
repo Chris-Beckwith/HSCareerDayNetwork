@@ -98,6 +98,13 @@ function createFormData(item: any, parentKey?: string) {
     return formData;
 }
 
+function createFileFormData(file: File, eventId: number) {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('eventId', eventId.toString())
+    return formData
+}
+
 const Event = {
     list: (params: URLSearchParams) => requests.get('events', params),
     details: (id: number) => requests.get(`events/${id}`),
@@ -114,6 +121,14 @@ const School = {
     create: (school: any) => requests.post('schools', school),
     update: (school: any) => requests.putForm('schools', createFormData(school)),
     delete: (id: number) => requests.delete(`schools/${id}`)
+}
+
+const Student = {
+    list: (params: URLSearchParams) => requests.get('student', params),
+    import: (file: File, eventId: number) => 
+        requests.postForm('student/ImportStudents', createFileFormData(file, eventId)),
+    update: (student: any) => requests.putForm('student', createFormData(student)),
+    deleteAll: (eventId: number) => requests.delete(`student/deleteAll/${eventId}`)
 }
 
 const Speaker = {
@@ -159,6 +174,7 @@ const TestErrors = {
 const agent = {
     Event,
     School,
+    Student,
     Speaker,
     Career,
     CareerSet,

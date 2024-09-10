@@ -51,6 +51,10 @@ namespace CareerDayApi.Data
                 .HasMany(cs => cs.Careers)
                 .WithMany();
 
+            builder.Entity<Student>()
+                .HasIndex(s => new { s.StudentNumber, s.EventId })
+                .IsUnique();
+
             builder.Entity<IdentityRole>()
                 .HasData(
                     new IdentityRole{Name = "Admin", NormalizedName = "ADMIN"}

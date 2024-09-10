@@ -16,6 +16,8 @@ import CareerEventSpeakers from "./components/CareerEventSpeakers";
 import { Speaker } from "../../app/models/speaker";
 import CareerEventCareers from "./components/CareerEventCareers";
 import { Career } from "../../app/models/career";
+import Students from "../student/Students";
+import { reloadStudents } from "../student/studentSlice";
 
 interface Props {
     careerEvent: CareerEvent
@@ -30,6 +32,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [deleteMode, setDeleteMode] = useState(false)
     const [speakerMode, setSpeakerMode] = useState(false)
     const [careerMode, setCareerMode] = useState(false)
+    const [studentMode, setStudentMode] = useState(false)
     const { eventPhases } = useAppSelector(state => state.careerEvents)
     const date = new Date(careerEvent.eventDate)
 
@@ -43,8 +46,10 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     }
 
     const back = () => {
+        dispatch(reloadStudents())
         setSpeakerMode(false)
         setCareerMode(false)
+        setStudentMode(false)
     }
 
     const deleteEvent = () => {
@@ -89,6 +94,8 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                                 careerEventName={careerEvent.name}
                                 careerEventCareers={careerEvent.careers}
                                 updateCareerEvent={updateCareerEvent} back={back} />
+
+    if (studentMode) return <Students eventId={careerEvent.id} back={back} />
 
     const nextEventPhaseText = () => {
         switch (careerEvent.eventPhase.phaseName) {
@@ -292,10 +299,15 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
 
                     <Grid item xs={12} sx={{ pl: 0 }}>
                         <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
-                            <Button onClick={() => setCareerMode(true)}
+                        <Button onClick={() => setCareerMode(true)}
                                 variant="contained"
                                 color="primary">
                                 Careers
+                            </Button>
+                            <Button onClick={() => setStudentMode(true)}
+                                variant="contained"
+                                color="primary">
+                                Students
                             </Button>
                             <Button onClick={() => setSpeakerMode(true)}
                                 variant="contained"
