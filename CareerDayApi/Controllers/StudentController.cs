@@ -35,8 +35,6 @@ namespace CareerDayApi.Controllers
                 
             Response.AddPaginationHeader(students.MetaData);
 
-            _logger.LogWarning("STUDENT RESPONSE {response}", students.Count);
-
             return students;
         }
 
@@ -117,7 +115,6 @@ namespace CareerDayApi.Controllers
         [HttpPost("ImportStudents", Name = "ImportStudents")]
         public async Task<ActionResult> ImportStudents([FromForm]ImportStudentsDto importStudentsDto)
         {
-            _logger.LogWarning("EVENT ID::: {id}", importStudentsDto.EventId);
             var careerEvent = await _context.Events.FindAsync(importStudentsDto.EventId);
 
             if (importStudentsDto.File == null || importStudentsDto.File.Length == 0)

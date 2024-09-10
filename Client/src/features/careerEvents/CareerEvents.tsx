@@ -54,8 +54,7 @@ export default function CareerEvents() {
         switch(button) {
             case EVENT_PANEL_BUTTON.CAREERS: setCareerMode(true)
                 break;
-            case EVENT_PANEL_BUTTON.STUDENTS:
-                setStudentMode(true)
+            case EVENT_PANEL_BUTTON.STUDENTS: setStudentMode(true)
                 break;
             case EVENT_PANEL_BUTTON.VIEW: setViewMode(true)
                 break;
@@ -108,10 +107,6 @@ export default function CareerEvents() {
                             updateCareerEvent={updateCareerEvent} />
 
     if (editMode) return <CareerEventForm selectedEvent={selectedEvent} cancelEdit={cancelEdit} saveEdit={cancelEdit} />
-
-    // if (speakerMode) return <CareerEventSpeakers careerEventName={selectedEvent!.name}
-    //                             careerEventSpeakers={selectedEvent!.speakers}
-    //                             updateCareerEvent={updateCareerEvent} back={back} />
 
     if (studentMode) return <Students eventId={selectedEvent!.id} back={back} />
 
