@@ -3,6 +3,7 @@ import { ChangeEvent, useState } from "react";
 import agent from "../../app/api/agent";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { reloadStudents } from "./studentSlice";
+import { LoadingButton } from "@mui/lab";
 
 interface Props {
     open: boolean
@@ -13,6 +14,7 @@ interface Props {
 export default function ImportStudents({ open, eventId, handleClose }: Props) {
     const [file, setFile] = useState<File | null>(null)
     const [errorMsg, setErrorMsg] = useState(null)
+    const [loading, setLoading] = useState(false)
     const dispatch = useAppDispatch()
 
     const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -22,6 +24,7 @@ export default function ImportStudents({ open, eventId, handleClose }: Props) {
     }
 
     const onImport = async () => {
+        setLoading(true)
         try {
             if (file) {
                 setErrorMsg(null)
@@ -34,6 +37,7 @@ export default function ImportStudents({ open, eventId, handleClose }: Props) {
         } catch (e: any) {
             setErrorMsg(e.data.title)
         }
+        setLoading(false)
     }
 
     const handleOnCancel = () => {
@@ -66,9 +70,9 @@ export default function ImportStudents({ open, eventId, handleClose }: Props) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleOnCancel}>Cancel</Button>
-                <Button onClick={onImport} disabled={!file} autoFocus>
+                <LoadingButton onClick={onImport} disabled={!file} loading={loading} autoFocus>
                     Import Students
-                </Button>
+                </LoadingButton>
             </DialogActions>
         </Dialog>
     )

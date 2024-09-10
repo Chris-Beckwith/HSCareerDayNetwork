@@ -64,9 +64,6 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
             <Typography variant="h3" display='flex' justifyContent='center'>{careerEventName}</Typography>
             
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mt: 2 }}>
-                <Paper sx={{p: 0.7, bgcolor: 'primary.light'}}>
-                    <Typography variant="body1">Selected Careers will be highlighted</Typography>
-                </Paper>
                 <Box>
                     <Button variant="contained" color="inherit" onClick={back} sx={{mr: 2}}>Back</Button>
                     <Button variant="contained" disabled={isSameCareerSet() === true}
@@ -74,6 +71,9 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
                         Update Careers
                     </Button>
                 </Box>
+                <Paper sx={{p: 0.7, bgcolor: 'primary.light'}}>
+                    <Typography variant="body1">Selected Careers will be highlighted</Typography>
+                </Paper>
             </Box>
             <Box display='flex' justifyContent='flex-end' sx={{ mt: 0.5, mr: -1 }}>
                 <Typography variant="body1" display='flex' alignItems='center'>Save Career Set</Typography>

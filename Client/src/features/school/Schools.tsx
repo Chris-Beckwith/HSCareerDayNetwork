@@ -2,23 +2,23 @@ import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableH
 import { useAppDispatch } from "../../app/store/configureStore"
 import { reloadSchools, setPageNumber, setSchoolParams } from "./schoolSlice"
 import { MouseEvent, useState } from "react"
-import LoadingComponent from "../../app/components/LoadingComponent"
 import { Delete } from "@mui/icons-material"
-import { LoadingButton } from "@mui/lab"
 import { School } from "../../app/models/school"
 import AppPagination from "../../app/components/AppPagination"
 import SchoolForm from "./SchoolForm"
 import agent from "../../app/api/agent"
 import useSchools from "../../app/hooks/useSchools"
 import AppTextSearch from "../../app/components/AppTextSearch"
+import ConfirmDelete from "../../app/components/ConfirmDelete"
+import SchoolSkeleton from "./SchoolSkeleton"
 
 export default function Schools() {
-    const { schools, status, metaData, schoolParams } = useSchools()
+    const { schools, metaData, schoolParams, schoolsLoaded } = useSchools()
     const dispatch = useAppDispatch()
 
     const [editMode, setEditMode] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [target, setTarget] = useState(0)
+    const [showDeletePopup, setShowDeletePopup] = useState(false)
     const [selectedSchool, setSelectedSchool] = useState<School | undefined>(undefined)
     
     function handleSelectSchool(school: School) {
@@ -26,22 +26,35 @@ export default function Schools() {
         setEditMode(true)
     }
 
-    function handleDeleteSchool(event: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>, id: number) {
+    function handleShowConfirmDelete(event: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>, school: School) {
         event.stopPropagation()
+        setSelectedSchool(school)
+        setShowDeletePopup(true)
+    }
+
+    async function handleDeleteSchool() {
         setLoading(true);
-        setTarget(id);
-        agent.School.delete(id)
-            .then(() => dispatch(reloadSchools()))
-            .catch(error => console.log(error))
-            .finally(() => setLoading(false))
+        if (selectedSchool) {
+            await agent.School.delete(selectedSchool.id)
+                .then(() => dispatch(reloadSchools()))
+                .catch(error => console.log(error))
+                .finally(() => {
+                    setLoading(false)
+                    setShowDeletePopup(false)
+                    setSelectedSchool(undefined)
+                })
+        }
+    }
+
+    function handleCloseDelete() {
+        if (selectedSchool) setSelectedSchool(undefined)
+        setShowDeletePopup(false)
     }
 
     function cancelEdit() {
         if (selectedSchool) setSelectedSchool(undefined)
         setEditMode(false)
     }
-    
-    if (status.includes('pending')) return <LoadingComponent message="Loading Schools.." />
     
     if (editMode) return <SchoolForm school={selectedSchool} cancelEdit={cancelEdit} />
     
@@ -76,24 +89,27 @@ export default function Schools() {
                                 sx={{cursor: "pointer"}}
                                 hover
                             >
-                                <TableCell>
-                                    {school.name}
-                                </TableCell>
-                                <TableCell>{school.address?.address1} {school.address?.address2} 
-                                    {school.address?.city} {school.address?.state} {school.address?.zip}
-                                </TableCell>
-                                <TableCell>{school.contactName}</TableCell>
-                                <TableCell>{school.contactPhone}</TableCell>
-                                <TableCell>{school.contactEmail}</TableCell>
-                                <TableCell>{school.estimatedNumOfStudents}</TableCell>
-                                <TableCell align="right">
-                                    <LoadingButton
-                                            loading={loading && target === school.id}
-                                            startIcon={<Delete/>}
-                                            color='error'
-                                            onClick={(e) => handleDeleteSchool(e, school.id)}
-                                    />
-                                </TableCell>
+                                {!schoolsLoaded ? (
+                                    <SchoolSkeleton />
+                                ) : (
+                                    <>
+                                        <TableCell>{school.name}</TableCell>
+                                        <TableCell>{school.address?.address1} {school.address?.address2} 
+                                            {school.address?.city} {school.address?.state} {school.address?.zip}
+                                        </TableCell>
+                                        <TableCell>{school.contactName}</TableCell>
+                                        <TableCell>{school.contactPhone}</TableCell>
+                                        <TableCell>{school.contactEmail}</TableCell>
+                                        <TableCell>{school.estimatedNumOfStudents}</TableCell>
+                                        <TableCell align="right">
+                                            <Button
+                                                    startIcon={<Delete/>}
+                                                    color='error'
+                                                    onClick={(e) => handleShowConfirmDelete(e, school)}
+                                            />
+                                        </TableCell>
+                                    </>
+                                )}
                             </TableRow>
                         ))}
                     </TableBody>
@@ -107,6 +123,8 @@ export default function Schools() {
                     />
                 }
             </Box>
+            <ConfirmDelete open={showDeletePopup} itemType="School" itemName={selectedSchool?.name || ''}
+                        handleClose={handleCloseDelete} confirmDelete={handleDeleteSchool} loading={loading} />
         </>
     )
 }

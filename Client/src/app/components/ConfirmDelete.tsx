@@ -1,3 +1,4 @@
+import { LoadingButton } from "@mui/lab";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 
 interface Props {
@@ -7,10 +8,12 @@ interface Props {
     customText?: string
     handleClose: () => void
     confirmDelete: () => Promise<void>
+    loading: boolean
 }
 
-export default function ConfirmDelete({ open, itemName, itemType, customText, handleClose, confirmDelete }: Props) {
-    const contentText = customText ? customText : `Are you sure you want to delete the ${itemType}: ${itemName}?`
+export default function ConfirmDelete({ open, itemName, itemType, customText, handleClose, confirmDelete, loading }: Props) {
+    const contentText = customText ? customText : `Are you sure you want to delete the <strong>${itemType}: ${itemName}</strong>?`
+
     return (
         <Dialog
             open={open}
@@ -22,15 +25,15 @@ export default function ConfirmDelete({ open, itemName, itemType, customText, ha
                 {"Are you sure you want to delete "}{itemName}{"?"}
             </DialogTitle>
             <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                    {contentText}
-                </DialogContentText>
+                <DialogContentText id="alert-dialog-description"
+                    dangerouslySetInnerHTML={{ __html: contentText }}
+                />
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose}>Cancel</Button>
-                <Button onClick={confirmDelete} autoFocus>
+                <LoadingButton onClick={confirmDelete} loading={loading} autoFocus>
                     Delete
-                </Button>
+                </LoadingButton>
             </DialogActions>
         </Dialog>
     )

@@ -15,9 +15,6 @@ export default function Careers() {
     const [openSaveCareerSet, setOpenSaveCareerSet] = useState(false)
     const [selectedCareer, setSelectedCareer] = useState<Career | undefined>(undefined)
 
-    if (status.includes('pending')) return <LoadingComponent message="Loading Careers.." />
-
-
     const handleAddCareer = (career: Career) => {
         const newCareerSet = [...careerSet, career]
         setCareerSet(newCareerSet)
@@ -72,8 +69,12 @@ export default function Careers() {
                     </Grid>
                 }
             </Box>
-            <CareerList handleSelectCareer={handleSelectCareer} eventCareers={newCareerSetMode ? careerSet : undefined}
-                hideDelete={newCareerSetMode} hideDescription={newCareerSetMode} handleSetEventCareers={setCareerSet} />
+
+            {status.includes('pending') ? 
+                <LoadingComponent message="Loading Careers..." /> :
+                <CareerList handleSelectCareer={handleSelectCareer} eventCareers={newCareerSetMode ? careerSet : undefined}
+                    hideDelete={newCareerSetMode} hideDescription={newCareerSetMode} handleSetEventCareers={setCareerSet} />
+            }
 
             <ConfirmCareerSet open={openSaveCareerSet} handleClose={handleClose}
                 careerSet={careerSet} />
