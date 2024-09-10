@@ -55,8 +55,7 @@ export const speakerSlice = createSlice({
             speakerAdapter.upsertOne(state, action.payload)
             state.speakersLoaded = false
         },
-        removeSpeaker: (state, action) => {
-            speakerAdapter.removeOne(state, action.payload)
+        reloadSpeakers: (state) => {
             state.speakersLoaded = false
         },
         setSpeakerParams: (state, action) => {
@@ -91,4 +90,4 @@ export const speakerSlice = createSlice({
 })
 
 export const speakerSelectors = speakerAdapter.getSelectors((state: RootState) => state.speakers)
-export const {setSpeaker, removeSpeaker, setSpeakerParams, setPageNumber, setMetaData} = speakerSlice.actions
+export const {setSpeaker, reloadSpeakers, setSpeakerParams, setPageNumber, setMetaData} = speakerSlice.actions

@@ -33,6 +33,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [speakerMode, setSpeakerMode] = useState(false)
     const [careerMode, setCareerMode] = useState(false)
     const [studentMode, setStudentMode] = useState(false)
+    const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const { eventPhases } = useAppSelector(state => state.careerEvents)
     const date = new Date(careerEvent.eventDate)
 
@@ -67,6 +68,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     }
 
     async function confirmDelete() {
+        setConfirmDeleteLoading(true)
         try {
             if (careerEvent) {
                 await agent.Event.delete(careerEvent.id)
@@ -77,6 +79,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         } catch (error) {
             console.log(error)
         }
+        setConfirmDeleteLoading(false)
     }
 
     if (!careerEventsLoaded) return <LoadingComponent message="Loading Career Events.." />
@@ -221,19 +224,10 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}>
-                        {careerEvent.eventPhase.phaseName != EVENT_PHASES.CREATED &&
-                            <Button
-                                variant="contained"
-                                color="error">
-                                {prevEventPhaseText()}
-                            </Button>
-                        }
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Button onClick={progressEventPhaseAction}
+                        <Button onClick={cancelView}
                             variant="contained"
-                            color="primary">
-                            {nextEventPhaseText()}
+                            color="inherit">
+                            Back
                         </Button>
                     </Grid>
                     <Grid item xs={12}>
@@ -243,11 +237,20 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             Edit Event
                         </Button>
                     </Grid>
+                    {careerEvent.eventPhase.phaseName != EVENT_PHASES.CREATED &&
+                        <Grid item xs={12}>
+                            <Button
+                                variant="contained"
+                                color="error">
+                                {prevEventPhaseText()}
+                            </Button>
+                        </Grid>
+                    }
                     <Grid item xs={12}>
-                        <Button onClick={cancelView}
+                        <Button onClick={progressEventPhaseAction}
                             variant="contained"
-                            color="inherit">
-                            Back
+                            color="primary">
+                            {nextEventPhaseText()}
                         </Button>
                     </Grid>
                     <Grid item xs={12}></Grid>
@@ -335,7 +338,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                 </Grid>
             </Grid>
             <ConfirmDelete open={deleteMode} itemName={careerEvent.name} itemType="Event"
-                handleClose={cancelDelete} confirmDelete={confirmDelete} />
+                handleClose={cancelDelete} confirmDelete={confirmDelete} loading={confirmDeleteLoading} />
         </Grid>
     )
 }

@@ -27,6 +27,7 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
     const [selectedCareerSet, setSelectedCareerSet] = useState<number>()
     const [selectedCareerSetName, setSelectedCareerSetName] = useState<string | undefined>('')
     const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false)
+    const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const { control, reset } = useForm({
         defaultValues: {
             careerSets: ''
@@ -58,6 +59,7 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
     }
 
     async function confirmDeleteCareerSet() {
+        setConfirmDeleteLoading(true)
         try {
             if (selectedCareerSet) {
                 await agent.CareerSet.delete(selectedCareerSet)
@@ -69,6 +71,7 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
         setShowDeletePopup(false)
         setSelectedCareerSet(undefined)
         setSelectedCareerSetName(undefined)
+        setConfirmDeleteLoading(false)
         if (handleSetEventCareers)
             handleSetEventCareers([])
     }
@@ -174,8 +177,9 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                     </TableContainer>
                 </Grid>
             ))}
+            
             <ConfirmDelete open={showDeletePopup} itemType="Career Set" itemName={selectedCareerSetName || ''}
-                        handleClose={handleCloseDelete} confirmDelete={confirmDeleteCareerSet}/>
+                        handleClose={handleCloseDelete} confirmDelete={confirmDeleteCareerSet} loading={confirmDeleteLoading} />
         </Grid>
     )
 }
