@@ -90,6 +90,7 @@ Microsoft.AspNetCore.Authentication.JwtBearer
 Microsoft.AspNetCore.Identity.EntityFrameworkCore
 AutoMapper.Extensions.Microsoft.DependencyInjection  //Might not use this
 CloudinaryDotNet
+EPPlus
 
 
 Commands to create project
@@ -126,3 +127,4 @@ npm install @mui/lab
 npm install react-dropzone
 npm install dayjs
 npm install @mui/x-date-pickers
+npm install @mui/x-data-grid

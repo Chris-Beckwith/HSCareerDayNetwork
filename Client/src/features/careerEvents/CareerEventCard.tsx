@@ -46,8 +46,8 @@ export default function CareerEventCard({ careerEvent, handleEventCardClick }: P
                     {EVENT_PANEL_BUTTON.CAREERS}
                 </Button>
                 <Button sx={{ ml: 2.5 }}
-                    onClick={() => handleEventCardClick(careerEvent, EVENT_PANEL_BUTTON.SPEAKERS)}>
-                    {EVENT_PANEL_BUTTON.SPEAKERS}
+                    onClick={() => handleEventCardClick(careerEvent, EVENT_PANEL_BUTTON.STUDENTS)}>
+                    {EVENT_PANEL_BUTTON.STUDENTS}
                 </Button>
                 <Button sx={{ ml: 1 }}
                     onClick={() => handleEventCardClick(careerEvent, EVENT_PANEL_BUTTON.VIEW)}>

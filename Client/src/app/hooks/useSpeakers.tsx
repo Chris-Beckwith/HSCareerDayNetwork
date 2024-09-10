@@ -5,7 +5,7 @@ import { useAppSelector, useAppDispatch } from "../store/configureStore";
 export default function useSpeakers() {
     const speakers = useAppSelector(speakerSelectors.selectAll)
     const dispatch = useAppDispatch();
-    const { speakersLoaded, status, metaData } = useAppSelector(state => state.speakers)
+    const { speakersLoaded, status, metaData, speakerParams } = useAppSelector(state => state.speakers)
     
     useEffect(() => {
         if (!speakersLoaded) dispatch(getAllSpeakersAsync())
@@ -15,6 +15,7 @@ export default function useSpeakers() {
         speakers,
         speakersLoaded,
         status,
-        metaData
+        metaData,
+        speakerParams
     }
 }

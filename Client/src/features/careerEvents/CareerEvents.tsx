@@ -12,15 +12,16 @@ import { CareerEvent } from "../../app/models/event";
 import CareerEventDetails from "./CareerEventDetails";
 import useEvents from "../../app/hooks/useEvents";
 import CareerEventForm from "./CareerEventForm";
-import CareerEventSearch from "./components/CareerEventSearch";
 import IncludeDeletedCheckbox from "./components/IncludeDeletedCheckbox";
 import SurveyCompleteSlider from "./components/SurveyCompleteSlider";
 import agent from "../../app/api/agent";
 import { Speaker } from "../../app/models/speaker";
-import CareerEventSpeakers from "./components/CareerEventSpeakers";
 import { Career } from "../../app/models/career";
 import CareerEventCareers from "./components/CareerEventCareers";
 import { EVENT_PANEL_BUTTON } from "../../app/util/constants";
+import AppTextSearch from "../../app/components/AppTextSearch";
+import Students from "../student/Students";
+import { reloadStudents } from "../student/studentSlice";
 
 const sortOptions = [
     { value: 'name', label: 'Alphabetical' },
@@ -35,7 +36,7 @@ export default function CareerEvents() {
     const [selectedEvent, setSelectedEvent] = useState<CareerEvent | undefined>(undefined)
     const [viewMode, setViewMode] = useState(false)
     const [editMode, setEditMode] = useState(false)
-    const [speakerMode, setSpeakerMode] = useState(false)
+    const [studentMode, setStudentMode] = useState(false)
     const [careerMode, setCareerMode] = useState(false)
     const dispatch = useAppDispatch()
 
@@ -53,7 +54,7 @@ export default function CareerEvents() {
         switch(button) {
             case EVENT_PANEL_BUTTON.CAREERS: setCareerMode(true)
                 break;
-            case EVENT_PANEL_BUTTON.SPEAKERS: setSpeakerMode(true)
+            case EVENT_PANEL_BUTTON.STUDENTS: setStudentMode(true)
                 break;
             case EVENT_PANEL_BUTTON.VIEW: setViewMode(true)
                 break;
@@ -64,7 +65,8 @@ export default function CareerEvents() {
     }
 
     const back = () => {
-        setSpeakerMode(false)
+        dispatch(reloadStudents())
+        setStudentMode(false)
         setCareerMode(false)
         if (selectedEvent) setSelectedEvent(undefined)
     }
@@ -90,7 +92,7 @@ export default function CareerEvents() {
                     dispatch(reloadEvents())
                 }
             }
-            setSpeakerMode(false)
+            setStudentMode(false)
             setCareerMode(false)
             cancelView()
         } catch (error) {
@@ -98,7 +100,7 @@ export default function CareerEvents() {
         }
     }
 
-    if (!eventPhasesLoaded || !careerEventsLoaded) return <LoadingComponent message="Loading Career Events.." />
+    if (!eventPhasesLoaded) return <LoadingComponent message="Loading Career Events.." />
 
     if (viewMode) return <CareerEventDetails careerEvent={selectedEvent!}
                             cancelView={cancelView} 
@@ -106,9 +108,7 @@ export default function CareerEvents() {
 
     if (editMode) return <CareerEventForm selectedEvent={selectedEvent} cancelEdit={cancelEdit} saveEdit={cancelEdit} />
 
-    if (speakerMode) return <CareerEventSpeakers careerEventName={selectedEvent!.name}
-                                careerEventSpeakers={selectedEvent!.speakers}
-                                updateCareerEvent={updateCareerEvent} back={back} />
+    if (studentMode) return <Students eventId={selectedEvent!.id} back={back} />
 
     if (careerMode) return <CareerEventCareers careerEventName={selectedEvent!.name}
                                 careerEventCareers={selectedEvent!.careers} 
@@ -121,7 +121,8 @@ export default function CareerEvents() {
                     variant="contained"
                     color="primary">New Event</Button>
                 <Paper sx={{ my: 2 }}>
-                    <CareerEventSearch />
+                    <AppTextSearch label="Search Events" 
+                        stateSearchTerm={eventParams.searchTerm} setParams={setEventParams} />
                 </Paper>
                 <Paper sx={{ mb: 2, p: 2 }}>
                     <RadioButtonGroup
@@ -132,6 +133,7 @@ export default function CareerEvents() {
                 </Paper>
                 <Paper sx={{ mb: 2, p: 2 }}>
                     <CheckboxButtons
+                        label="Event Phases"
                         items={eventPhases.map(e => e.phaseName)}
                         checked={eventParams.eventPhases}
                         onChange={(items: string[]) => dispatch(setEventParams({ eventPhases: items }))}

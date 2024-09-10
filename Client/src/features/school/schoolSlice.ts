@@ -74,7 +74,7 @@ export const schoolSlice = createSlice({
         },
         setSchoolParams: (state, action) => {
             state.schoolsLoaded = false
-            state.schoolParams = {...state.schoolParams, ...action.payload}
+            state.schoolParams = {...state.schoolParams, ...action.payload, pageNumber: 1}
         }
     },
     extraReducers: (builder => {

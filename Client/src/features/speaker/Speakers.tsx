@@ -2,19 +2,19 @@ import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableH
 import { MouseEvent, useState } from "react"
 import { useAppDispatch } from "../../app/store/configureStore"
 import LoadingComponent from "../../app/components/LoadingComponent"
-import { removeSpeaker, setPageNumber } from "./speakerSlice"
+import { removeSpeaker, setPageNumber, setSpeakerParams } from "./speakerSlice"
 import { Speaker } from "../../app/models/speaker"
 import SpeakerForm from "./SpeakerForm"
 import { Delete } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 import agent from "../../app/api/agent"
 import AppPagination from "../../app/components/AppPagination"
-import SpeakerSearch from "./components/SpeakerSearch"
 import useSpeakers from "../../app/hooks/useSpeakers"
+import AppTextSearch from "../../app/components/AppTextSearch"
 
 export default function Speakers() {
     const dispatch = useAppDispatch();
-    const { speakers, speakersLoaded, status, metaData } = useSpeakers()
+    const { speakers, speakersLoaded, status, metaData, speakerParams } = useSpeakers()
     const [editMode, setEditMode] = useState(false)
     const [loading, setLoading] = useState(false)
     const [target, setTarget] = useState(0)
@@ -49,7 +49,8 @@ export default function Speakers() {
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
                 <Typography variant="h3">Speakers</Typography>
                 <Box>
-                    <SpeakerSearch />
+                    <AppTextSearch label="Search Speakers"
+                        stateSearchTerm={speakerParams.searchTerm} setParams={setSpeakerParams} />
                 </Box>
                 <Button variant="contained" onClick={() => setEditMode(true)}>New Speaker</Button>
             </Box>
