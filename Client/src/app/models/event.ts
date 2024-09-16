@@ -13,6 +13,7 @@ export interface CareerEvent {
     speakers: Speaker[]
     careers: Career[]
     guid: string
+    qrCodeUrl: string
     isDeleted: boolean
   }
   
