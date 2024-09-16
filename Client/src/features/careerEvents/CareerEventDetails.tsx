@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Paper, Typography } from "@mui/material";
+import { Box, Button, Grid, Link, Paper, Typography } from "@mui/material";
 import NotFound from "../../app/errors/NotFound";
 import { CareerEvent } from "../../app/models/event";
 import LinearProgressWithLabel from "../../app/components/LinearProgressWithLabel";
@@ -37,11 +37,10 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [eventPhaseName, setEventPhaseName] = useState('')
     const { eventPhases } = useAppSelector(state => state.careerEvents)
     const date = new Date(careerEvent.eventDate)
-
-    console.log(careerEvent.eventPhase.phaseName)
+    const baseUrl = import.meta.env.VITE_APP_HOST || '/';
+    const surveyUrl = `${baseUrl}survey/${careerEvent.guid}`
 
     useEffect(() => {
-        console.log("USE EFFECT")
         setEventPhaseName(careerEvent.eventPhase.phaseName)
     }, [careerEvent.eventPhase])
 
@@ -312,6 +311,19 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             </Paper>
                         </Grid>
                     </Grid>
+
+                    {careerEvent.guid &&
+                        <Grid item xs={12}>
+                            <Grid item display='flex' justifyContent='center' sx={{ mb: 2 }}>
+                                <Link href={surveyUrl}>
+                                    <img src="/images/Silhouette_No_Profile_Pic.png" alt="QRCode" style={{ height: 50, marginRight: 20 }} />
+                                </Link>
+                            </Grid>
+                            <Grid item display='flex' justifyContent='center' alignItems='center'>
+                                <Link href={surveyUrl}>{surveyUrl}</Link>
+                            </Grid>
+                        </Grid>
+                    }
 
                     <Grid item xs={12} sx={{ pl: 0 }}>
                         <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
