@@ -487,3 +487,5 @@ CareerDayApi/appsettings.json
 Docs/Mocks/Parts
 CareerDayApi/bin/
 CareerDayApi/obj/
+Client/.env.development
+Client/.env.production

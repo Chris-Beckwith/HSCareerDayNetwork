@@ -48,7 +48,11 @@ export default function Survey() {
                 })
                 .catch(error => {
                     console.log(error)
-                    setEventError("Event " + error.statusText)
+                    if (error.status === 404) {
+                        setEventError("Event Not Found")
+                    } else {
+                        setEventError("Event Error " + error.statusText)
+                    }
                 })
                 .finally(() => setLoading(false))
         }
@@ -117,13 +121,11 @@ export default function Survey() {
         setLoadingStep(true)
         setError('')
         
-        console.log("next: ", data)
         if (event) {
             if (activeStep === 0) {  //Student Number
                 await agent.Student.byNumberAndEvent(event.id, data.studentNumber)
                     .then(response => {
                         if (response) {
-                            console.log(response)
                             if (response.surveyComplete) {
                                 setError("You've already completed the survey")
                             } else {
@@ -152,14 +154,12 @@ export default function Survey() {
             } else if (activeStep === 3) {  //Survey Submitted
                 primaryCareers.forEach(c => appendPrimary(c))
                 secondaryCareers.forEach(c => appendSecondary(c))
-                // setError('This is a test error')
                 const studentId = student?.id
                 const dataWithStudent = {
                     ...data,
                     student,
                     studentId
                 }
-                console.log("next: ", dataWithStudent)
 
                 await agent.Student.submitSurvey(dataWithStudent)
                     .catch(error => {
