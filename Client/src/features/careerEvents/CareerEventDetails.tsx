@@ -8,7 +8,7 @@ import agent from "../../app/api/agent";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { reloadEvents } from "./careerEventSlice";
 import CareerEventForm from "./CareerEventForm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useEvents from "../../app/hooks/useEvents";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import ConfirmDelete from "../../app/components/ConfirmDelete";
@@ -34,8 +34,16 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [careerMode, setCareerMode] = useState(false)
     const [studentMode, setStudentMode] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
+    const [eventPhaseName, setEventPhaseName] = useState('')
     const { eventPhases } = useAppSelector(state => state.careerEvents)
     const date = new Date(careerEvent.eventDate)
+
+    console.log(careerEvent.eventPhase.phaseName)
+
+    useEffect(() => {
+        console.log("USE EFFECT")
+        setEventPhaseName(careerEvent.eventPhase.phaseName)
+    }, [careerEvent.eventPhase])
 
     const cancelEdit = () => {
         setEditMode(false)
@@ -101,7 +109,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     if (studentMode) return <Students eventId={careerEvent.id} back={back} />
 
     const nextEventPhaseText = () => {
-        switch (careerEvent.eventPhase.phaseName) {
+        switch (eventPhaseName) {
             case EVENT_PHASES.CREATED: return "Open Survey"
             case EVENT_PHASES.SURVEYINPROGRESS: return "Close Survey"
             case EVENT_PHASES.SURVEYCLOSED: return "Generate Sessions"
@@ -115,7 +123,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     }
 
     const prevEventPhaseText = () => {
-        switch (careerEvent.eventPhase.phaseName) {
+        switch (eventPhaseName) {
             case EVENT_PHASES.SURVEYINPROGRESS:
             case EVENT_PHASES.SURVEYCLOSED:
             case EVENT_PHASES.SESSIONSGENERATED:
@@ -162,47 +170,47 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         return eventPhase.id
     }
 
-    // const findPrevEventPhaseId = (phaseName: string) => {
-    //     let eventPhase;
-    //     switch (phaseName) {
-    //         case EVENT_PHASES.SURVEYINPROGRESS:
-    //             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
-    //             break;
-    //         case EVENT_PHASES.SURVEYCLOSED:
-    //             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYINPROGRESS)
-    //             break;
-    //         case EVENT_PHASES.SESSIONSGENERATED:
-    //             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYCLOSED)
-    //             break;
-    //         case EVENT_PHASES.ROOMSASSIGNED:
-    //             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
-    //             break;
-    //         case EVENT_PHASES.SPEAKERSASSIGNED:
-    //             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.ROOMSASSIGNED)
-    //             break;
-    //         case EVENT_PHASES.SCHEDULEEXPORT:
-    //             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SPEAKERSASSIGNED)
-    //             break;
-    //         case EVENT_PHASES.COMPLETED:
-    //             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULEEXPORT)
-    //             break;
-    //         default:
-    //             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
-    //     }
-    //     if (eventPhase === undefined) return -1
-    //     return eventPhase.id
-    // }
+    const findPrevEventPhaseId = (phaseName: string) => {
+        let eventPhase;
+        switch (phaseName) {
+            case EVENT_PHASES.SURVEYINPROGRESS:
+                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
+                break;
+            case EVENT_PHASES.SURVEYCLOSED:
+                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYINPROGRESS)
+                break;
+            case EVENT_PHASES.SESSIONSGENERATED:
+                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYCLOSED)
+                break;
+            case EVENT_PHASES.ROOMSASSIGNED:
+                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
+                break;
+            case EVENT_PHASES.SPEAKERSASSIGNED:
+                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.ROOMSASSIGNED)
+                break;
+            case EVENT_PHASES.SCHEDULEEXPORT:
+                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SPEAKERSASSIGNED)
+                break;
+            case EVENT_PHASES.COMPLETED:
+                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULEEXPORT)
+                break;
+            default:
+                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
+        }
+        if (eventPhase === undefined) return -1
+        return eventPhase.id
+    }
 
     async function progressEventPhaseAction() {
         if (!careerEvent) return;
 
-        switch (careerEvent.eventPhase.phaseName) {
+        switch (eventPhaseName) {
             case EVENT_PHASES.CREATED:
                 if (careerEvent.careers.length < 5)
                     toast.error("You do not have the minimum 5 required careers")
                 else {
-                    careerEvent.eventPhase.id = findNextEventPhaseId(careerEvent.eventPhase.phaseName)
-                    await agent.Event.update(careerEvent)
+                    const eventPhaseId = findNextEventPhaseId(eventPhaseName)
+                    await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
                     dispatch(reloadEvents())
                 }
                 break;
@@ -214,6 +222,19 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             case EVENT_PHASES.SCHEDULEEXPORT: return "Schedule Exporter"
             case EVENT_PHASES.COMPLETED:
             case EVENT_PHASES.CANCELLED: return "Reopen Event"
+        }
+    }
+
+    async function regressEventPhaseAction() {
+        if (!careerEvent) return;
+        
+        const eventPhaseId = findPrevEventPhaseId(eventPhaseName)
+
+        switch(eventPhaseName) {
+            case EVENT_PHASES.SURVEYINPROGRESS:
+                await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
+                dispatch(reloadEvents())
+                break;
         }
     }
 
@@ -239,7 +260,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     </Grid>
                     {careerEvent.eventPhase.phaseName != EVENT_PHASES.CREATED &&
                         <Grid item xs={12}>
-                            <Button
+                            <Button onClick={regressEventPhaseAction}
                                 variant="contained"
                                 color="error">
                                 {prevEventPhaseText()}

@@ -1,3 +1,4 @@
+using System.Text;
 using CareerDayApi.Data;
 using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
@@ -49,6 +50,17 @@ namespace CareerDayApi.Controllers
             return singleEvent;
         }
 
+        [HttpGet("GetEventByGuid/{guid}")]
+        public async Task<ActionResult<Event>> GetEventByGuid(string guid)
+        {
+            var singleEvent = await getEventDetails()
+                .FirstOrDefaultAsync(e => e.GUID == guid);
+
+            if (singleEvent == null) return NotFound();
+
+            return singleEvent;
+        }
+
         [HttpPost]
         public async Task<ActionResult<Event>> CreateEvent([FromForm] EventDto eventDto)
         {
@@ -87,6 +99,35 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails{Title = "Problem creating new event"});
         }
 
+        [HttpPut("updatePhase")]
+        public async Task<ActionResult<Event>> UpdateEventPhase([FromForm] UpdateEventPhaseDto updateEventPhaseDto)
+        {
+            var updateEvent = await _context.Events.FindAsync(updateEventPhaseDto.EventId);
+            if (updateEvent == null) return NotFound();
+            
+            EventPhase eventPhase = await _context.EventPhases.FindAsync(updateEventPhaseDto.PhaseId);
+
+            if (eventPhase == null) {
+                _logger.LogError("Error updating Event: Event Phase not found: {eventPhaseId}, {eventName}",
+                    updateEventPhaseDto.PhaseId, updateEvent.Name);
+                return BadRequest(new ProblemDetails{Title = "Problem updating event: Event Phase not found"});
+            }
+
+            if (eventPhase.PhaseName == "Survey In Progress" && updateEvent.GUID == null)
+            {
+                updateEvent.GUID = Guid.NewGuid().ToString();
+                //TODO QR Code
+            }
+
+            updateEvent.EventPhase = eventPhase;
+            
+            var result = await _context.SaveChangesAsync() > 0;
+
+            if (result) return Ok(updateEvent);
+
+            return BadRequest(new ProblemDetails { Title = "Problem updating Event" });
+        }
+
         [HttpPut("update")]
         public async Task<ActionResult<Event>> UpdateEvent([FromForm] UpdateEventDto updateEventDto)
         {
@@ -96,7 +137,6 @@ namespace CareerDayApi.Controllers
                                             .FirstOrDefaultAsync(e => e.Id == updateEventDto.Id);
             if (updateEvent == null) return NotFound();
 
-            EventPhase eventPhase = await _context.EventPhases.FindAsync(updateEventDto.EventPhase.Id);
             School school = await _context.Schools.FindAsync(updateEventDto.School.Id);
             List<Speaker> newSpeakers = [];
             if (updateEventDto.Speakers != null && updateEventDto.Speakers.Count != 0) {
@@ -115,25 +155,20 @@ namespace CareerDayApi.Controllers
                                             .ToListAsync();
             }
 
-            if (eventPhase == null) {
-                _logger.LogError("Error updating new Event: Event Phase not found: {eventPhase}, {eventName}, {eventId}",
-                    updateEventDto.EventPhase, updateEventDto.Name, updateEventDto.Id);
-                return BadRequest(new ProblemDetails{Title = "Problem creating new event: Event Phase not found"});
-            }
             if (school == null) {
                 _logger.LogError("Error updating new Event: School not found: {school}, {eventName}, {eventId}",
                     updateEventDto.School, updateEventDto.Name, updateEventDto.Id);
-                return BadRequest(new ProblemDetails{Title = "Problem creating new event: School not found"});
+                return BadRequest(new ProblemDetails { Title = "Problem updating event: School not found"});
             }
             if (newSpeakers == null) {
                 _logger.LogError("Error updating new Event: Speakers not found: {speakers}, {eventName}, {eventId}",
                     updateEventDto.Speakers, updateEventDto.Name, updateEventDto.Id);
-                return BadRequest(new ProblemDetails{Title = "Problem creating new event: Speakers not found"});
+                return BadRequest(new ProblemDetails { Title = "Problem updating event: Speakers not found"});
             }
             if (newCareers == null) {
                 _logger.LogError("Error updating new Event: Careers not found: {careers}, {eventName}, {eventId}",
                     updateEventDto.Careers, updateEventDto.Name, updateEventDto.Id);
-                return BadRequest(new ProblemDetails{Title = "Problem creating new event: Careers not found"});
+                return BadRequest(new ProblemDetails { Title = "Problem updating event: Careers not found" });
             }
 
             // Update Speakers
@@ -176,7 +211,6 @@ namespace CareerDayApi.Controllers
             updateEvent.Name = updateEventDto.Name;
             updateEvent.Description = updateEventDto.Description;
             updateEvent.SurveyCompletePercent = updateEventDto.SurveyCompletePercent;
-            updateEvent.EventPhase = eventPhase;
 
             var result = await _context.SaveChangesAsync() > 0;
 

@@ -108,8 +108,11 @@ function createFileFormData(file: File, eventId: number) {
 const Event = {
     list: (params: URLSearchParams) => requests.get('events', params),
     details: (id: number) => requests.get(`events/${id}`),
+    eventByGuid: (guid: string) => requests.get(`events/GetEventByGuid/${guid}`),
     create: (careerEvent: any) => requests.postForm('events', createFormData(careerEvent)),
     update: (careerEvent: any) => requests.putForm('events/update', createFormData(careerEvent)),
+    updatePhase: (eventId: number, phaseId: number) =>
+        requests.putForm('events/updatePhase', createFormData({eventId: eventId, phaseId: phaseId})),
     delete: (id: number) => requests.deleteEvent(`events/${id}/${true}`),
     restore: (id: number) => requests.deleteEvent(`events/${id}/${false}`),
     eventPhases: () => requests.get('events/phases')
@@ -125,9 +128,12 @@ const School = {
 
 const Student = {
     list: (params: URLSearchParams) => requests.get('student', params),
+    byNumberAndEvent: (eventId: number, studentNumber: string) => 
+        requests.get(`student/${eventId}/${studentNumber}`),
     import: (file: File, eventId: number) => 
         requests.postForm('student/ImportStudents', createFileFormData(file, eventId)),
     update: (student: any) => requests.putForm('student', createFormData(student)),
+    submitSurvey: (survey: any) => requests.post('student/submitSurvey', survey),
     deleteAll: (eventId: number) => requests.delete(`student/deleteAll/${eventId}`)
 }
 

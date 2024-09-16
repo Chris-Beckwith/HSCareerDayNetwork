@@ -1,26 +1,42 @@
-import { Typography, Grid } from "@mui/material";
+import { Typography, TableContainer, TableHead, Table, TableCell, TableRow, TableBody } from "@mui/material";
+import { Student } from "../../app/models/student";
 
-export default function InfoVerification() {
-  // const { control } = useFormContext()
+interface Props {
+  student: Student | undefined
+}
+
+export default function InfoVerification({ student }: Props) {
   return (
     <>
-      <Typography variant="h6" gutterBottom>
-        Student Address
+      <Typography variant="h4" align="center" gutterBottom>
+        Verify Information
       </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={4}>
-          FirstNameTest
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          LastNameTest
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          MiddleNameTest
-        </Grid>
-        <Grid item xs={12}>
-          SchoolNameTest
-        </Grid>
-      </Grid>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Student #</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Gender</TableCell>
+              <TableCell>Grade</TableCell>
+              <TableCell>School Email</TableCell>
+              <TableCell>Homeroom Teacher</TableCell>
+              <TableCell>Homeroom #</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell>{student?.studentNumber}</TableCell>
+              <TableCell>{student?.lastFirstName}</TableCell>
+              <TableCell>{student?.gender}</TableCell>
+              <TableCell>{student?.grade}</TableCell>
+              <TableCell>{student?.email}</TableCell>
+              <TableCell>{student?.homeroomTeacher}</TableCell>
+              <TableCell>{student?.homeroomNumber}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
     </>
   );
 }

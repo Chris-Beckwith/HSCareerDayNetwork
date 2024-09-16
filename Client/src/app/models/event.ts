@@ -12,6 +12,7 @@ export interface CareerEvent {
     eventPhase: EventPhase
     speakers: Speaker[]
     careers: Career[]
+    guid: string
     isDeleted: boolean
   }
   

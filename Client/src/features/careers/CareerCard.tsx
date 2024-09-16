@@ -13,9 +13,13 @@ interface Props {
     hideDescription?: boolean
     hideDelete?: boolean
     highlightRow?: boolean
+    highlightSecondary?: boolean
+    onPrimaryCareers?: boolean
+    survey?: boolean
 }
 
-export default function CareerCard({ career, handleSelectCareer, hideDescription, hideDelete, highlightRow }: Props) {
+export default function CareerCard({ career, handleSelectCareer, hideDescription, hideDelete, 
+        highlightRow, highlightSecondary, onPrimaryCareers, survey }: Props) {
     const [loading, setLoading] = useState(false)
     const [showDeletePopup, setShowDeletePopup] = useState(false)
     const [target, setTarget] = useState<Career | undefined>(undefined)
@@ -47,16 +51,58 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
         setShowDeletePopup(false)
     }
 
+    function getHighlight() {
+        if (survey) {
+            if (onPrimaryCareers) {
+                return highlightRow ? "primary.light" : "inherit"
+            } else {
+                if (highlightRow) {
+                    return "primary.main"
+                } else if (highlightSecondary) {
+                    return "secondary.light"
+                }
+                return "inherit"
+            }
+        } else {
+            return highlightRow ? "primary.light" : "inherit"
+        }
+    }
+
+    function getHover() {
+        if (survey) {
+            if (onPrimaryCareers) {
+                return highlightRow ? 'primary.main' : 'rgba(0, 0, 0, 0.07)'
+            } else {
+                if (highlightSecondary) {
+                    return 'secondary.main'
+                } else if (highlightRow) {
+                    return 'primary.main'
+                }
+                return 'inherit'
+            }
+        } else {
+            return highlightRow ? 'primary.main' : 'rgba(0, 0, 0, 0.07)'
+        }
+    }
+
+    function handleOnClick(career: Career) {
+        if (!onPrimaryCareers && highlightRow) {
+            return;
+        } else {
+            handleSelectCareer(career)
+        }
+    }
+
     return (
         <>
             <TableRow key={career.id}
-                onClick={() => handleSelectCareer(career)}
+                onClick={() => handleOnClick(career)}
                 hover
                 sx={{
-                    cursor: "pointer",
-                    bgcolor: highlightRow ? "primary.light" : "inherit",
+                    cursor: survey ? (!onPrimaryCareers && highlightRow ? "inherit" : "pointer") : "pointer",
+                    bgcolor: getHighlight(), //highlightRow ? "primary.light" : "inherit",
                     '&.MuiTableRow-root:hover': {
-                        bgcolor: highlightRow ? 'primary.main' : 'rgba(0, 0, 0, 0.07)',
+                        bgcolor: getHover(),
                     },
                 }}
             >

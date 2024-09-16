@@ -10,6 +10,7 @@ namespace CareerDayApi.Data
         // Database Tables
         public DbSet<School> Schools { get; set; }
         public DbSet<Student> Students { get; set; }
+        public DbSet<Survey> Surveys { get; set; }
         public DbSet<Speaker> Speakers { get; set; }
         public DbSet<Career> Careers { get; set; }
         public DbSet<Event> Events { get; set; }
@@ -53,6 +54,25 @@ namespace CareerDayApi.Data
 
             builder.Entity<Student>()
                 .HasIndex(s => new { s.StudentNumber, s.EventId })
+                .IsUnique();
+
+            builder.Entity<Survey>()
+                .HasOne(s => s.Student)
+                .WithOne()
+                .HasForeignKey<Survey>(s => s.StudentId);
+
+            builder.Entity<Survey>()
+                .HasMany(s => s.PrimaryCareers)
+                .WithMany()
+                .UsingEntity(j => j.ToTable("SurveyPrimaryCareers"));
+
+            builder.Entity<Survey>()
+                .HasMany(s => s.SecondaryCareers)
+                .WithMany()
+                .UsingEntity(j => j.ToTable("SurveySecondaryCareers"));
+
+            builder.Entity<Survey>()
+                .HasIndex(s => s.StudentId)
                 .IsUnique();
 
             builder.Entity<IdentityRole>()
