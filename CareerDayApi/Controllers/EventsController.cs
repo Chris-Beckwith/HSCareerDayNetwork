@@ -1,18 +1,21 @@
-using System.Text;
 using CareerDayApi.Data;
 using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
 using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
+using CareerDayApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 
 namespace CareerDayApi.Controllers
 {
-    public class EventsController(CareerDayContext context,
-        ILogger<EventsController> logger) : BaseApiController
+    public class EventsController(CareerDayContext context, IConfiguration config,
+        ILogger<EventsController> logger, ImageService imageService) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
+        private readonly IConfiguration _config = config;
+        private readonly ImageService _imageService = imageService;
         private readonly ILogger<EventsController> _logger = logger;
 
         [HttpGet]
@@ -116,7 +119,31 @@ namespace CareerDayApi.Controllers
             if (eventPhase.PhaseName == "Survey In Progress" && updateEvent.GUID == null)
             {
                 updateEvent.GUID = Guid.NewGuid().ToString();
-                //TODO QR Code
+                if (updateEvent.QRCodeUrl == null && updateEvent.GUID != null) {
+                    using QRCodeGenerator qrGenerator = new();
+                    QRCodeData qrCodeData = qrGenerator.CreateQrCode(
+                        _config["HostName"] + "survey/" + updateEvent.GUID, QRCodeGenerator.ECCLevel.Q);
+                    using PngByteQRCode qrCode = new(qrCodeData);
+                    var qrByteArray = qrCode.GetGraphic(20);
+                    var stream = new MemoryStream(qrByteArray);
+                    var qrImage = new FormFile(stream, 0, qrByteArray.Length,
+                        "qrCodeForEvent", "eventQRCode-" + updateEvent.GUID + ".png")
+                    {
+                        Headers = new HeaderDictionary(),
+                        ContentType = "image/png"
+                    };
+
+                    var imageResult = await _imageService.AddImageAsync(qrImage);
+
+                    if (imageResult.Error != null) {
+                        return BadRequest(new ProblemDetails {
+                            Title = "Probelm creating QR code for event: " + updateEvent.Name
+                        });
+                    }
+
+                    updateEvent.QRCodeUrl = imageResult.SecureUrl.ToString();
+                    updateEvent.PublicId = imageResult.PublicId;
+                }
             }
 
             updateEvent.EventPhase = eventPhase;

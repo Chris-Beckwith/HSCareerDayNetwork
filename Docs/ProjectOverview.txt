@@ -91,6 +91,7 @@ Microsoft.AspNetCore.Identity.EntityFrameworkCore
 AutoMapper.Extensions.Microsoft.DependencyInjection  //Might not use this
 CloudinaryDotNet
 EPPlus
+QRCoder
 
 
 Commands to create project
