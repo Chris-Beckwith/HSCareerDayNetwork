@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
             { path: 'register', element: <Register /> },
             { path: 'schools', element: <Schools /> },
             { path: 'careers', element: <Careers /> },
-            { path: 'survey', element: <Survey /> },
+            { path: 'survey/:eventHash', element: <Survey /> },
             { path: 'server-error', element: <ServerError /> },
             { path: 'not-found', element: <NotFound /> },
             { path: 'buggy-test', element: <BuggyTester /> },

@@ -23,6 +23,7 @@ namespace CareerDayApi.Entities
         public EventPhase EventPhase { get; set; }
         public List<Speaker> Speakers { get; set; } = [];
         public List<Career> Careers { get; set; } = [];
+        public string GUID { get; set; }
         public bool IsDeleted { get; set; } = false;
 
         //TODO AddAllSpeakers, RemoveAllSpeakers
