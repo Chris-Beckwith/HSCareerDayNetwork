@@ -3,6 +3,7 @@ using System;
 using CareerDayApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CareerDayApi.Data.Migrations
 {
     [DbContext(typeof(CareerDayContext))]
-    partial class CareerDayContextModelSnapshot : ModelSnapshot
+    [Migration("20240915221318_addingSurvey")]
+    partial class addingSurvey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,6 +62,12 @@ namespace CareerDayApi.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("SurveyId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SurveyId1")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CourseId")
@@ -66,6 +75,10 @@ namespace CareerDayApi.Data.Migrations
 
                     b.HasIndex("Name")
                         .IsUnique();
+
+                    b.HasIndex("SurveyId");
+
+                    b.HasIndex("SurveyId1");
 
                     b.ToTable("Careers");
                 });
@@ -441,36 +454,6 @@ namespace CareerDayApi.Data.Migrations
                     b.ToTable("CareerSpeaker");
                 });
 
-            modelBuilder.Entity("CareerSurvey", b =>
-                {
-                    b.Property<int>("PrimaryCareersId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SurveyId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("PrimaryCareersId", "SurveyId");
-
-                    b.HasIndex("SurveyId");
-
-                    b.ToTable("SurveyPrimaryCareers", (string)null);
-                });
-
-            modelBuilder.Entity("CareerSurvey1", b =>
-                {
-                    b.Property<int>("SecondaryCareersId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Survey1Id")
-                        .HasColumnType("integer");
-
-                    b.HasKey("SecondaryCareersId", "Survey1Id");
-
-                    b.HasIndex("Survey1Id");
-
-                    b.ToTable("SurveySecondaryCareers", (string)null);
-                });
-
             modelBuilder.Entity("EventSpeaker", b =>
                 {
                     b.Property<int>("EventId")
@@ -514,7 +497,7 @@ namespace CareerDayApi.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "7a7866f9-c841-447c-a98c-1ea27aea7ffb",
+                            Id = "7567f1e1-5aca-47a4-ad98-a71385a97aec",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -641,6 +624,17 @@ namespace CareerDayApi.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CareerDayApi.Entities.Career", b =>
+                {
+                    b.HasOne("CareerDayApi.Entities.Survey", null)
+                        .WithMany("PrimaryCareers")
+                        .HasForeignKey("SurveyId");
+
+                    b.HasOne("CareerDayApi.Entities.Survey", null)
+                        .WithMany("SecondaryCareers")
+                        .HasForeignKey("SurveyId1");
+                });
+
             modelBuilder.Entity("CareerDayApi.Entities.Classroom", b =>
                 {
                     b.HasOne("CareerDayApi.Entities.School", "School")
@@ -735,8 +729,8 @@ namespace CareerDayApi.Data.Migrations
             modelBuilder.Entity("CareerDayApi.Entities.Survey", b =>
                 {
                     b.HasOne("CareerDayApi.Entities.Student", "Student")
-                        .WithOne()
-                        .HasForeignKey("CareerDayApi.Entities.Survey", "StudentId")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -769,36 +763,6 @@ namespace CareerDayApi.Data.Migrations
                     b.HasOne("CareerDayApi.Entities.Speaker", null)
                         .WithMany()
                         .HasForeignKey("SpeakerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("CareerSurvey", b =>
-                {
-                    b.HasOne("CareerDayApi.Entities.Career", null)
-                        .WithMany()
-                        .HasForeignKey("PrimaryCareersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CareerDayApi.Entities.Survey", null)
-                        .WithMany()
-                        .HasForeignKey("SurveyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("CareerSurvey1", b =>
-                {
-                    b.HasOne("CareerDayApi.Entities.Career", null)
-                        .WithMany()
-                        .HasForeignKey("SecondaryCareersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CareerDayApi.Entities.Survey", null)
-                        .WithMany()
-                        .HasForeignKey("Survey1Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -872,6 +836,13 @@ namespace CareerDayApi.Data.Migrations
             modelBuilder.Entity("CareerDayApi.Entities.Speaker", b =>
                 {
                     b.Navigation("Address");
+                });
+
+            modelBuilder.Entity("CareerDayApi.Entities.Survey", b =>
+                {
+                    b.Navigation("PrimaryCareers");
+
+                    b.Navigation("SecondaryCareers");
                 });
 #pragma warning restore 612, 618
         }

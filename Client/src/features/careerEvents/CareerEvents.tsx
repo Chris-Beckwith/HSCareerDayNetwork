@@ -1,6 +1,6 @@
 import { useAppDispatch } from "../../app/store/configureStore";
 import { reloadEvents, setEventParams, setPageNumber } from "./careerEventSlice";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import { Button, Grid, Paper } from "@mui/material";
 import RadioButtonGroup from "../../app/components/RadioButtonGroup";
@@ -39,6 +39,14 @@ export default function CareerEvents() {
     const [studentMode, setStudentMode] = useState(false)
     const [careerMode, setCareerMode] = useState(false)
     const dispatch = useAppDispatch()
+
+    useEffect(() => {
+        if (careerEvents.length > 0 && selectedEvent) {
+            const updatedEvent = careerEvents.find(c => c.id == selectedEvent.id)
+            if (updatedEvent)
+                setSelectedEvent(updatedEvent)
+        }
+    }, [careerEvents, selectedEvent])
 
     const cancelView = () => {
         setViewMode(false)

@@ -3,6 +3,7 @@ using System;
 using CareerDayApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CareerDayApi.Data.Migrations
 {
     [DbContext(typeof(CareerDayContext))]
-    partial class CareerDayContextModelSnapshot : ModelSnapshot
+    [Migration("20240915234001_addingSurvey3")]
+    partial class addingSurvey3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -514,7 +517,7 @@ namespace CareerDayApi.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "7a7866f9-c841-447c-a98c-1ea27aea7ffb",
+                            Id = "32c692b4-97b0-446c-93c9-3d2ce1c7920d",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -735,7 +738,7 @@ namespace CareerDayApi.Data.Migrations
             modelBuilder.Entity("CareerDayApi.Entities.Survey", b =>
                 {
                     b.HasOne("CareerDayApi.Entities.Student", "Student")
-                        .WithOne()
+                        .WithOne("Survey")
                         .HasForeignKey("CareerDayApi.Entities.Survey", "StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -872,6 +875,11 @@ namespace CareerDayApi.Data.Migrations
             modelBuilder.Entity("CareerDayApi.Entities.Speaker", b =>
                 {
                     b.Navigation("Address");
+                });
+
+            modelBuilder.Entity("CareerDayApi.Entities.Student", b =>
+                {
+                    b.Navigation("Survey");
                 });
 #pragma warning restore 612, 618
         }
