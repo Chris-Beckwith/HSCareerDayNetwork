@@ -277,6 +277,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
+                    <Grid item xs={12}></Grid>
                 </Grid>
                 <Grid container item xs={8} rowSpacing={4}>
                     <Grid item xs={12} display='flex' justifyContent='center'>
@@ -315,9 +316,11 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     {careerEvent.guid &&
                         <Grid item xs={12}>
                             <Grid item display='flex' justifyContent='center' sx={{ mb: 2 }}>
-                                <Link href={surveyUrl}>
-                                    <img src="/images/Silhouette_No_Profile_Pic.png" alt="QRCode" style={{ height: 50, marginRight: 20 }} />
-                                </Link>
+                                {careerEvent.qrCodeUrl &&
+                                    <Link href={surveyUrl}>
+                                        <img src={careerEvent.qrCodeUrl} alt="QRCode" style={{ height: 150, marginRight: 20 }} />
+                                    </Link>
+                                }
                             </Grid>
                             <Grid item display='flex' justifyContent='center' alignItems='center'>
                                 <Link href={surveyUrl}>{surveyUrl}</Link>
@@ -362,7 +365,6 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             {careerEvent.isDeleted ? "Restore Event" : "Delete Event"}
                         </Button>
                     </Grid>
-                    <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>

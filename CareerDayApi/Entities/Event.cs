@@ -24,6 +24,8 @@ namespace CareerDayApi.Entities
         public List<Speaker> Speakers { get; set; } = [];
         public List<Career> Careers { get; set; } = [];
         public string GUID { get; set; }
+        public string QRCodeUrl { get; set; }
+        public string PublicId { get; set; }
         public bool IsDeleted { get; set; } = false;
 
         //TODO AddAllSpeakers, RemoveAllSpeakers
