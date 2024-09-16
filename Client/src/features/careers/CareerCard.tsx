@@ -100,7 +100,7 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
                 hover
                 sx={{
                     cursor: survey ? (!onPrimaryCareers && highlightRow ? "inherit" : "pointer") : "pointer",
-                    bgcolor: getHighlight(), //highlightRow ? "primary.light" : "inherit",
+                    bgcolor: getHighlight(),
                     '&.MuiTableRow-root:hover': {
                         bgcolor: getHover(),
                     },
