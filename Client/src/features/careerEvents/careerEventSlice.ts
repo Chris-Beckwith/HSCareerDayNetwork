@@ -97,6 +97,7 @@ export const careerEventSlice = createSlice({
         },
         resetEventParams: (state) => {
             state.eventParams = initParams()
+            state.careerEventsLoaded = false
         },
         setMetaData: (state, action) => {
             state.metaData = action.payload

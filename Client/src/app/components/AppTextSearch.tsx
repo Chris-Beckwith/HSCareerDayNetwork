@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useAppDispatch } from "../store/configureStore"
 import { debounce, TextField } from "@mui/material"
 
@@ -25,6 +25,10 @@ export default function AppTextSearch({ label, stateSearchTerm, setParams }: Pro
             dispatch(setParams({searchTerm: event.target.value}))
         }, 1000), [dispatch]
     )
+
+    useEffect(() => {
+        setSearchTerm(stateSearchTerm)
+    }, [stateSearchTerm])
 
     return (
         <TextField

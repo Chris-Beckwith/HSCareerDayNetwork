@@ -1,7 +1,7 @@
-import { Button, Grid, Paper } from "@mui/material"
+import { Button, Grid, Paper, Typography } from "@mui/material"
 import useStudents from "../../app/hooks/useStudents"
 import AppTextSearch from "../../app/components/AppTextSearch"
-import { reloadStudents, setPageMetaData, setStudentParams } from "./studentSlice"
+import { reloadStudents, resetStudentParams, setPageMetaData, setStudentParams } from "./studentSlice"
 import RadioButtonGroup from "../../app/components/RadioButtonGroup"
 import { useAppDispatch } from "../../app/store/configureStore"
 import CheckboxButtons from "../../app/components/CheckboxButtons"
@@ -13,6 +13,7 @@ import ConfirmDelete from "../../app/components/ConfirmDelete"
 
 interface Props {
     eventId: number
+    eventName: string
     back: () => void
 }
 
@@ -53,13 +54,15 @@ const columns: GridColDef[] = [
     { field: 'surveyComplete', headerName: 'Survey Completed' },
 ]
 
-export default function Students({ eventId, back }: Props) {
+export default function Students({ eventId, eventName, back }: Props) {
     const { students, studentsLoaded, metaData, studentParams } = useStudents(eventId)
     const dispatch = useAppDispatch()
     const rows = students
     const [openImport, setOpenImport] = useState(false)
     const [openDelete, setOpenDelete] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
+
+    console.log("Grades: ", studentParams.grades)
 
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: metaData?.pageSize || 20,
@@ -111,12 +114,17 @@ export default function Students({ eventId, back }: Props) {
                     <RadioButtonGroup
                         selectedValue={studentParams.surveyComplete ? studentParams.surveyComplete.toString() : ''}
                         options={surveyOptions}
-                        onChange={(e) => dispatch(setStudentParams({ surveyComplete: e.target.value }))}
+                        onChange={(e) => dispatch(setStudentParams({ surveyComplete: e.target.checked }))}
                     />
                 </Paper>
+                <Button variant="contained" color="error" onClick={() => dispatch(resetStudentParams())}>
+                    Reset Search
+                </Button>
             </Grid>
 
             <Grid item xs={10}>
+                <Typography variant="h4" sx={{ mb: 2 }}>{eventName}</Typography>
+
                 <Paper sx={{ width: '100%'}}>
                     <DataGrid
                         rows={rows}

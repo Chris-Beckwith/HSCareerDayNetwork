@@ -1,5 +1,5 @@
 import { useAppDispatch } from "../../app/store/configureStore";
-import { reloadEvents, setEventParams, setPageNumber } from "./careerEventSlice";
+import { reloadEvents, resetEventParams, setEventParams, setPageNumber } from "./careerEventSlice";
 import { useEffect, useState } from "react";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import { Button, Grid, Paper } from "@mui/material";
@@ -116,7 +116,7 @@ export default function CareerEvents() {
 
     if (editMode) return <CareerEventForm selectedEvent={selectedEvent} cancelEdit={cancelEdit} saveEdit={cancelEdit} />
 
-    if (studentMode) return <Students eventId={selectedEvent!.id} back={back} />
+    if (studentMode) return <Students eventId={selectedEvent!.id} eventName={selectedEvent!.name} back={back} />
 
     if (careerMode) return <CareerEventCareers careerEventName={selectedEvent!.name}
                                 careerEventCareers={selectedEvent!.careers} 
@@ -155,6 +155,9 @@ export default function CareerEvents() {
                 <Paper sx={{ mb: 2, p: 2 }}>
                     <IncludeDeletedCheckbox isChecked={eventParams.includeDeleted} />
                 </Paper>
+                <Button variant="contained" color="error" onClick={() => dispatch(resetEventParams())}>
+                    Reset Search
+                </Button>
             </Grid>
             <Grid item xs={9}>
                 <Grid container spacing={2}>

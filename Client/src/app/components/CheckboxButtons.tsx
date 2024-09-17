@@ -1,5 +1,5 @@
 import { Checkbox, FormControlLabel, FormGroup, FormLabel } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
     label: string
@@ -19,6 +19,11 @@ export default function CheckboxButtons({label, items, checked, onChange}: Props
         setCheckedItems(newChecked)
         onChange(newChecked)
     }
+
+    useEffect(() => {
+        if (checked)
+            setCheckedItems(checked)
+    }, [checked])
 
     return (
         <FormGroup>

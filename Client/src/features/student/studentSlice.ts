@@ -17,6 +17,8 @@ function getAxiosParams(studentParams: StudentParams) {
     const params = new URLSearchParams()
     params.append('pageNumber', studentParams.pageNumber.toString())
     params.append('pageSize', studentParams.pageSize.toString())
+    if (studentParams.searchTerm)
+        params.append('searchTerm', studentParams.searchTerm)
     if (studentParams.gender)
         params.append('gender', studentParams.gender)
     if (studentParams.grades.length > 0)
@@ -45,6 +47,7 @@ function initParams() {
     return {
         pageNumber: 1,
         pageSize: 20,
+        searchTerm: '',
         gender: '',
         grades: [],
         surveyComplete: null
@@ -61,6 +64,8 @@ export const studentSlice = createSlice({
     }),
     reducers: {
         setStudentParams: (state, action) => {
+            console.log("Student Params2")
+            console.log(action.payload)
             state.studentsLoaded = false
             state.studentParams = {...state.studentParams, ...action.payload, pageNumber: 1}
         },
@@ -69,7 +74,10 @@ export const studentSlice = createSlice({
             state.studentParams = {...state.studentParams, ...action.payload}
         },
         resetStudentParams: (state) => {
+            console.log("Reset Pre - ", state.studentParams)
             state.studentParams = initParams()
+            state.studentsLoaded = false
+            console.log("Reset Post - ", state.studentParams)
         },
         setMetaData: (state, action) => {
             state.metaData = action.payload

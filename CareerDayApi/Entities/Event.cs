@@ -11,11 +11,7 @@ namespace CareerDayApi.Entities
 
         [Required]
         public DateTime EventDate { get; set; }
-        
-        [Required]
         public string Name { get; set; }
-
-        [Required]
         public string Description { get; set; }
         public int SurveyCompletePercent { get; set; }
 

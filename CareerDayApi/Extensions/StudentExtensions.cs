@@ -42,11 +42,8 @@ namespace CareerDayApi.Extensions
                 .Where(s => gradeList.Count == 0
                     || gradeList.Contains(s.Grade));
 
-            if (!string.IsNullOrEmpty(surveyComplete)) {
-                if (surveyComplete == "0")
-                    query = query.Where(s => s.SurveyComplete == false);
-                else if (surveyComplete == "1")
-                    query = query.Where(s => s.SurveyComplete == true);
+            if (!string.IsNullOrEmpty(surveyComplete) && !surveyComplete.Equals("")) {
+                    query = query.Where(s => s.SurveyComplete == bool.Parse(surveyComplete));
             }
 
             return query;

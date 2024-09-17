@@ -1,5 +1,5 @@
 import { Box, FormLabel, Grid, Slider, Input } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch } from "../../../app/store/configureStore";
 import { setEventParams } from "../careerEventSlice";
 
@@ -8,16 +8,16 @@ interface Props {
 }
 
 export default function SurveyCompleteSlider({surveyComplete}: Props) {
-    const [value, setValue] = useState(parseInt(surveyComplete));
+    const [value, setValue] = useState(parseInt(surveyComplete))
     const dispatch = useAppDispatch()
 
     const handleSliderChange = (_event: Event, newValue: number | number[]) => {
         setValue(newValue as number);
-    };
+    }
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setValue(event.target.value === '' ? 0 : Number(event.target.value));
-    };
+    }
 
     const handleBlur = () => {
         if (value < 0) {
@@ -26,7 +26,11 @@ export default function SurveyCompleteSlider({surveyComplete}: Props) {
             setValue(100);
         }
         dispatch(setEventParams({surveyComplete: value}))
-    };
+    }
+
+    useEffect(() => {
+        setValue(parseInt(surveyComplete))
+    }, [surveyComplete])
 
     return (
         <Box sx={{ mb: 2, p: 2 }}>
