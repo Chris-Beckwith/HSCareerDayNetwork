@@ -84,7 +84,7 @@ namespace CareerDayApi.Controllers
             {
                 School = school,
                 EventDate = eventDto.EventDate,
-                Name = eventDto.Name,
+                Name = string.IsNullOrEmpty(eventDto.Name) ? school.Name : eventDto.Name,
                 Description = eventDto.Description,
                 SurveyCompletePercent = 0,
                 EventPhase = eventPhase,
