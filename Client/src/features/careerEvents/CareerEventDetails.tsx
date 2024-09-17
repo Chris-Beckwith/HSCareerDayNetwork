@@ -10,7 +10,6 @@ import { reloadEvents } from "./careerEventSlice";
 import CareerEventForm from "./CareerEventForm";
 import { useEffect, useState } from "react";
 import useEvents from "../../app/hooks/useEvents";
-import LoadingComponent from "../../app/components/LoadingComponent";
 import ConfirmDelete from "../../app/components/ConfirmDelete";
 import CareerEventSpeakers from "./components/CareerEventSpeakers";
 import { Speaker } from "../../app/models/speaker";
@@ -18,6 +17,7 @@ import CareerEventCareers from "./components/CareerEventCareers";
 import { Career } from "../../app/models/career";
 import Students from "../student/Students";
 import { reloadStudents } from "../student/studentSlice";
+import CareerEventDetailsSkeleton from "./CareerEventDetailsSkeleton";
 
 interface Props {
     careerEvent: CareerEvent
@@ -89,23 +89,21 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         setConfirmDeleteLoading(false)
     }
 
-    if (!careerEventsLoaded) return <LoadingComponent message="Loading Career Events.." />
-
     if (!careerEvent) return <NotFound />
 
     if (editMode) return <CareerEventForm selectedEvent={careerEvent} cancelEdit={cancelEdit} saveEdit={saveEdit} />
 
     if (speakerMode) return <CareerEventSpeakers
-                                careerEventName={careerEvent.name}
-                                careerEventSpeakers={careerEvent.speakers}
-                                updateCareerEvent={updateCareerEvent} back={back} />
-                                
-    if (careerMode) return <CareerEventCareers
-                                careerEventName={careerEvent.name}
-                                careerEventCareers={careerEvent.careers}
-                                updateCareerEvent={updateCareerEvent} back={back} />
+        careerEventName={careerEvent.name}
+        careerEventSpeakers={careerEvent.speakers}
+        updateCareerEvent={updateCareerEvent} back={back} />
 
-    if (studentMode) return <Students eventId={careerEvent.id} back={back} />
+    if (careerMode) return <CareerEventCareers
+        careerEventName={careerEvent.name}
+        careerEventCareers={careerEvent.careers}
+        updateCareerEvent={updateCareerEvent} back={back} />
+
+    if (studentMode) return <Students eventId={careerEvent.id} eventName={careerEvent.name} back={back} />
 
     const nextEventPhaseText = () => {
         switch (eventPhaseName) {
@@ -226,10 +224,10 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
 
     async function regressEventPhaseAction() {
         if (!careerEvent) return;
-        
+
         const eventPhaseId = findPrevEventPhaseId(eventPhaseName)
 
-        switch(eventPhaseName) {
+        switch (eventPhaseName) {
             case EVENT_PHASES.SURVEYINPROGRESS:
                 await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
                 dispatch(reloadEvents())
@@ -280,65 +278,70 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     <Grid item xs={12}></Grid>
                 </Grid>
                 <Grid container item xs={8} rowSpacing={4}>
-                    <Grid item xs={12} display='flex' justifyContent='center'>
-                        <Typography variant="h3">{careerEvent.name}</Typography>
-                    </Grid>
-                    <Grid item xs={12} display='flex' justifyContent='center'>
-                        {careerEvent.isDeleted &&
-                            <Typography variant="h5" color="error">This Event is marked as deleted</Typography>}
-                    </Grid>
-
-                    <Grid item xs={6} display='flex' justifyContent='center'>
-                        <Typography variant="h6">School: {careerEvent.school.name}</Typography>
-                    </Grid>
-                    <Grid item xs={6} display='flex' justifyContent='center'>
-                        <Typography variant="h6">
-                            Event Date: {date.toLocaleDateString()} @ {date.toLocaleTimeString()}
-                        </Typography>
-                    </Grid>
-
-                    <Grid container item xs={6}>
-                        <Grid item xs={12} display='flex' justifyContent='center'>
-                            {careerEvent.school.address.address1} {careerEvent.school.address.address2}
-                        </Grid>
-                        <Grid item xs={12} display='flex' justifyContent='center'>
-                            {careerEvent.school.address.city}, {careerEvent.school.address.state} {careerEvent.school.address.zip}
-                        </Grid>
-                    </Grid>
-                    <Grid container item xs={6} display='flex' justifyContent='center'>
-                        <Grid item xs={12}>
-                            <Paper sx={{ p: 1, m: 1, backgroundColor: 'rgba(255, 255, 255, 0)' }}>
-                                {careerEvent.description}
-                            </Paper>
-                        </Grid>
-                    </Grid>
-
-                    {careerEvent.guid &&
-                        <Grid item xs={12}>
-                            <Grid item display='flex' justifyContent='center' sx={{ mb: 2 }}>
-                                {careerEvent.qrCodeUrl &&
-                                    <Link href={surveyUrl}>
-                                        <img src={careerEvent.qrCodeUrl} alt="QRCode" style={{ height: 150, marginRight: 20 }} />
-                                    </Link>
-                                }
+                    {careerEventsLoaded ? (
+                        <>
+                            <Grid item xs={12} display='flex' justifyContent='center'>
+                                <Typography variant="h3">{careerEvent.name}</Typography>
                             </Grid>
-                            <Grid item display='flex' justifyContent='center' alignItems='center'>
-                                <Link href={surveyUrl}>{surveyUrl}</Link>
+                            <Grid item xs={12} display='flex' justifyContent='center'>
+                                {careerEvent.isDeleted &&
+                                    <Typography variant="h5" color="error">This Event is marked as deleted</Typography>}
                             </Grid>
-                        </Grid>
-                    }
 
+                            <Grid item xs={6} display='flex' justifyContent='center'>
+                                <Typography variant="h6">School: {careerEvent.school.name}</Typography>
+                            </Grid>
+                            <Grid item xs={6} display='flex' justifyContent='center'>
+                                <Typography variant="h6">
+                                    Event Date: {date.toLocaleDateString()} @ {date.toLocaleTimeString()}
+                                </Typography>
+                            </Grid>
+
+                            <Grid container item xs={6}>
+                                <Grid item xs={12} display='flex' justifyContent='center'>
+                                    {careerEvent.school.address.address1} {careerEvent.school.address.address2}
+                                </Grid>
+                                <Grid item xs={12} display='flex' justifyContent='center'>
+                                    {careerEvent.school.address.city}, {careerEvent.school.address.state} {careerEvent.school.address.zip}
+                                </Grid>
+                            </Grid>
+                            <Grid container item xs={6} display='flex' justifyContent='center'>
+                                <Grid item xs={12}>
+                                    <Paper sx={{ p: 1, m: 1, backgroundColor: 'rgba(255, 255, 255, 0)' }}>
+                                        {careerEvent.description}
+                                    </Paper>
+                                </Grid>
+                            </Grid>
+
+                            {careerEvent.guid &&
+                                <Grid item xs={12}>
+                                    <Grid item display='flex' justifyContent='center' sx={{ mb: 2 }}>
+                                        {careerEvent.qrCodeUrl &&
+                                            <Link href={surveyUrl}>
+                                                <img src={careerEvent.qrCodeUrl} alt="QRCode" style={{ height: 150, marginRight: 20 }} />
+                                            </Link>
+                                        }
+                                    </Grid>
+                                    <Grid item display='flex' justifyContent='center' alignItems='center'>
+                                        <Link href={surveyUrl}>{surveyUrl}</Link>
+                                    </Grid>
+                                </Grid>
+                            }
+
+                            <Grid item xs={12} sx={{ pl: 0 }}>
+                                <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
+                                    <Typography>Event Phase: <strong>{careerEvent.eventPhase.phaseName}</strong></Typography>
+                                    <Typography sx={{ mr: 2 }}>Survey Progress</Typography>
+                                </Box>
+                                <LinearProgressWithLabel value={careerEvent.surveyCompletePercent} />
+                            </Grid>
+                        </>
+                    ) : (
+                        <CareerEventDetailsSkeleton />
+                    )}
                     <Grid item xs={12} sx={{ pl: 0 }}>
                         <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
-                            <Typography>Event Phase: <strong>{careerEvent.eventPhase.phaseName}</strong></Typography>
-                            <Typography sx={{ mr: 2 }}>Survey Progress</Typography>
-                        </Box>
-                        <LinearProgressWithLabel value={careerEvent.surveyCompletePercent} />
-                    </Grid>
-
-                    <Grid item xs={12} sx={{ pl: 0 }}>
-                        <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
-                        <Button onClick={() => setCareerMode(true)}
+                            <Button onClick={() => setCareerMode(true)}
                                 variant="contained"
                                 color="primary">
                                 Careers
@@ -356,6 +359,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                         </Box>
                     </Grid>
                 </Grid>
+
                 <Grid container item xs={2}>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}>

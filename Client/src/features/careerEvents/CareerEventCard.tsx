@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardActions, CardContent, CardHeader, Paper, Typography } from "@mui/material"
+import { Box, Button, Card, CardActions, CardContent, CardHeader, Typography } from "@mui/material"
 import { CareerEvent } from "../../app/models/event"
 import LinearProgressWithLabel from "../../app/components/LinearProgressWithLabel"
 import { Edit } from "@mui/icons-material"
@@ -26,13 +26,13 @@ export default function CareerEventCard({ careerEvent, handleEventCardClick }: P
                     {careerEvent.school.name}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                    {date.toLocaleDateString()} @ {date.toLocaleTimeString()}
+                    {date.toLocaleDateString()}
                 </Typography>
-                <Paper sx={{outline: 1, p: 1, my: 1, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                {/* <Paper sx={{outline: 1, p: 1, my: 1, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
                     <Typography variant="body2" color="text.secondary">
                         {careerEvent.description}
                     </Typography>
-                </Paper>
+                </Paper> */}
                 <Box sx={{width: '100%'}}>
                     <LinearProgressWithLabel value={careerEvent.surveyCompletePercent} />
                 </Box>
