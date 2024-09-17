@@ -112,7 +112,7 @@ export default function Students({ eventId, eventName, back }: Props) {
                     <RadioButtonGroup
                         selectedValue={studentParams.surveyComplete ? studentParams.surveyComplete.toString() : ''}
                         options={surveyOptions}
-                        onChange={(e) => dispatch(setStudentParams({ surveyComplete: e.target.checked }))}
+                        onChange={(e) => dispatch(setStudentParams({ surveyComplete: e.target.value }))}
                     />
                 </Paper>
                 <Button variant="contained" color="error" onClick={() => dispatch(resetStudentParams())}>
