@@ -64,8 +64,6 @@ export const studentSlice = createSlice({
     }),
     reducers: {
         setStudentParams: (state, action) => {
-            console.log("Student Params2")
-            console.log(action.payload)
             state.studentsLoaded = false
             state.studentParams = {...state.studentParams, ...action.payload, pageNumber: 1}
         },
@@ -74,10 +72,8 @@ export const studentSlice = createSlice({
             state.studentParams = {...state.studentParams, ...action.payload}
         },
         resetStudentParams: (state) => {
-            console.log("Reset Pre - ", state.studentParams)
             state.studentParams = initParams()
             state.studentsLoaded = false
-            console.log("Reset Post - ", state.studentParams)
         },
         setMetaData: (state, action) => {
             state.metaData = action.payload

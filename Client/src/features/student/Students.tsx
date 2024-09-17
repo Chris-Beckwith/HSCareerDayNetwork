@@ -62,8 +62,6 @@ export default function Students({ eventId, eventName, back }: Props) {
     const [openDelete, setOpenDelete] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
 
-    console.log("Grades: ", studentParams.grades)
-
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: metaData?.pageSize || 20,
         page: 0
