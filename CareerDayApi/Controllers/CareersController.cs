@@ -19,7 +19,9 @@ namespace CareerDayApi.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Career>>> GetCareers()
         {
-            return await _context.Careers.ToListAsync();
+            return await _context.Careers
+                .OrderBy(c => c.CourseId)
+                .ToListAsync();
         }
 
         [HttpGet("{id}", Name = "GetCareer")]
@@ -34,6 +36,7 @@ namespace CareerDayApi.Controllers
             return await _context.Careers
                 .Select(c => c.Category)
                 .Distinct()
+                .OrderBy(c => c)
                 .ToListAsync();
         }
 
