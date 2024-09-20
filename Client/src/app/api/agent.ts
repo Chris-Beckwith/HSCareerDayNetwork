@@ -126,6 +126,13 @@ const School = {
     delete: (id: number) => requests.delete(`schools/${id}`)
 }
 
+const Classroom = {
+    listBySchool: (params: URLSearchParams) => requests.get('rooms/bySchool', params),
+    create: (classroom: any) => requests.post('rooms', classroom),
+    update: (classroom: any) => requests.putForm('rooms', createFormData(classroom)),
+    delete: (id: number) => requests.delete(`rooms/${id}`)
+}
+
 const Student = {
     list: (params: URLSearchParams) => requests.get('student', params),
     byNumberAndEvent: (eventId: number, studentNumber: string) => 
@@ -180,6 +187,7 @@ const TestErrors = {
 const agent = {
     Event,
     School,
+    Classroom,
     Student,
     Speaker,
     Career,

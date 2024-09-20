@@ -1,5 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { FieldValues, useForm } from "react-hook-form"
 import { School } from "../../app/models/school"
 import { schoolValidationSchema } from "./schoolValdiation"
@@ -10,6 +10,7 @@ import { LoadingButton } from "@mui/lab"
 import { Paper, Typography, Grid, Button } from "@mui/material"
 import AddressInputs from "../../app/components/AddressInputs"
 import AppTextInput from "../../app/components/AppTextInput"
+import Classrooms from "../classroom/Classrooms"
 
 interface Props {
     school?: School,
@@ -21,6 +22,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
     const { control, reset, handleSubmit, formState: { isDirty, isSubmitting } } = useForm({
         resolver: yupResolver<any>(schoolValidationSchema)
     })
+    const [addRooms, setAddRooms] = useState(false)
 
     useEffect(() => {
         if (school && !isDirty) {
@@ -41,6 +43,8 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
             console.log(error)
         }
     }
+
+    if (addRooms && school) return <Classrooms school={school} back={cancelEdit} />
 
     return (
         <>
@@ -71,11 +75,11 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
 
                         <AddressInputs control={control} name="address" />
 
-                        <Grid container item justifyContent='center'>
-                            <Grid item xs={4}>
+                        <Grid container justifyContent="center" sx={{ mt: 2 }}>
+                            <Grid item display='flex' justifyContent='space-between' xs={8}>
                                 <Button onClick={cancelEdit} variant="contained" color="inherit">Cancel</Button>
-                            </Grid>
-                            <Grid item xs={4} display="flex" justifyContent="flex-end">
+                                {school &&
+                                    <Button onClick={() => setAddRooms(true)} variant="contained" color="primary">Add Rooms</Button>}
                                 <LoadingButton
                                     loading={isSubmitting}
                                     variant="contained"
