@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using CareerDayApi.Entities;
 
-namespace CareerDayApi.Entities
+namespace CareerDayApi.DTOs
 {
-    public class Classroom
+    public class UpdateClassroomDto
     {
         public int Id { get; set; }
 

@@ -33,8 +33,8 @@ export default function Schools() {
     }
 
     async function handleDeleteSchool() {
-        setLoading(true);
         if (selectedSchool) {
+            setLoading(true);
             await agent.School.delete(selectedSchool.id)
                 .then(() => dispatch(reloadSchools()))
                 .catch(error => console.log(error))
