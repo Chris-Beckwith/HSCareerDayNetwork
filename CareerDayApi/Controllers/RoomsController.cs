@@ -31,6 +31,7 @@ namespace CareerDayApi.Controllers
         {
             var query = _context.Classrooms
                 .Where(c => c.School.Id == classroomParams.SchoolId)
+                .OrderBy(c => c.Building).OrderBy(c => c.RoomNumber)
                 .Search(classroomParams.SearchTerm)
                 .Include(c => c.School);
             
