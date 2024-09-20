@@ -77,7 +77,7 @@ export default function CareerSelection({ careers, primaryCareers, secondaryCare
             <Grid container spacing={2}>
                 {categories?.map(category => (
                     <Grid item xs={6} key={category}>
-                        <TableContainer component={Paper}>
+                        <TableContainer component={Paper} elevation={8}>
                             <Box display='flex' justifyContent='space-between' sx={{ pt: 1, pl: 2 }}>
                                 <Typography variant="h6">{category}</Typography>
                                 <Button onClick={() => hideShowCategory(category)} sx={{ pr: 2 }}>

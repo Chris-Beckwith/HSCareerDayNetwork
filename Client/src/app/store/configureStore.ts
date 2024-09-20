@@ -6,11 +6,13 @@ import { accountSlice } from "../../features/account/accountSlice";
 import { speakerSlice } from "../../features/speaker/speakerSlice";
 import { careerSlice } from "../../features/careers/careerSlice";
 import { studentSlice } from "../../features/student/studentSlice";
+import { classroomSlice } from "../../features/classroom/classroomSlice";
 
 export const store = configureStore({
     reducer: {
         careerEvents: careerEventSlice.reducer,
         schools: schoolSlice.reducer,
+        classrooms: classroomSlice.reducer,
         students: studentSlice.reducer,
         speakers: speakerSlice.reducer,
         careers: careerSlice.reducer,

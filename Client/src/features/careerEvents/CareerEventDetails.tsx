@@ -18,6 +18,7 @@ import { Career } from "../../app/models/career";
 import Students from "../student/Students";
 import { reloadStudents } from "../student/studentSlice";
 import CareerEventDetailsSkeleton from "./CareerEventDetailsSkeleton";
+import Classrooms from "../classroom/Classrooms";
 
 interface Props {
     careerEvent: CareerEvent
@@ -33,6 +34,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [speakerMode, setSpeakerMode] = useState(false)
     const [careerMode, setCareerMode] = useState(false)
     const [studentMode, setStudentMode] = useState(false)
+    const [roomMode, setRoomMode] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [eventPhaseName, setEventPhaseName] = useState('')
     const { eventPhases } = useAppSelector(state => state.careerEvents)
@@ -58,6 +60,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         setSpeakerMode(false)
         setCareerMode(false)
         setStudentMode(false)
+        setRoomMode(false)
     }
 
     const deleteEvent = () => {
@@ -104,6 +107,8 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         updateCareerEvent={updateCareerEvent} back={back} />
 
     if (studentMode) return <Students eventId={careerEvent.id} eventName={careerEvent.name} back={back} />
+
+    if (roomMode) return <Classrooms school={careerEvent.school} back={back} />
 
     const nextEventPhaseText = () => {
         switch (eventPhaseName) {
@@ -350,6 +355,11 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                                 variant="contained"
                                 color="primary">
                                 Students
+                            </Button>
+                            <Button onClick={() => setRoomMode(true)}
+                                variant="contained"
+                                color="primary">
+                                Classrooms
                             </Button>
                             <Button onClick={() => setSpeakerMode(true)}
                                 variant="contained"
