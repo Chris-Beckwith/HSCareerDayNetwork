@@ -69,7 +69,7 @@ export default function CareerSelection({ careers, primaryCareers, secondaryCare
                     <Paper sx={{p: 0.7, bgcolor: 'primary.light', mb: 1}}>
                         <Typography variant='body1'>Primary Selection</Typography>
                     </Paper>
-                    {!onPrimaryCareers && <Paper sx={{p: 0.7, bgcolor: 'secondary.light'}}>
+                    {!onPrimaryCareers && <Paper sx={{p: 0.7, bgcolor: 'warning.light', mb: 1}}>
                         <Typography variant='body1'>Secondary Selection</Typography>
                     </Paper>}
                 </Box>
