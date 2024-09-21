@@ -245,6 +245,20 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         }
     }
 
+    function showSurveyResultsButton() {
+        switch (eventPhaseName) {
+            case EVENT_PHASES.CREATED:
+            case EVENT_PHASES.CANCELLED: return false
+            case EVENT_PHASES.SURVEYINPROGRESS: 
+            case EVENT_PHASES.SURVEYCLOSED: 
+            case EVENT_PHASES.SESSIONSGENERATED: 
+            case EVENT_PHASES.ROOMSASSIGNED: 
+            case EVENT_PHASES.SPEAKERSASSIGNED: 
+            case EVENT_PHASES.SCHEDULEEXPORT: 
+            case EVENT_PHASES.COMPLETED: return true
+        }
+    }
+
     return (
         <Grid container spacing={6}>
             <Grid container item xs={12}>
@@ -281,14 +295,17 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             {nextEventPhaseText()}
                         </Button>
                     </Grid>
-                    <Grid item xs={12}>
-                        <Button onClick={() => setSurveyMode(true)}
-                            variant="contained"
-                            color="success"
-                        >
-                            Survey Results
-                        </Button>
-                    </Grid>
+                    {showSurveyResultsButton() &&
+                        <Grid item xs={12}>
+                            <Button onClick={() => setSurveyMode(true)}
+                                variant="contained"
+                                color="success"
+                            >
+                                Survey Results
+                            </Button>
+                        </Grid>
+                    }
+                    <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
