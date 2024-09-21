@@ -11,12 +11,14 @@ using QRCoder;
 namespace CareerDayApi.Controllers
 {
     public class EventsController(CareerDayContext context, IConfiguration config,
-        ILogger<EventsController> logger, ImageService imageService) : BaseApiController
+        ILogger<EventsController> logger, ImageService imageService, 
+        DbContextOptions<CareerDayContext> dbContextOptions) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
         private readonly IConfiguration _config = config;
         private readonly ImageService _imageService = imageService;
         private readonly ILogger<EventsController> _logger = logger;
+        private readonly DbContextOptions _dbContextOptions = dbContextOptions;
 
         [HttpGet]
         public async Task<ActionResult<PagedList<Event>>> GetEvents([FromQuery]CareerEventParams careerEventParams)
@@ -31,10 +33,16 @@ namespace CareerDayApi.Controllers
                 .Include(e => e.Speakers)
                 .Include(e => e.Careers);
 
-            var events = await PagedList<Event>.ToPagedList(query, 
+            var events = await PagedList<Event>.ToPagedList(query,
                 careerEventParams.PageNumber, careerEventParams.PageSize);
 
             Response.AddPaginationHeader(events.MetaData);
+
+            foreach (var e in events)
+            {
+                using var newContext = new CareerDayContext(_dbContextOptions);
+                e.SurveyCompletePercent = await CalculateSurveyProgressAsync(e.Id, newContext);
+            }
 
             return events;
         }
@@ -46,6 +54,9 @@ namespace CareerDayApi.Controllers
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (singleEvent == null) return NotFound();
+            
+            using var newContext = new CareerDayContext(_dbContextOptions);
+            singleEvent.SurveyCompletePercent = await CalculateSurveyProgressAsync(singleEvent.Id, newContext);
             
             var cookieOptions = new CookieOptions{IsEssential = true, Expires = DateTime.Now.AddDays(30)};
             Response.Cookies.Append("eventId", singleEvent.Id.ToString(), cookieOptions);
@@ -60,6 +71,9 @@ namespace CareerDayApi.Controllers
                 .FirstOrDefaultAsync(e => e.GUID == guid);
 
             if (singleEvent == null) return NotFound();
+
+            using var newContext = new CareerDayContext(_dbContextOptions);
+            singleEvent.SurveyCompletePercent = await CalculateSurveyProgressAsync(singleEvent.Id, newContext);
 
             return singleEvent;
         }
@@ -263,10 +277,26 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails { Title = "Problem deleting Event" });
         }
 
+        private static async Task<int> CalculateSurveyProgressAsync(int id, CareerDayContext context)
+        {
+            var totalStudents = await context.Students.Where(s => s.EventId == id).ToListAsync();
+            var totalSubmissions = await context.Surveys.Where(s => s.Student.EventId == id).ToListAsync();
+
+            if (totalSubmissions.Count == 0 || totalStudents.Count == 0) return 0;
+
+            return (int)Math.Round(
+                (double)totalSubmissions.Count / totalStudents.Count * 100
+            );
+        }
+
         [HttpGet("phases")]
         public async Task<ActionResult<EventPhase[]>> GetEventPhases()
         {
-            var eventPhases = await _context.EventPhases.Select(e => e).Distinct().ToListAsync();
+            var eventPhases = await _context.EventPhases
+                .Select(e => e)
+                .Distinct()
+                .OrderBy(e => e.Id)
+                .ToListAsync();
 
             return Ok(eventPhases);
         }

@@ -59,7 +59,7 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
                 if (highlightRow) {
                     return "primary.main"
                 } else if (highlightSecondary) {
-                    return "secondary.light"
+                    return "warning.light"
                 }
                 return "inherit"
             }
@@ -74,7 +74,7 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
                 return highlightRow ? 'primary.main' : 'rgba(0, 0, 0, 0.07)'
             } else {
                 if (highlightSecondary) {
-                    return 'secondary.main'
+                    return 'warning.main'
                 } else if (highlightRow) {
                     return 'primary.main'
                 }
