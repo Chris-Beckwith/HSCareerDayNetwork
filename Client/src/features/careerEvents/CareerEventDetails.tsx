@@ -19,6 +19,7 @@ import Students from "../student/Students";
 import { reloadStudents } from "../student/studentSlice";
 import CareerEventDetailsSkeleton from "./CareerEventDetailsSkeleton";
 import Classrooms from "../classroom/Classrooms";
+import SurveyResults from "../survey/SurveyResults";
 
 interface Props {
     careerEvent: CareerEvent
@@ -35,6 +36,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [careerMode, setCareerMode] = useState(false)
     const [studentMode, setStudentMode] = useState(false)
     const [roomMode, setRoomMode] = useState(false)
+    const [surveyMode, setSurveyMode] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [eventPhaseName, setEventPhaseName] = useState('')
     const { eventPhases } = useAppSelector(state => state.careerEvents)
@@ -61,6 +63,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         setCareerMode(false)
         setStudentMode(false)
         setRoomMode(false)
+        setSurveyMode(false)
     }
 
     const deleteEvent = () => {
@@ -109,6 +112,8 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     if (studentMode) return <Students eventId={careerEvent.id} eventName={careerEvent.name} back={back} />
 
     if (roomMode) return <Classrooms school={careerEvent.school} back={back} />
+
+    if (surveyMode) return <SurveyResults event={careerEvent} back={back} />
 
     const nextEventPhaseText = () => {
         switch (eventPhaseName) {
@@ -276,7 +281,14 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             {nextEventPhaseText()}
                         </Button>
                     </Grid>
-                    <Grid item xs={12}></Grid>
+                    <Grid item xs={12}>
+                        <Button onClick={() => setSurveyMode(true)}
+                            variant="contained"
+                            color="success"
+                        >
+                            Survey Results
+                        </Button>
+                    </Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>

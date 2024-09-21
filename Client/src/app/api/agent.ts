@@ -174,6 +174,7 @@ const Account = {
 
 const Survey = {
     // submit: (values: any) => requests.put('survey/submit', values)
+    listByEvent: (eventId: number) => requests.get(`surveys/${eventId}`)
 }
 
 const TestErrors = {
