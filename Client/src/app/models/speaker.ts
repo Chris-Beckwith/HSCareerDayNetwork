@@ -1,5 +1,6 @@
 import { Address } from "./address"
 import { Career } from "./career"
+import { School } from "./school"
 
 export interface Speaker {
     id: number
@@ -8,6 +9,7 @@ export interface Speaker {
     lastName: string
     title: string
     company: string
+    schoolLastSpokeAt: School
     portraitUrl: string
     email: string
     phoneNumber: string

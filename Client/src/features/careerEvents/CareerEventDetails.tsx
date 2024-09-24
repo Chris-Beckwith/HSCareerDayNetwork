@@ -20,6 +20,7 @@ import { reloadStudents } from "../student/studentSlice";
 import CareerEventDetailsSkeleton from "./CareerEventDetailsSkeleton";
 import Classrooms from "../classroom/Classrooms";
 import SurveyResults from "../survey/SurveyResults";
+import ConfirmPreviousPhase from "./components/ConfirmPreviousPhase";
 
 interface Props {
     careerEvent: CareerEvent
@@ -37,8 +38,11 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [studentMode, setStudentMode] = useState(false)
     const [roomMode, setRoomMode] = useState(false)
     const [surveyMode, setSurveyMode] = useState(false)
+    const [confirmPreviousPhase, setConfirmPreviousPhase] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [eventPhaseName, setEventPhaseName] = useState('')
+    const [prevEventPhaseName, setPrevEventPhaseName] = useState('')
+    const [confirmPrevMessage, setConfirmPrevMessage] = useState('')
     const { eventPhases } = useAppSelector(state => state.careerEvents)
     const date = new Date(careerEvent.eventDate)
     const baseUrl = import.meta.env.VITE_APP_HOST || '/';
@@ -107,9 +111,11 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     if (careerMode) return <CareerEventCareers
         careerEventName={careerEvent.name}
         careerEventCareers={careerEvent.careers}
+        allowUpdate={!showSurveyResultsButton()}
         updateCareerEvent={updateCareerEvent} back={back} />
 
-    if (studentMode) return <Students eventId={careerEvent.id} eventName={careerEvent.name} back={back} />
+    if (studentMode) return <Students eventId={careerEvent.id} eventName={careerEvent.name}
+        allowUpdate={!showSurveyResultsButton()} back={back} />
 
     if (roomMode) return <Classrooms school={careerEvent.school} back={back} />
 
@@ -214,14 +220,12 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         switch (eventPhaseName) {
             case EVENT_PHASES.CREATED:
                 if (careerEvent.careers.length < 5)
-                    toast.error("You do not have the minimum 5 required careers")
-                else {
-                    const eventPhaseId = findNextEventPhaseId(eventPhaseName)
-                    await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
-                    dispatch(reloadEvents())
-                }
+                    return toast.error("You do not have the minimum 5 required careers")
                 break;
-            case EVENT_PHASES.SURVEYINPROGRESS: return "Close Survey"
+            case EVENT_PHASES.SURVEYINPROGRESS: 
+                if (careerEvent.surveyCompletePercent < 5)
+                    return toast.error("Survey is still under 5% complete")
+                break;
             case EVENT_PHASES.SURVEYCLOSED: return "Generate Sessions"
             case EVENT_PHASES.SESSIONSGENERATED: return "Assign Rooms"
             case EVENT_PHASES.ROOMSASSIGNED: return "Assign Speakers"
@@ -230,19 +234,44 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             case EVENT_PHASES.COMPLETED:
             case EVENT_PHASES.CANCELLED: return "Reopen Event"
         }
+
+        const eventPhaseId = findNextEventPhaseId(eventPhaseName)
+        await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
+        dispatch(reloadEvents())
+    }
+
+    const handlePreviousPhaseConfirm = () => {
+        const prevEventPhase = eventPhases.find(e => e.id === findPrevEventPhaseId(eventPhaseName))
+
+        if (prevEventPhase) {
+            setPrevEventPhaseName(prevEventPhase.phaseName)
+            switch (prevEventPhase.phaseName) {
+                case EVENT_PHASES.CREATED: 
+                    setConfirmPrevMessage("Going back to created will delete all student surveys!")
+                    break;
+                case EVENT_PHASES.SURVEYINPROGRESS:
+                    setConfirmPrevMessage("Are you sure you want to reopen the survey?")
+            }
+            setConfirmPreviousPhase(true)
+        }
     }
 
     async function regressEventPhaseAction() {
         if (!careerEvent) return;
 
         const eventPhaseId = findPrevEventPhaseId(eventPhaseName)
+        await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
+        dispatch(reloadEvents())
 
         switch (eventPhaseName) {
             case EVENT_PHASES.SURVEYINPROGRESS:
-                await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
-                dispatch(reloadEvents())
+                await agent.Survey.deleteSurveysByEvent(careerEvent.id)
+                    .catch((error) => {
+                        console.log(error)
+                    })
                 break;
         }
+        setConfirmPreviousPhase(false)
     }
 
     function showSurveyResultsButton() {
@@ -281,7 +310,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     </Grid>
                     {careerEvent.eventPhase.phaseName != EVENT_PHASES.CREATED &&
                         <Grid item xs={12}>
-                            <Button onClick={regressEventPhaseAction}
+                            <Button onClick={handlePreviousPhaseConfirm}
                                 variant="contained"
                                 color="error">
                                 {prevEventPhaseText()}
@@ -327,7 +356,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             </Grid>
                             <Grid item xs={6} display='flex' justifyContent='center'>
                                 <Typography variant="h6">
-                                    Event Date: {date.toLocaleDateString()} @ {date.toLocaleTimeString()}
+                                    Event Date: {date.toLocaleDateString()}
                                 </Typography>
                             </Grid>
 
@@ -415,6 +444,10 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     <Grid item xs={12}></Grid>
                 </Grid>
             </Grid>
+            <ConfirmPreviousPhase open={confirmPreviousPhase} previousPhase={prevEventPhaseName} 
+                message={confirmPrevMessage}
+                handleClose={() => setConfirmPreviousPhase(false)}
+                handleConfirm={regressEventPhaseAction} />
             <ConfirmDelete open={deleteMode} itemName={careerEvent.name} itemType="Event"
                 handleClose={cancelDelete} confirmDelete={confirmDelete} loading={confirmDeleteLoading} />
         </Grid>

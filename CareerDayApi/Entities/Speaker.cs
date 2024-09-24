@@ -9,6 +9,7 @@ namespace CareerDayApi.Entities
         public string Title { get; set; }
         public string Company { get; set; }
         public string PortraitUrl { get; set; }
+        public School SchoolLastSpokeAt { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public SpeakerAddress Address { get; set; }
