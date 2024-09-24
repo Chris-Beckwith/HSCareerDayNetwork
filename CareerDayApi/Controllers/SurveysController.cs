@@ -40,5 +40,40 @@ namespace CareerDayApi.Controllers
 
             return BadRequest(new ProblemDetails { Title = "Problem deleting surveys for event" });
         }
+
+        [HttpGet("TestData/{eventId}")]
+        public async Task<ActionResult> CreateTestSurveyData(int eventId)
+        {
+            var careerEvent = await _context.Events.Include(c => c.Careers)
+                .FirstOrDefaultAsync(e => e.Id == eventId);
+            var students = await _context.Students.Where(s => s.EventId == eventId).ToListAsync();
+            var surveys = new List<Survey>();
+
+            foreach(Student s in students)
+            {
+                if (!s.SurveyComplete) {
+                    var fiveCareers = careerEvent.Careers.OrderBy(x => Guid.NewGuid()).Take(5).ToList();
+                    var pCareers = fiveCareers.Take(3).ToList();
+                    var sCareers = fiveCareers.Skip(3).Take(2).ToList();
+                    var survey = new Survey
+                    {
+                        Student = s,
+                        StudentId = s.Id,
+                        PrimaryCareers = pCareers,
+                        SecondaryCareers = sCareers
+                    };
+                    surveys.Add(survey);
+                }
+                s.SurveyComplete = true;
+            }
+
+            _context.Surveys.AddRange(surveys);
+
+            var result = await _context.SaveChangesAsync() > 0;
+
+            if (result) return Ok(result);
+
+            return BadRequest(new ProblemDetails { Title = "Problem creating test surveys "});
+        }
     }
 }
