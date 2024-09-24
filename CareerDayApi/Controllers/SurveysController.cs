@@ -21,5 +21,24 @@ namespace CareerDayApi.Controllers
                 .Include(s => s.Student)
                 .ToListAsync();
         }
+
+        [HttpDelete("{eventId}")]
+        public async Task<ActionResult> DeleteSurveysByEvent(int eventId)
+        {
+            var surveys = await _context.Surveys
+                .Where(s => s.Student.EventId == eventId).ToListAsync();
+
+            if (surveys == null) return NotFound();
+
+            if (surveys.Count == 0) return Ok();
+
+            _context.Surveys.RemoveRange(surveys);
+
+            var result = await _context.SaveChangesAsync() > 0;
+
+            if (result) return Ok();
+
+            return BadRequest(new ProblemDetails { Title = "Problem deleting surveys for event" });
+        }
     }
 }

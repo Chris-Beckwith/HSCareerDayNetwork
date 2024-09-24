@@ -16,6 +16,7 @@ import { LoadingButton } from "@mui/lab";
 import agent from "../../app/api/agent";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { setSpeaker } from "./speakerSlice";
+import SpeakerSchool from "./components/SpeakerSchool";
 
 interface Props {
     speaker?: Speaker,
@@ -58,6 +59,7 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                 lastName: data.lastName ?? '',
                 title: data.title ?? '',
                 company: data.company ?? '',
+                schoolLastSpokeAt: data.schoolLastSpokeAt ?? null,
                 phoneNumber: data.phoneNumber ?? '',
                 email: data.email ?? '',
                 file: data.file ?? '',
@@ -70,6 +72,7 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                     zip: data.address.zip ?? '',
                 }
             }
+
             if (selectedCareers) sanitiziedData.careerIds = selectedCareers
             let response: Speaker
             if (speaker) {
@@ -104,6 +107,7 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                     <Name control={control} name="name" />
                     <TitleCompany control={control} name="titleCompany" />
                     <PhoneEmail control={control} name="phoneEmail" />
+                    <SpeakerSchool control={control} name="schoolLastSpokeAt" />
 
                     <Grid container item justifyContent="center">
                         <Grid item xs={4} display='flex' justifyContent='center' alignItems='center'>

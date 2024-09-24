@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Switch, Typography } from "@mui/material"
+import { Box, Button, Paper, Switch, Tooltip, Typography } from "@mui/material"
 import { Career } from "../../../app/models/career"
 import { useEffect, useState } from "react"
 import CareerList from "../../careers/CareerList"
@@ -8,11 +8,12 @@ import ConfirmCareerSet from "../../careers/careerSets/ConfirmCareerSet"
 interface Props {
     careerEventName: string
     careerEventCareers: Career[]
+    allowUpdate: boolean
     updateCareerEvent: (speakers?: Speaker[], careers?: Career[]) => void
     back: () => void
 }
 
-export default function CareerEventCareers({ careerEventName, careerEventCareers, updateCareerEvent, back }: Props) {
+export default function CareerEventCareers({ careerEventName, careerEventCareers, allowUpdate, updateCareerEvent, back }: Props) {
     const [eventCareers, setEventCareers] = useState<Career[]>([])
     const [saveCareerSet, setSaveCareerSet] = useState(false)
     const [openSaveCareerSet, setOpenSaveCareerSet] = useState(false)
@@ -66,10 +67,16 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mt: 2 }}>
                 <Box>
                     <Button variant="contained" color="inherit" onClick={back} sx={{mr: 2}}>Back</Button>
-                    <Button variant="contained" disabled={isSameCareerSet() === true}
-                        onClick={handleUpdateCareerSet}>
-                        Update Careers
-                    </Button>
+                    <Tooltip title={isSameCareerSet() ? !allowUpdate ? "Survey already open, please do not change careers"
+                                : "List of careers is not different" 
+                                : !allowUpdate ? "Survey already open, please do not change careers" : ""} arrow>
+                        <span>
+                            <Button variant="contained" disabled={isSameCareerSet() === true || !allowUpdate}
+                                onClick={handleUpdateCareerSet}>
+                                Update Careers
+                            </Button>
+                        </span>
+                    </Tooltip>
                 </Box>
                 <Paper sx={{p: 0.7, bgcolor: 'primary.light'}}>
                     <Typography variant="body1">Selected Careers will be highlighted</Typography>
