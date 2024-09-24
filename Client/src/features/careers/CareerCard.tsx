@@ -86,7 +86,7 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
     }
 
     function handleOnClick(career: Career) {
-        if (!onPrimaryCareers && highlightRow) {
+        if (survey && !onPrimaryCareers && highlightRow) {
             return;
         } else {
             handleSelectCareer(career)

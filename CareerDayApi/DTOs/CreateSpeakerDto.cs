@@ -17,6 +17,8 @@ namespace CareerDayApi.DTOs
         
         [Required]
         public string Company { get; set; }
+
+        public School SchoolLastSpokeAt { get; set; }
         
         public IFormFile File { get; set; }
         public string Email { get; set; }

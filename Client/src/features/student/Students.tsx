@@ -10,10 +10,12 @@ import { useState } from "react"
 import ImportStudents from "./ImportStudents"
 import agent from "../../app/api/agent"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
+import UpdateNotAllowed from "./UpdateNotAllowed"
 
 interface Props {
     eventId: number
     eventName: string
+    allowUpdate: boolean
     back: () => void
 }
 
@@ -54,12 +56,13 @@ const columns: GridColDef[] = [
     { field: 'surveyComplete', headerName: 'Survey Completed' },
 ]
 
-export default function Students({ eventId, eventName, back }: Props) {
+export default function Students({ eventId, eventName, allowUpdate, back }: Props) {
     const { students, studentsLoaded, metaData, studentParams } = useStudents(eventId)
     const dispatch = useAppDispatch()
     const rows = students
     const [openImport, setOpenImport] = useState(false)
     const [openDelete, setOpenDelete] = useState(false)
+    const [openUpdateNotAllowed, setOpenUpdateNotAllowed] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
 
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -138,11 +141,18 @@ export default function Students({ eventId, eventName, back }: Props) {
                 </Paper>
                 
                 <Grid item display='flex' justifyContent='space-between' sx={{ my: 2 }}>
-                    <Button variant="contained" onClick={() => setOpenImport(true)}>Import Students</Button>
-                    <Button variant="contained" color="error" onClick={() => setOpenDelete(true)}>Delete All Students</Button>
+                    <Button variant="contained" 
+                        onClick={() => allowUpdate ? setOpenImport(true) : setOpenUpdateNotAllowed(true)}>
+                            Import Students
+                    </Button>
+                    <Button variant="contained" color="error" 
+                        onClick={() => allowUpdate ? setOpenDelete(true) : setOpenUpdateNotAllowed(true)}>
+                        Delete All Students
+                    </Button>
                 </Grid>
             </Grid>
 
+            <UpdateNotAllowed open={openUpdateNotAllowed} handleClose={() => setOpenUpdateNotAllowed(false)} />
             <ImportStudents open={openImport} eventId={eventId} handleClose={() => setOpenImport(false)} />
             <ConfirmDelete open={openDelete} itemName="All Students" itemType={""}
                 customText="Are you sure you want to delete all students for this event?"

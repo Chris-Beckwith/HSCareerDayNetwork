@@ -25,8 +25,9 @@ namespace CareerDayApi.Controllers
         {
             var query = _context.Speakers
                 .Search(speakerParams.SearchTerm)
-                .Include(a => a.Address)
-                .Include(c => c.Careers);
+                .Include(s => s.Address)
+                .Include(s => s.Careers)
+                .Include(s => s.SchoolLastSpokeAt);
             
             var speakers = await PagedList<Speaker>.ToPagedList(query,
                 speakerParams.PageNumber, speakerParams.PageSize);
@@ -40,8 +41,9 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult<Speaker>> GetSpeaker(int id)
         {
             var speaker = await _context.Speakers
-                .Include(a => a.Address)
-                .Include(c => c.Careers)
+                .Include(s => s.Address)
+                .Include(s => s.Careers)
+                .Include(s => s.SchoolLastSpokeAt)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (speaker == null)
@@ -65,6 +67,14 @@ namespace CareerDayApi.Controllers
 
             var speaker = _mapper.Map<Speaker>(speakerDto);
             speaker.Careers = careers;
+
+            School school = await _context.Schools.Where(s => s.Id == speakerDto.SchoolLastSpokeAt.Id).FirstOrDefaultAsync();
+
+            if (school == null)
+            {
+                return BadRequest(new ProblemDetails { Title = "Problem creating new speaker: School not found "});
+            }
+            speaker.SchoolLastSpokeAt = school;
 
             if (speakerDto.File != null)
             {
@@ -91,15 +101,26 @@ namespace CareerDayApi.Controllers
             var speaker = await _context.Speakers
                 .Include(s => s.Careers)
                 .Include(s => s.Address)
+                .Include(s => s.SchoolLastSpokeAt)
                 .FirstOrDefaultAsync(s => s.Id == speakerDto.Id);
 
             if (speaker == null) return NotFound();
+
+            School school = await _context.Schools
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == speakerDto.SchoolLastSpokeAt.Id);
+
+            if (school == null)
+            {
+                return BadRequest(new ProblemDetails { Title = "Problem updating speaker: School not found" });
+            }
+            speaker.SchoolLastSpokeAt = school;
 
             List<Career> careers = await _context.Careers.Where(c => speakerDto.CareerIds.Any(id => id == c.Id)).ToListAsync();
 
             if (careers == null)
             {
-                return BadRequest(new ProblemDetails { Title = "Problem updating new speaker: Careers not found" });
+                return BadRequest(new ProblemDetails { Title = "Problem updating speaker: Careers not found" });
             }
 
             var careersToRemove = speaker.Careers.Except(careers).ToList();
@@ -147,6 +168,7 @@ namespace CareerDayApi.Controllers
             var speaker = await _context.Speakers
                 .Include(s => s.Careers)
                 .Include(s => s.Address)
+                .Include(s => s.SchoolLastSpokeAt)
                 .FirstOrDefaultAsync(s => s.Id  == id);
 
             if (speaker == null) return NotFound();
