@@ -18,7 +18,7 @@ import agent from "../../app/api/agent";
 import { Speaker } from "../../app/models/speaker";
 import { Career } from "../../app/models/career";
 import CareerEventCareers from "./components/CareerEventCareers";
-import { EVENT_PANEL_BUTTON } from "../../app/util/constants";
+import { EVENT_PANEL_BUTTON, EVENT_PHASES } from "../../app/util/constants";
 import AppTextSearch from "../../app/components/AppTextSearch";
 import Students from "../student/Students";
 import { reloadStudents } from "../student/studentSlice";
@@ -72,6 +72,21 @@ export default function CareerEvents() {
         setSelectedEvent(event)
     }
 
+    function allowUpdate() {
+        switch (selectedEvent?.eventPhase.phaseName) {
+            case EVENT_PHASES.CREATED:
+            case EVENT_PHASES.CANCELLED: return true
+            case EVENT_PHASES.SURVEYINPROGRESS: 
+            case EVENT_PHASES.SURVEYCLOSED: 
+            case EVENT_PHASES.SESSIONSGENERATED: 
+            case EVENT_PHASES.ROOMSASSIGNED: 
+            case EVENT_PHASES.SPEAKERSASSIGNED: 
+            case EVENT_PHASES.SCHEDULEEXPORT: 
+            case EVENT_PHASES.COMPLETED: return false
+            default: return true
+        }
+    }
+
     const back = () => {
         dispatch(reloadStudents())
         setStudentMode(false)
@@ -116,11 +131,11 @@ export default function CareerEvents() {
 
     if (editMode) return <CareerEventForm selectedEvent={selectedEvent} cancelEdit={cancelEdit} saveEdit={cancelEdit} />
 
-    if (studentMode) return <Students eventId={selectedEvent!.id} eventName={selectedEvent!.name} back={back} />
+    if (studentMode) return <Students eventId={selectedEvent!.id} eventName={selectedEvent!.name} allowUpdate={allowUpdate()} back={back} />
 
     if (careerMode) return <CareerEventCareers careerEventName={selectedEvent!.name}
                                 careerEventCareers={selectedEvent!.careers} 
-                                updateCareerEvent={updateCareerEvent} back={back} />
+                                updateCareerEvent={updateCareerEvent} allowUpdate={allowUpdate()} back={back} />
 
     return (
         <Grid container columnSpacing={4}>
