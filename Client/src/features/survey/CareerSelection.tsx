@@ -24,6 +24,11 @@ export default function CareerSelection({ careers, primaryCareers, secondaryCare
                     careers.map(c => c.category)
                 ))
             )
+            setHiddenCategories(
+                Array.from(new Set(
+                    careers.map(c => c.category)
+                ))
+            )
         }
     }, [careers])
 
