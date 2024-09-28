@@ -8,6 +8,7 @@ namespace CareerDayApi.Entities
         public List<Speaker> Speakers { get; set; } = [];
         public int Period { get; set; }
         public Career Subject { get; set; }
+        public int EventId { get; set; }
 
         public void AddStudent(Student student)
         {

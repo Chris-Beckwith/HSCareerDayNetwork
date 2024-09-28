@@ -1,5 +1,6 @@
 
 using CareerDayApi.Data;
+using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,17 +26,17 @@ namespace CareerDayApi.Controllers
 
             var periodCount = surveys.First().PrimaryCareers.Count;
 
-            // First, create a dictionary to count the number of times each primary career is selected
+            // Dictionary to count the number of times each primary career is selected
             var primaryCareerCounts = surveys
                 .SelectMany(s => s.PrimaryCareers)
-                .GroupBy(c => c) // Group by career
-                .ToDictionary(g => g.Key, g => g.Count()); // Create a dictionary: Career -> Count
+                .GroupBy(c => c)
+                .ToDictionary(g => g.Key, g => g.Count());
 
             // Sort the surveys list based on primary career popularity, then gender, then grade
             var sortedSurveys = surveys
-                .OrderBy(s => s.PrimaryCareers.Max(c => primaryCareerCounts.TryGetValue(c, out int value) ? value : 0)) // Sort by most selected primary career
-                .ThenBy(s => s.Student.Gender) // Then by gender
-                .ThenBy(s => s.Student.Grade) // Then by grade
+                .OrderBy(s => s.PrimaryCareers.Max(c => primaryCareerCounts.TryGetValue(c, out int value) ? value : 0))
+                .ThenBy(s => s.Student.Gender)
+                .ThenByDescending(s => s.Student.Grade)
                 .ToList();
             
             var allSessions = new List<Session>();
@@ -46,7 +47,8 @@ namespace CareerDayApi.Controllers
                 for (var i = 0; i < Math.Ceiling((double)count.Value / stdRoomSize); i++)
                 {
                     allSessions.Add(new Session {
-                        Subject = count.Key
+                        Subject = count.Key,
+                        EventId = eventId
                     });
                 }
             }
@@ -83,7 +85,7 @@ namespace CareerDayApi.Controllers
             }
 
             // Initialize Unplaced Students
-            var unplacedStudents = new List<Tuple<Student, Career>>();
+            var unplacedStudents = new List<UnplacedStudentDto>();
 
             // Assign Students
             foreach(Survey survey in sortedSurveys)
@@ -161,17 +163,21 @@ namespace CareerDayApi.Controllers
 
                     // If Conflict, add Student, Conflicting PrimaryCareer
                     if (!isAdded) {
-                        unplacedStudents.Add(new Tuple<Student, Career>(survey.Student, pCareer));
+                        unplacedStudents.Add(new UnplacedStudentDto
+                            {
+                                Student = survey.Student,
+                                Career = pCareer
+                            });
                     }
                 }
             }
 
-            var placedStudents = new List<Tuple<Student, Career>>();
+            var placedStudents = new List<UnplacedStudentDto>();
 
-            foreach(Tuple<Student,Career> unplacedStudentCareer in unplacedStudents)
+            foreach(UnplacedStudentDto unplacedStudentCareer in unplacedStudents)
             {
-                Student unplacedStudent = unplacedStudentCareer.Item1;
-                Career unplacedCareer = unplacedStudentCareer.Item2;
+                Student unplacedStudent = unplacedStudentCareer.Student;
+                Career unplacedCareer = unplacedStudentCareer.Career;
                 bool isAdded = false;
 
                 // Find each period they are enrolled in a session
@@ -264,12 +270,6 @@ namespace CareerDayApi.Controllers
                                             .FirstOrDefault();
 
                                         if (openSession != null && enrolledToOtherEnrolled != null) {
-                                            //SWAPPPPP
-                                            // remove student from entrolledSession
-                                            // add sessionToPlace to entrolledSession
-                                            // remove student from otherEnrolledSession
-                                            // add entrolledSession to otherEnrolledSession
-                                            // add otherEnrolledSession to open
                                             // sessionToPlace go into entrolledSession.period
                                             // entrolledSession go into otherEnrolledSession.period
                                             // otherEnrolledSession go into open.period
@@ -323,11 +323,6 @@ namespace CareerDayApi.Controllers
                                     // Can otherEnrolledSession go into enrolledSession.period
                                     // AND sessionToPlace go in otherEnrolledSession.period?
 
-                                    // remove student from entrolledSession
-                                    // add otherEnrolledSession to entrolledSession
-                                    // remove student from otherEnrolledSession
-                                    // add sessionToPlace to otherEnrolledSession
-                                    // add enrolledSession to open
                                     // enrolledSession go into open.period
                                     // otherEnrolledSession go into enrolledSession.period
                                     // sessionToPlace go into otherEnrolledSession.period
@@ -385,28 +380,53 @@ namespace CareerDayApi.Controllers
                                         }
                                     }
 
-                                    //What if both are null??
                                     // enrolledSession can NOT go into open.period
                                     // sessionToPlace can NOT go into enrolledSession.period
 
-                                    // Can sessionToPlace either go into otherEnrolledSession
-                                    // Can otherEnrolledSession goes into open.period
+                                    // Can sessionToPlace go into otherEnrolledSession.period
+                                    // Can otherEnrolledSession go into open.period
+                                    if (openSession == null && sessionToPlace == null) {
+                                        openSession = periods[i]
+                                            .Where(session => session.Subject == otherEnrolledSession.Subject)
+                                            .OrderBy(session => session.Students.Count)
+                                            .FirstOrDefault();
 
-                                    // This is same as initial check..
-                                    // if (openSession == null && sessionToPlace == null) {
-                                    //     openSession = periods[i]
-                                    //         .Where(session => session.Subject == otherEnrolledSession.Subject)
-                                    //         .OrderBy(session => session.Students.Count)
-                                    //         .FirstOrDefault();
-
-                                    //     sessionToPlace = periods[otherEnrolledSession.Period - 1]
-                                    //         .Where(session => session.Subject == unplacedCareer)
-                                    //         .OrderBy(session => session.Students.Count)
-                                    //         .FirstOrDefault();
+                                        sessionToPlace = periods[otherEnrolledSession.Period - 1]
+                                            .Where(session => session.Subject == unplacedCareer)
+                                            .OrderBy(session => session.Students.Count)
+                                            .FirstOrDefault();
                                         
-                                    //     if (openSession != null && sessionToPlace != null) {
-                                    //     }
-                                    // }
+                                        if (openSession != null && sessionToPlace != null) {
+                                            // otherEnrolledSession to openSession
+                                            // sessionToPlace to otherEnrolledSession
+                                            // Session found, make the swap
+                                            // Remove student from enrolled Session
+                                            otherEnrolledSession.RemoveStudent(unplacedStudent.Id);
+                                            // Remove student from conflict map
+                                            conflictMap[otherEnrolledSession.Period - 1].Remove(unplacedStudent);
+                                            // Decrement sessionPopulation
+                                            sessionPopulation[otherEnrolledSession]--;
+
+                                            // Add student to openSession
+                                            openSession.AddStudent(unplacedStudent);
+                                            // Add student to conflict map
+                                            conflictMap[openSession.Period - 1].Add(unplacedStudent);
+                                            // Increment sessionPopulation
+                                            sessionPopulation[openSession]++;
+
+                                            // Add student to sessionToPlace
+                                            sessionToPlace.AddStudent(unplacedStudent);
+                                            // Add student to conflict map
+                                            conflictMap[sessionToPlace.Period - 1].Add(unplacedStudent);
+                                            // Increment sessionPopulation
+                                            sessionPopulation[sessionToPlace]++;
+
+                                            // Placed Student
+                                            placedStudents.Add(unplacedStudentCareer);
+                                            isAdded = true;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -415,82 +435,22 @@ namespace CareerDayApi.Controllers
                 }
             }
 
-                
-                // See if the session they are in in that period is available in a period they are not in
-            //     for (int index = 0; index < periods.Count; index++)
-            //     {
-            //         if (enrolledPeriods.Contains(index)) {
-            //             //Find session needed to place
-            //             Session sessionToPlace = periods[index]
-            //                 .Where(session => session.Subject == unplacedCareer)
-            //                 .OrderBy(session => session.Students.Count)
-            //                 .FirstOrDefault();
-
-            //             //Find session currently enrolled
-            //             Session enrolledSession = periods[index]
-            //                 .Where(session => session.Students.Contains(unplacedStudent))
-            //                 .FirstOrDefault();
-
-            //             //See if enrolledSession can be placed in open period
-            //             if (sessionToPlace != null && enrolledSession != null) {
-            //                 for (int openIndex = 0; index < periods.Count; index++)
-            //                 {
-            //                     if (!enrolledPeriods.Contains(openIndex)) {
-            //                         //Open Period
-            //                         Session openSession = periods[openIndex]
-            //                             .Where(session => session.Subject == enrolledSession.Subject)
-            //                             .FirstOrDefault();
-
-            //                         if (openSession != null) {
-            //                             // Session found, make the swap
-            //                             // Remove student from enrolled Session
-            //                             enrolledSession.RemoveStudent(unplacedStudent.Id);
-            //                             // Remove student from conflict map
-            //                             conflictMap[enrolledSession.Period - 1].Remove(unplacedStudent);
-            //                             // Decrement sessionPopulation
-            //                             sessionPopulation[enrolledSession]--;
-
-            //                             // Add student to openSession
-            //                             openSession.AddStudent(unplacedStudent);
-            //                             // Add student to conflict map
-            //                             conflictMap[openSession.Period - 1].Add(unplacedStudent);
-            //                             // Increment sessionPopulation
-            //                             sessionPopulation[openSession]++;
-
-            //                             // Add student to sessionToPlace
-            //                             sessionToPlace.AddStudent(unplacedStudent);
-            //                             // Add student to conflict map
-            //                             conflictMap[sessionToPlace.Period - 1].Add(unplacedStudent);
-            //                             // Increment sessionPopulation
-            //                             sessionPopulation[sessionToPlace]++;
-
-            //                             // Placed Student
-            //                             placedStudents.Add(unplacedStudentCareer);
-            //                             isAdded = true;
-            //                             break;
-            //                         }
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //         if (isAdded) break;
-            //     }
-            //         // Move them from the session they are in to the session in the period they are not in
-            //         // Place unplaced student in now available session in that period
-            // }
-
             foreach(var studentToRemove in placedStudents)
             {
                 unplacedStudents.Remove(studentToRemove);
             }
 
-            // Foreach conflict session
-                // Get conflict students and sessions they conflict with
-                // Try to find another session of same subject that does not conflict
-                // If no other sessions that conflict, try moving other conflicting sessions
-                // If not found, remove student from session, add to student/career conflict list, include which sessions they are currently in.
+            // var one = periods[0].SelectMany(s => s.Students).Distinct().ToList();
+            // var two = periods[1].SelectMany(s => s.Students).Distinct().ToList();
+            // var tre = periods[2].SelectMany(s => s.Students).Distinct().ToList();
 
-            return Ok(allSessions);
+            var result = new ScheduleResultDto
+            {
+                AllSessions = allSessions,
+                UnplacedStudents = unplacedStudents
+            };
+
+            return Ok(result);
         }
     }
 }
