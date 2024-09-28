@@ -21,6 +21,7 @@ import CareerEventDetailsSkeleton from "./CareerEventDetailsSkeleton";
 import Classrooms from "../classroom/Classrooms";
 import SurveyResults from "../survey/SurveyResults";
 import ConfirmPreviousPhase from "./components/ConfirmPreviousPhase";
+import SchedulingTool from "../scheduling/SchedulingTool";
 
 interface Props {
     careerEvent: CareerEvent
@@ -38,6 +39,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [studentMode, setStudentMode] = useState(false)
     const [roomMode, setRoomMode] = useState(false)
     const [surveyMode, setSurveyMode] = useState(false)
+    const [scheduleMode, setScheduleMode] = useState(false)
     const [confirmPreviousPhase, setConfirmPreviousPhase] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [eventPhaseName, setEventPhaseName] = useState('')
@@ -68,6 +70,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         setStudentMode(false)
         setRoomMode(false)
         setSurveyMode(false)
+        setScheduleMode(false)
     }
 
     const deleteEvent = () => {
@@ -121,11 +124,13 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
 
     if (surveyMode) return <SurveyResults event={careerEvent} back={back} />
 
+    if (scheduleMode) return <SchedulingTool event={careerEvent} back={back} />
+
     const nextEventPhaseText = () => {
         switch (eventPhaseName) {
             case EVENT_PHASES.CREATED: return "Open Survey"
             case EVENT_PHASES.SURVEYINPROGRESS: return "Close Survey"
-            case EVENT_PHASES.SURVEYCLOSED: return "Generate Sessions"
+            case EVENT_PHASES.SURVEYCLOSED: return "Scheduling Tool"
             case EVENT_PHASES.SESSIONSGENERATED: return "Assign Rooms"
             case EVENT_PHASES.ROOMSASSIGNED: return "Assign Speakers"
             case EVENT_PHASES.SPEAKERSASSIGNED: return "Generate Schedule"
@@ -226,7 +231,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                 if (careerEvent.surveyCompletePercent < 5)
                     return toast.error("Survey is still under 5% complete")
                 break;
-            case EVENT_PHASES.SURVEYCLOSED: return "Generate Sessions"
+            case EVENT_PHASES.SURVEYCLOSED: setScheduleMode(true); return;
             case EVENT_PHASES.SESSIONSGENERATED: return "Assign Rooms"
             case EVENT_PHASES.ROOMSASSIGNED: return "Assign Speakers"
             case EVENT_PHASES.SPEAKERSASSIGNED: return "Generate Schedule"
