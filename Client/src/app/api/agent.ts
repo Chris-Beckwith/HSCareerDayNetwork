@@ -178,6 +178,11 @@ const Survey = {
     deleteSurveysByEvent: (eventId: number) => requests.delete(`surveys/${eventId}`)
 }
 
+const Schedule = {
+    generateSessions: (eventId: number, stdRoomSize: number) =>
+        requests.get(`scheduling/${eventId}/${stdRoomSize}`)
+}
+
 const TestErrors = {
     get400Error: () => requests.get('buggy/bad-request'),
     get401Error: () => requests.get('buggy/unauthorized'),
@@ -196,6 +201,7 @@ const agent = {
     CareerSet,
     Account,
     Survey,
+    Schedule,
     TestErrors
 }
 

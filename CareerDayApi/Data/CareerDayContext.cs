@@ -17,6 +17,7 @@ namespace CareerDayApi.Data
         public DbSet<EventPhase> EventPhases { get; set; }
         public DbSet<Classroom> Classrooms { get; set; }
         public DbSet<CareerSet> CareerSets { get; set; }
+        public DbSet<Session> Sessions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
