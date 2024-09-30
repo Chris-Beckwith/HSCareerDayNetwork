@@ -1,4 +1,4 @@
-import { Typography, Button, Grid, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Typography, Button, Grid, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ButtonBase } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Career } from '../../app/models/career';
 import CareerCard from '../careers/CareerCard';
@@ -65,11 +65,13 @@ export default function CareerSelection({ careers, primaryCareers, secondaryCare
                 {onPrimaryCareers ? "Please select three (3) primary career choices you wish to learn about."
                     : "Please select two (2) secondary career choices as a backup"}
             </Typography>
-            <Grid item display='flex' justifyContent='space-between'>
-                <Button variant='contained' sx={{m: 2}}
-                    onClick={() => hideShowAllCategories(hiddenCategories.length !== categories?.length)}>
-                    {hiddenCategories.length !== categories?.length ? 'Hide All' : 'Show All'}
-                </Button>
+            <Grid item display='flex' justifyContent='space-between' >
+                <Box sx={{ alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+                    <Button variant='contained' sx={{m: 2}}
+                        onClick={() => hideShowAllCategories(hiddenCategories.length !== categories?.length)}>
+                        {hiddenCategories.length !== categories?.length ? 'Hide All' : 'Show All'}
+                    </Button>
+                </Box>
                 <Box>
                     <Paper sx={{p: 0.7, bgcolor: 'primary.light', mb: 1}}>
                         <Typography variant='body1'>Primary Selection</Typography>
@@ -83,12 +85,16 @@ export default function CareerSelection({ careers, primaryCareers, secondaryCare
                 {categories?.map(category => (
                     <Grid item xs={6} key={category}>
                         <TableContainer component={Paper} elevation={8}>
-                            <Box display='flex' justifyContent='space-between' sx={{ pt: 1, pl: 2 }}>
-                                <Typography variant="h6">{category}</Typography>
-                                <Button onClick={() => hideShowCategory(category)} sx={{ pr: 2 }}>
-                                    {hiddenCategories.includes(category) ? 'Show' : 'Hide'}
-                                </Button>
-                            </Box>
+                            <ButtonBase onClick={() => hideShowCategory(category)}
+                                sx={{ width: '100%', textAlign: 'left' }}
+                            >
+                                <Box display='flex' justifyContent='space-between' sx={{ pt: 1, pl: 2, width: '100%' }}>
+                                    <Typography variant="h6">{category}</Typography>
+                                    <Button sx={{ pr: 2 }}>
+                                        {hiddenCategories.includes(category) ? 'Show' : 'Hide'}
+                                    </Button>
+                                </Box>
+                            </ButtonBase>
                             {!hiddenCategories.includes(category) &&
                                 <Table>
                                     <TableHead>

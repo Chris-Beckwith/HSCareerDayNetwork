@@ -32,6 +32,9 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
 
     async function handleAddSchool(data: FieldValues) {
         try {
+            if (typeof data.estimatedNumOfStudents !== 'number') {
+                data.estimatedNumOfStudents = 0
+            }
             if (school) {
                 await agent.School.update(data)
             } else {
@@ -57,7 +60,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
                                 <AppTextInput control={control} name="name" label="School Name" />
                             </Grid>
                             <Grid item xs={2}>
-                                <AppTextInput control={control} name="estimatedNumOfStudents" label="Estimated Student Count" />
+                                <AppTextInput type="number" control={control} name="estimatedNumOfStudents" label="Estimated Student Count" />
                             </Grid>
                         </Grid>
 

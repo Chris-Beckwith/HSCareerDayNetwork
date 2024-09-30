@@ -2,11 +2,13 @@ using AutoMapper;
 using CareerDayApi.Data;
 using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class CareerSetsController(CareerDayContext context, IMapper mapper,
             ILogger<CareerSetsController> logger) : BaseApiController
     {

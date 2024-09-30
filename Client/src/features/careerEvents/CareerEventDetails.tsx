@@ -22,6 +22,7 @@ import Classrooms from "../classroom/Classrooms";
 import SurveyResults from "../survey/SurveyResults";
 import ConfirmPreviousPhase from "./components/ConfirmPreviousPhase";
 import SchedulingTool from "../scheduling/SchedulingTool";
+import { LoadingButton } from "@mui/lab";
 
 interface Props {
     careerEvent: CareerEvent
@@ -45,6 +46,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [eventPhaseName, setEventPhaseName] = useState('')
     const [prevEventPhaseName, setPrevEventPhaseName] = useState('')
     const [confirmPrevMessage, setConfirmPrevMessage] = useState('')
+    const [loading, setLoading] = useState(false)
     const { eventPhases } = useAppSelector(state => state.careerEvents)
     const date = new Date(careerEvent.eventDate)
     const baseUrl = import.meta.env.VITE_APP_HOST || '/';
@@ -240,9 +242,11 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             case EVENT_PHASES.CANCELLED: return "Reopen Event"
         }
 
+        setLoading(true)
         const eventPhaseId = findNextEventPhaseId(eventPhaseName)
         await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
         dispatch(reloadEvents())
+        setLoading(false)
     }
 
     const handlePreviousPhaseConfirm = () => {
@@ -323,11 +327,12 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                         </Grid>
                     }
                     <Grid item xs={12}>
-                        <Button onClick={progressEventPhaseAction}
+                        <LoadingButton onClick={progressEventPhaseAction}
+                            loading={loading}
                             variant="contained"
                             color="primary">
                             {nextEventPhaseText()}
-                        </Button>
+                        </LoadingButton>
                     </Grid>
                     {showSurveyResultsButton() &&
                         <Grid item xs={12}>
