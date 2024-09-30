@@ -4,12 +4,14 @@ using CareerDayApi.Entities;
 using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
 using CareerDayApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;
 
 namespace CareerDayApi.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class EventsController(CareerDayContext context, IConfiguration config,
         ILogger<EventsController> logger, ImageService imageService, 
         DbContextOptions<CareerDayContext> dbContextOptions) : BaseApiController

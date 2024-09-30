@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardActions, CardContent, CardHeader, Typography } from "@mui/material"
+import { Box, Button, Card, CardActions, CardContent, CardHeader, Typography, useTheme } from "@mui/material"
 import { CareerEvent } from "../../app/models/event"
 import LinearProgressWithLabel from "../../app/components/LinearProgressWithLabel"
 import { Edit } from "@mui/icons-material"
@@ -12,6 +12,7 @@ interface Props {
 
 export default function CareerEventCard({ careerEvent, handleEventCardClick }: Props) {
     const date = dayjs(careerEvent.eventDate).toDate()
+    const theme = useTheme()
 
     return (
         <Card>
@@ -21,7 +22,7 @@ export default function CareerEventCard({ careerEvent, handleEventCardClick }: P
                     sx: {fontWeight: 'bold', color: 'primary.main'}
                 }}
             />
-            <CardContent sx={{ bgcolor: 'primary.light', p: 1 }}>
+            <CardContent sx={{ bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : 'primary.light', p: 1 }}>
                 <Typography gutterBottom color="secondary" variant="h6" sx={{m: 0}}>
                     {careerEvent.school.name}
                 </Typography>

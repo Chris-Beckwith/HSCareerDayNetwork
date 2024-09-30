@@ -31,14 +31,14 @@ export default function SchedulingTool({ event, back }: Props) {
     async function generateSchedule(data: FieldValues) {
         setLoading(true)
 
-        console.log(data)
-        console.log(event.id)
+        // console.log(data)
+        // console.log(event.id)
 
         try {
             agent.Schedule.generateSessions(event.id, data.stdRoomSize)
                 .then((response) => {
-                    console.log(response.allSessions)
-                    console.log(response.unplacedStudents)
+                    // console.log(response.allSessions)
+                    // console.log(response.unplacedStudents)
                     setSessions(response.allSessions)
                     setUnplacedStudents(response.unplacedStudents)
                     setActiveStep(activeStep + 1)

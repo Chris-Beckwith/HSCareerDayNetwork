@@ -34,17 +34,14 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
         <AppBar position='static' sx={{ mb: 4 }}>
             <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box display='flex' alignItems='center'>
-                    <Typography variant="h6" component={NavLink}
-                        to='/survey/2693e683-ee64-4153-8f9a-5f5f2e193d10'
-                        sx={navStyles}
-                    >
+                    <Typography variant="h6">
                         National High School Career Day Network
                     </Typography>
                     <Switch checked={darkMode} onChange={handleThemeChange} />
                 </Box>
 
                 <List sx={{ display: 'flex' }}>
-                    {midLinks.map(({ title, path }) => (
+                    {user && midLinks.map(({ title, path }) => (
                         <ListItem
                             component={NavLink}
                             to={path}
