@@ -42,8 +42,6 @@ function App() {
     setDarkMode(!darkMode)
   }
 
-  console.log(location.pathname.includes('/survey'))
-
   return (
     <ThemeProvider theme={theme}>
       <ToastContainer position="bottom-right" hideProgressBar theme="colored" />
