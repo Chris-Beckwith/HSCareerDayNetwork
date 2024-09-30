@@ -19,16 +19,16 @@ export const router = createBrowserRouter([
         children: [
             {element: <RequireAuth roles={['Admin']}/>, children: [
                 { path: 'speakers', element: <Speakers /> },
+                { path: '', element: <CareerEvents /> },
+                { path: 'schools', element: <Schools /> },
+                { path: 'careers', element: <Careers /> },
+                { path: 'buggy-test', element: <BuggyTester /> },
             ]},
-            { path: '', element: <CareerEvents /> },
             { path: 'login', element: <Login /> },
             { path: 'register', element: <Register /> },
-            { path: 'schools', element: <Schools /> },
-            { path: 'careers', element: <Careers /> },
             { path: 'survey/:eventHash', element: <Survey /> },
             { path: 'server-error', element: <ServerError /> },
             { path: 'not-found', element: <NotFound /> },
-            { path: 'buggy-test', element: <BuggyTester /> },
             { path: '*', element: <Navigate replace to='/not-found' />}
         ]
     }
