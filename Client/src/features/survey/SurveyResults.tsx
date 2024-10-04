@@ -15,7 +15,7 @@ export default function SurveyResults({ event, back }: Props) {
     const [primaryCounts, setPrimaryCounts] = useState<{
         name: string; category: string; courseId: number; value: number;
     }[]>([])
-    // const [secondaryCounts, setSecondaryCounts] = useState<{
+    // const [alternateCounts, setAlternateCounts] = useState<{
     //     name: string; category: string; courseId: number; value: number;
     // }[]>([])
 
@@ -28,7 +28,7 @@ export default function SurveyResults({ event, back }: Props) {
         }))
 
         setPrimaryCounts([...initialCareers])
-        // setSecondaryCounts([...initialCareers])
+        // setAlternateCounts([...initialCareers])
     }, [event.careers])
 
     useEffect(() => {
@@ -50,14 +50,14 @@ export default function SurveyResults({ event, back }: Props) {
             return updatedCounts
         })
 
-        // setSecondaryCounts(prevCareerCounts => {
+        // setAlternateCounts(prevCareerCounts => {
         //     const updatedCounts = prevCareerCounts.map(career => ({
         //         ...career,
         //         value: 0
         //     }))
 
         //     surveys.forEach(survey => {
-        //         survey.secondaryCareers.forEach(selectedCareer => {
+        //         survey.alternateCareers.forEach(selectedCareer => {
         //             const careerToUpdate = updatedCounts.find(c => c.name === selectedCareer.name)
         //             if (careerToUpdate) {
         //                 careerToUpdate.value += 1
@@ -78,13 +78,13 @@ export default function SurveyResults({ event, back }: Props) {
     //Max Values
     let maxValue = Math.max(...primaryCounts.map(c => c.value))
     if (maxValue === 0) maxValue = 1
-    // const maxValueWithSecondary = Math.max(
+    // const maxValueWithAlternate = Math.max(
     //     ...primaryCounts.map(pCareer => {
-    //         const sCareer = secondaryCounts.find(s => s.name === pCareer.name)
+    //         const sCareer = alternateCounts.find(s => s.name === pCareer.name)
 
-    //         const secondaryValue = sCareer ? sCareer.value : 0
+    //         const alternateValue = sCareer ? sCareer.value : 0
 
-    //         return pCareer.value + secondaryValue
+    //         return pCareer.value + alternateValue
     //     })
     // )
     let currentCategory = ''
