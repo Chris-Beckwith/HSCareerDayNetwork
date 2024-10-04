@@ -1,4 +1,4 @@
-import { Button, TableCell, TableRow } from "@mui/material"
+import { Button, TableCell, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { Career } from "../../app/models/career"
 import { Delete } from "@mui/icons-material"
 import { MouseEvent, useState } from "react"
@@ -13,17 +13,19 @@ interface Props {
     hideDescription?: boolean
     hideDelete?: boolean
     highlightRow?: boolean
-    highlightSecondary?: boolean
+    highlightAlternate?: boolean
     onPrimaryCareers?: boolean
     survey?: boolean
 }
 
 export default function CareerCard({ career, handleSelectCareer, hideDescription, hideDelete, 
-        highlightRow, highlightSecondary, onPrimaryCareers, survey }: Props) {
+        highlightRow, highlightAlternate, onPrimaryCareers, survey }: Props) {
     const [loading, setLoading] = useState(false)
     const [showDeletePopup, setShowDeletePopup] = useState(false)
     const [target, setTarget] = useState<Career | undefined>(undefined)
     const dispatch = useAppDispatch()
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
     
     function handleShowConfirmDelete(event: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>, deleteCareer: Career) {
@@ -58,7 +60,7 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
             } else {
                 if (highlightRow) {
                     return "primary.main"
-                } else if (highlightSecondary) {
+                } else if (highlightAlternate) {
                     return "warning.light"
                 }
                 return "inherit"
@@ -73,7 +75,7 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
             if (onPrimaryCareers) {
                 return highlightRow ? 'primary.main' : 'rgba(0, 0, 0, 0.07)'
             } else {
-                if (highlightSecondary) {
+                if (highlightAlternate) {
                     return 'warning.main'
                 } else if (highlightRow) {
                     return 'primary.main'
@@ -106,15 +108,31 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
                     },
                 }}
             >
-                <TableCell>{career.courseId} - {career.name}</TableCell>
-                {!hideDescription && <TableCell>{career.description}</TableCell>}
-                {!hideDelete && <TableCell align="right">
-                    <Button
-                        startIcon={<Delete />}
-                        color='error'
-                        onClick={(e) => handleShowConfirmDelete(e, career)}
-                    />
-                </TableCell>}
+                {isMobile ? (
+                    <TableCell sx={{ display: 'flex', flexDirection: 'column', p: '8px' }}>
+                        <Typography variant="body1" component="div" sx={{ fontWeight: 'bold' }}>
+                            {career.courseId} - {career.name}
+                        </Typography>
+
+                        {!hideDescription && (
+                            <Typography variant="body2" component="div" sx={{ color: 'text.secondary' }}>
+                                {career.description}
+                            </Typography>
+                        )}
+                    </TableCell>
+                ) : (
+                    <>
+                        <TableCell>{career.courseId} - {career.name}</TableCell>
+                        {!hideDescription && <TableCell>{career.description}</TableCell>}
+                        {!hideDelete && <TableCell align="right">
+                            <Button
+                                startIcon={<Delete />}
+                                color='error'
+                                onClick={(e) => handleShowConfirmDelete(e, career)}
+                            />
+                        </TableCell>}
+                    </>
+                )}
             </TableRow>
 
             <ConfirmDelete open={showDeletePopup} itemType="Career" itemName={career.name}

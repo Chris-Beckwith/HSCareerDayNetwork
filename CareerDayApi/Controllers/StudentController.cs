@@ -161,11 +161,17 @@ namespace CareerDayApi.Controllers
                 survey.SecondaryCareers.Add(career);
             }
 
-            _context.Surveys.Add(survey);
+            try {
+                _context.Surveys.Add(survey);
 
-            var result = await _context.SaveChangesAsync() > 0;
+                var result = await _context.SaveChangesAsync() > 0;
 
-            if (result) return Ok();
+                if (result) return Ok();
+            } 
+            catch (DbUpdateException e) when (IsUniqueConstraintException(e))
+            {
+                return Conflict(new { message = GetAndLogErrorMsg(e) });
+            }
 
             return BadRequest(new ProblemDetails { Title = "Problem submitting survey" });
         }
@@ -330,7 +336,8 @@ namespace CareerDayApi.Controllers
 
         private static bool IsUniqueConstraintException(DbUpdateException e)
         {
-            return e.InnerException != null && e.InnerException.Message.Contains("23503");
+            return e.InnerException != null 
+                && (e.InnerException.Message.Contains("23503") || e.InnerException.Message.Contains("23505"));
         }
 
         private string GetAndLogErrorMsg(DbUpdateException e)
@@ -339,6 +346,10 @@ namespace CareerDayApi.Controllers
             if (e.InnerException.Message.Contains("Students_StudentNumber_EventId"))
             {
                 msg = "A student with a matching student number already exists with this event";
+            }
+            else if (e.InnerException.Message.Contains("Surveys_StudentId"))
+            {
+                msg = "A survey has already been submitted for this student";
             }
             _logger.LogError(e, "An error occurred creating a student");
             return msg;

@@ -6,5 +6,5 @@ export interface Survey {
     student: Student,
     studentId: number,
     primaryCareers: Career[],
-    secondaryCareers: Career[]
+    alternateCareers: Career[]
 }
