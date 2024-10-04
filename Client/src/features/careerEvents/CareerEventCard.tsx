@@ -29,11 +29,6 @@ export default function CareerEventCard({ careerEvent, handleEventCardClick }: P
                 <Typography variant="body1" color="text.secondary">
                     {date.toLocaleDateString()}
                 </Typography>
-                {/* <Paper sx={{outline: 1, p: 1, my: 1, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                    <Typography variant="body2" color="text.secondary">
-                        {careerEvent.description}
-                    </Typography>
-                </Paper> */}
                 <Box sx={{width: '100%'}}>
                     <LinearProgressWithLabel value={careerEvent.surveyCompletePercent} />
                 </Box>

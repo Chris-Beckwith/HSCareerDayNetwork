@@ -29,6 +29,8 @@ axios.interceptors.response.use(async response => {
 }, (error: AxiosError) => {
     const {data, status} = error.response as AxiosResponse
 
+    console.log("AxiosError")
+
     switch (status) {
         case 400:
             if (data.errors) {
@@ -49,12 +51,14 @@ axios.interceptors.response.use(async response => {
             toast.error("You are not allowed to do that.")
             break;
         case 409:
+            console.log("AxiosError ::: msg: ", data.message)
             toast.error(data.message)
             break;
         case 500:
             router.navigate('/server-error', {state: {error: data}})
             break;
         default:
+            toast.error(data.message)
             break;
     }
 
