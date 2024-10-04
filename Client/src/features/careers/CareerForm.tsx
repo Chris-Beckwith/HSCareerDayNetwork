@@ -45,7 +45,6 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
             if (selectedCareer) {
                 await agent.Career.update(data)
             } else {
-                console.log("create career")
                 await agent.Career.create(data)
             }
             dispatch(reloadCareers())
