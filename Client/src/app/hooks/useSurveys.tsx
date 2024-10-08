@@ -8,7 +8,7 @@ export default function useSurveys(eventId: number) {
     const dispatch = useAppDispatch()
 
     useEffect(() => {
-        if (!surveyResultsLoaded) dispatch(getAllSurveysByEvent(eventId))
+        dispatch(getAllSurveysByEvent(eventId))
     }, [surveyResultsLoaded, dispatch, eventId])
 
     return {

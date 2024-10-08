@@ -3,9 +3,10 @@ import { Grid, LinearProgress, Typography } from "@mui/material";
 interface Props {
     item: any
     maxValue: number
+    altItem: any
 }
 
-export default function SurveyResultLineItem({item, maxValue}: Props) {
+export default function SurveyResultLineItem({ item, maxValue, altItem }: Props) {
     return (
         <Grid container spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
             <Grid item xs={4}>
@@ -23,6 +24,17 @@ export default function SurveyResultLineItem({item, maxValue}: Props) {
                         backgroundColor: 'white'
                     }}
                 />
+                {altItem &&
+                    <LinearProgress
+                        variant="determinate"
+                        color="warning"
+                        value={(altItem.value / maxValue) * 100}
+                        sx={{
+                            height: '4px',
+                            backgroundColor: 'white'
+                        }}
+                    />
+                }
             </Grid>
         </Grid>
     )
