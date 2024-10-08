@@ -28,11 +28,21 @@ namespace CareerDayApi.Controllers
             var surveys = await _context.Surveys
                 .Where(s => s.Student.EventId == eventId).ToListAsync();
 
+            var students = await _context.Students
+                .Where(s => s.EventId == eventId && s.SurveyComplete == true).ToListAsync();
+
             if (surveys == null) return NotFound();
 
             if (surveys.Count == 0) return Ok();
 
             _context.Surveys.RemoveRange(surveys);
+
+            if (students != null && students.Count > 0) {
+                foreach(Student s in students)
+                {
+                    s.SurveyComplete = false;
+                }
+            }
 
             var result = await _context.SaveChangesAsync() > 0;
 
