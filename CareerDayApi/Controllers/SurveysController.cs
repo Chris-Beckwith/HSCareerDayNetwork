@@ -17,7 +17,7 @@ namespace CareerDayApi.Controllers
             return await _context.Surveys
                 .Where(s => s.Student.EventId == eventId)
                 .Include(s => s.PrimaryCareers)
-                .Include(s => s.SecondaryCareers)
+                .Include(s => s.AlternateCareers)
                 .Include(s => s.Student)
                 .ToListAsync();
         }

@@ -68,9 +68,9 @@ namespace CareerDayApi.Data
                 .UsingEntity(j => j.ToTable("SurveyPrimaryCareers"));
 
             builder.Entity<Survey>()
-                .HasMany(s => s.SecondaryCareers)
+                .HasMany(s => s.AlternateCareers)
                 .WithMany()
-                .UsingEntity(j => j.ToTable("SurveySecondaryCareers"));
+                .UsingEntity(j => j.ToTable("SurveyAlternateCareers"));
 
             builder.Entity<Survey>()
                 .HasIndex(s => s.StudentId)
