@@ -3,6 +3,7 @@ import useSurveys from "../../app/hooks/useSurveys";
 import { CareerEvent } from "../../app/models/event";
 import { useEffect, useState } from "react";
 import SurveyResultLineItem from "./SurveyResultLineItem";
+import SurveyStudentLineItem from "./SurveyStudentLineItem";
 
 interface Props {
     event: CareerEvent
@@ -12,12 +13,15 @@ interface Props {
 export default function SurveyResults({ event, back }: Props) {
     const { surveys } = useSurveys(event.id)
     const [sortOption, setSortOption] = useState(false)
+    const [viewOption, setViewOption] = useState(false)
+    const [showAlternate, setShowAlternate] = useState(false)
+    const [includeAlternate, setIncludeAlternate] = useState(false)
     const [primaryCounts, setPrimaryCounts] = useState<{
         name: string; category: string; courseId: number; value: number;
     }[]>([])
-    // const [alternateCounts, setAlternateCounts] = useState<{
-    //     name: string; category: string; courseId: number; value: number;
-    // }[]>([])
+    const [alternateCounts, setAlternateCounts] = useState<{
+        name: string; category: string; courseId: number; value: number;
+    }[]>([])
 
     useEffect(() => {
         const initialCareers = event.careers.map(career => ({
@@ -28,7 +32,7 @@ export default function SurveyResults({ event, back }: Props) {
         }))
 
         setPrimaryCounts([...initialCareers])
-        // setAlternateCounts([...initialCareers])
+        setAlternateCounts([...initialCareers])
     }, [event.careers])
 
     useEffect(() => {
@@ -50,23 +54,23 @@ export default function SurveyResults({ event, back }: Props) {
             return updatedCounts
         })
 
-        // setAlternateCounts(prevCareerCounts => {
-        //     const updatedCounts = prevCareerCounts.map(career => ({
-        //         ...career,
-        //         value: 0
-        //     }))
+        setAlternateCounts(prevCareerCounts => {
+            const updatedCounts = prevCareerCounts.map(career => ({
+                ...career,
+                value: 0
+            }))
 
-        //     surveys.forEach(survey => {
-        //         survey.alternateCareers.forEach(selectedCareer => {
-        //             const careerToUpdate = updatedCounts.find(c => c.name === selectedCareer.name)
-        //             if (careerToUpdate) {
-        //                 careerToUpdate.value += 1
-        //             }
-        //         })
-        //     })
+            surveys.forEach(survey => {
+                survey.alternateCareers.forEach(selectedCareer => {
+                    const careerToUpdate = updatedCounts.find(c => c.name === selectedCareer.name)
+                    if (careerToUpdate) {
+                        careerToUpdate.value += 1
+                    }
+                })
+            })
 
-        //     return updatedCounts
-        // })
+            return updatedCounts
+        })
     }, [surveys])
 
 
@@ -74,19 +78,9 @@ export default function SurveyResults({ event, back }: Props) {
         setSortOption(event.target.checked)
     }
 
-
     //Max Values
     let maxValue = Math.max(...primaryCounts.map(c => c.value))
     if (maxValue === 0) maxValue = 1
-    // const maxValueWithAlternate = Math.max(
-    //     ...primaryCounts.map(pCareer => {
-    //         const sCareer = alternateCounts.find(s => s.name === pCareer.name)
-
-    //         const alternateValue = sCareer ? sCareer.value : 0
-
-    //         return pCareer.value + alternateValue
-    //     })
-    // )
     let currentCategory = ''
 
     return (
@@ -108,46 +102,108 @@ export default function SurveyResults({ event, back }: Props) {
                     </Box>
                 </Grid>
 
-                <Grid item xs={1}></Grid>
-                <Grid item xs={10}>
-                    <Paper sx={{ p: 2, m: 2 }}>
-                        {sortOption ? (
-                            primaryCounts.sort((c, d) => d.value - c.value).map((item, index) => (
-                                <Box key={index}>
-                                    <SurveyResultLineItem item={item} maxValue={maxValue}/>
-                                    {index !== primaryCounts.length - 1 && 
-                                        <Divider sx={{ mb: 0.5 }} />
-                                    }
-                                </Box>
-                            ))
-                        ) : (
-                            primaryCounts.sort((a, b) => {
-                                const categoryComparison = a.category.localeCompare(b.category);
-                                if (categoryComparison !== 0) return categoryComparison;
-
-                                return a.courseId - b.courseId;
-                            }).map((item, index) => {
-                                const showCategory = item.category !== currentCategory
-                                const isFirst = currentCategory === ''
-                                if (showCategory) currentCategory = item.category
-
-                                return (
-                                    <Box key={index}>
-                                        {showCategory &&
-                                            <Divider sx={{ mb: 0.5, mt: isFirst ? 0 : 1 }} textAlign="left">
-                                                <Typography variant="body2" sx={{ color: "gray" }}>
-                                                    {item.category}
-                                                </Typography>
-                                            </Divider>
-                                        }
-                                        <SurveyResultLineItem item={item} maxValue={maxValue}/>
-                                    </Box>
-                                )
-                            })
-                        )}
-                    </Paper>
+                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
+                        <Button onClick={() => {
+                            if (viewOption) setViewOption(!viewOption)
+                        }}
+                            sx={{
+                                variant: viewOption ? '' : 'outlined',
+                                bgcolor: viewOption ? 'lightgray' : 'white',
+                                width: '120px', borderRadius: '4px 0 0 4px',
+                                transition: 'background-color 0.3s',
+                                '&:hover': {
+                                    cursor: viewOption ? 'pointer' : 'default',
+                                    bgcolor: viewOption ? '' : 'white'
+                                }
+                            }}>
+                            Categories
+                        </Button>
+                        <Button onClick={() => {
+                            if (!viewOption) setViewOption(!viewOption)
+                        }}
+                            sx={{
+                                variant: viewOption ? 'outlined' : '',
+                                bgcolor: viewOption ? 'white' : 'lightgray',
+                                width: '120px', borderRadius: '0 4px 4px 0',
+                                transition: 'background-color 0.3s',
+                                '&:hover': {
+                                    cursor: viewOption ? 'default' : 'pointer',
+                                    bgcolor: viewOption ? 'white' : ''
+                                }
+                            }}>
+                            Students
+                        </Button>
+                    </Box>
                 </Grid>
-                <Grid item xs={1}></Grid>
+
+                <Grid item xs={12}>
+                    {viewOption ? (
+                        <Paper sx={{ px: 2, mx: 2, py: 1, my: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
+                                <Switch onChange={(e) => setShowAlternate(e.target.checked)} color="default" />
+                                <Typography>{showAlternate ? "Show Primary" : "Show Alternate"}</Typography>
+                            </Box>
+                            {surveys.map((item, index) => (
+                                <Box key={index}>
+                                    <SurveyStudentLineItem item={item} showAlternate={showAlternate} />
+                                </Box>
+                            ))}
+                        </Paper>
+                    ) : (
+                        <Paper sx={{ px: 2, mx: 2, py: 0, my: 1 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
+                                    <Switch onChange={handleSortOption} color="default" />
+                                    <Typography>{sortOption ? "Sort by Value" : "Sort by Category"}</Typography>
+                                    <Switch onChange={(e) => setIncludeAlternate(e.target.checked)} color="default" />
+                                    <Typography>{includeAlternate ? "Exclude Alternate" : "Include Alternate"}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                    Total Surveys: {surveys.length} || Complete: {event.surveyCompletePercent}%
+                                </Box>
+                            </Box>
+                            {sortOption ? (
+                                primaryCounts.sort((c, d) => d.value - c.value).map((item, index) => {
+                                    const altItem = includeAlternate && alternateCounts.find(c => c.name === item.name)
+                                    return (
+                                        <Box key={index}>
+                                            <SurveyResultLineItem item={item} maxValue={maxValue} altItem={altItem} />
+                                            {index !== primaryCounts.length - 1 &&
+                                                <Divider sx={{ mb: 0.5 }} />
+                                            }
+                                        </Box>
+                                    )
+                                })
+                            ) : (
+                                primaryCounts.sort((a, b) => {
+                                    const categoryComparison = a.category.localeCompare(b.category);
+                                    if (categoryComparison !== 0) return categoryComparison;
+
+                                    return a.courseId - b.courseId;
+                                }).map((item, index) => {
+                                    const showCategory = item.category !== currentCategory
+                                    const isFirst = currentCategory === ''
+                                    if (showCategory) currentCategory = item.category
+                                    const altItem = includeAlternate && alternateCounts.find(c => c.name === item.name)
+
+                                    return (
+                                        <Box key={index}>
+                                            {showCategory &&
+                                                <Divider sx={{ mb: 0.5, mt: isFirst ? 0 : 1 }} textAlign="left">
+                                                    <Typography variant="body2" sx={{ color: "gray" }}>
+                                                        {item.category}
+                                                    </Typography>
+                                                </Divider>
+                                            }
+                                            <SurveyResultLineItem item={item} maxValue={maxValue} altItem={altItem} />
+                                        </Box>
+                                    )
+                                })
+                            )}
+                        </Paper>
+                    )}
+                </Grid>
 
             </Grid>
         </>

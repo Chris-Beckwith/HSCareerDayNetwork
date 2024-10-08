@@ -21,7 +21,7 @@ namespace CareerDayApi.Controllers
             var surveys = await _context.Surveys
                                         .Include(s => s.Student)
                                         .Include(s => s.PrimaryCareers)
-                                        .Include(s => s.SecondaryCareers)
+                                        .Include(s => s.AlternateCareers)
                                         .Where(s => s.Student.EventId == eventId).ToListAsync();
 
             var periodCount = surveys.First().PrimaryCareers.Count;

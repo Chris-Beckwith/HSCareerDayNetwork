@@ -9,7 +9,7 @@ namespace CareerDayApi.Entities
         [ForeignKey("StudentId")]
         public Student Student { get; set; }
         public List<Career> PrimaryCareers { get; set; } = [];
-        public List<Career> SecondaryCareers { get; set; } = [];
+        public List<Career> AlternateCareers { get; set; } = [];
         public int StudentId { get; set; }
     }
 }

@@ -64,7 +64,7 @@ namespace CareerDayApi.Controllers
                 .AsQueryable()
                 .Include(s => s.Student)
                 .Include(s => s.PrimaryCareers)
-                .Include(s => s.SecondaryCareers);
+                .Include(s => s.AlternateCareers);
 
             var surveys = await PagedList<Survey>.ToPagedList(query, pageNumber, pageSize);
 
@@ -122,10 +122,10 @@ namespace CareerDayApi.Controllers
                                             .ToListAsync();
             }
 
-            List<Career> secondaryCareers = [];
-            if (survey.SecondaryCareers != null && survey.SecondaryCareers.Count != 0) {
-                secondaryCareers = await _context.Careers
-                                            .Where(s => survey.SecondaryCareers
+            List<Career> alternateCareers = [];
+            if (survey.AlternateCareers != null && survey.AlternateCareers.Count != 0) {
+                alternateCareers = await _context.Careers
+                                            .Where(s => survey.AlternateCareers
                                                             .Select(dto => dto.Id)
                                                             .Contains(s.Id))
                                             .ToListAsync();
@@ -141,9 +141,9 @@ namespace CareerDayApi.Controllers
                     survey.PrimaryCareers);
                 return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Careers not found"});
             }
-            if (secondaryCareers == null) {
-                _logger.LogError("Error submitting survey: Secondary Careers not found: {careers}",
-                    survey.SecondaryCareers);
+            if (alternateCareers == null) {
+                _logger.LogError("Error submitting survey: Alternate Careers not found: {careers}",
+                    survey.AlternateCareers);
                 return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Careers not found"});
             }
 
@@ -151,14 +151,14 @@ namespace CareerDayApi.Controllers
 
             survey.Student = student;
             survey.PrimaryCareers.RemoveRange(0, survey.PrimaryCareers.Count);
-            survey.SecondaryCareers.RemoveRange(0, survey.SecondaryCareers.Count);
+            survey.AlternateCareers.RemoveRange(0, survey.AlternateCareers.Count);
             foreach (var career in primaryCareers)
             {
                 survey.PrimaryCareers.Add(career);
             }
-            foreach (var career in secondaryCareers)
+            foreach (var career in alternateCareers)
             {
-                survey.SecondaryCareers.Add(career);
+                survey.AlternateCareers.Add(career);
             }
 
             try {
