@@ -285,6 +285,56 @@ namespace CareerDayApi.Controllers
             return Ok(new { message = msg });
         }
 
+        [HttpGet("export")]
+        public async Task<ActionResult> ExportStudentListAsync([FromQuery] StudentParams studentParams)
+        {
+            var students = await _context.Students
+                .Search(studentParams.SearchTerm)
+                .Filter(studentParams.Gender, studentParams.Grades,
+                    studentParams.SurveyComplete, studentParams.EventId)
+                .Include(s => s.School)
+                .Include(s => s.Event)
+                .ToListAsync();
+
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using ExcelPackage excelPackage = new();
+            ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets.Add("Students");
+
+            //Headers
+            worksheet.Cells[1, 1].Value = "Student Number";
+            worksheet.Cells[1, 2].Value = "Last, First Name";
+            worksheet.Cells[1, 3].Value = "Last Name";
+            worksheet.Cells[1, 4].Value = "First Name";
+            worksheet.Cells[1, 5].Value = "Gender";
+            worksheet.Cells[1, 6].Value = "Grade";
+            worksheet.Cells[1, 7].Value = "Email";
+            worksheet.Cells[1, 8].Value = "Teacher";
+            worksheet.Cells[1, 9].Value = "Room";
+            worksheet.Cells[1, 10].Value = "Survey Complete";
+
+            for (int i = 0; i < students.Count; i++)
+            {
+                worksheet.Cells[i + 2, 1].Value = students[i].StudentNumber;
+                worksheet.Cells[i + 2, 2].Value = students[i].LastFirstName;
+                worksheet.Cells[i + 2, 3].Value = students[i].LastName;
+                worksheet.Cells[i + 2, 4].Value = students[i].FirstName;
+                worksheet.Cells[i + 2, 5].Value = students[i].Gender;
+                worksheet.Cells[i + 2, 6].Value = students[i].Grade;
+                worksheet.Cells[i + 2, 7].Value = students[i].Email;
+                worksheet.Cells[i + 2, 8].Value = students[i].HomeroomTeacher;
+                worksheet.Cells[i + 2, 9].Value = students[i].HomeroomNumber;
+                worksheet.Cells[i + 2, 10].Value = students[i].SurveyComplete;
+            }
+
+            var stream = new MemoryStream();
+            excelPackage.SaveAs(stream);
+            stream.Position = 0;
+
+            var fileName = "Students_" + students[0].School.Name + "_" + DateTime.Now.ToString("MM-dd-yyyy");
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
         private async Task<(bool isValid, string error, List<Student>)> ParseStudentExcelAsync(byte[] fileData, Event careerEvent)
         {
             var students = new List<Student>();
