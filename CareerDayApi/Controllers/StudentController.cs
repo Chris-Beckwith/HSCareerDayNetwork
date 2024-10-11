@@ -211,7 +211,13 @@ namespace CareerDayApi.Controllers
         [HttpPost("ImportStudents", Name = "ImportStudents")]
         public async Task<ActionResult> ImportStudents([FromForm] ImportStudentsDto importStudentsDto)
         {
-            var careerEvent = await _context.Events.FindAsync(importStudentsDto.EventId);
+            var careerEvent = await _context.Events
+                .Where(e => e.Id == importStudentsDto.EventId)
+                .Include(e => e.EventPhase)
+                .Include(e => e.Careers)
+                .Include(e => e.Speakers)
+                .Include(e => e.School)
+                .FirstOrDefaultAsync();
 
             if (importStudentsDto.File == null || importStudentsDto.File.Length == 0)
                 return BadRequest(new ProblemDetails { Title = "No File found for student import" });
@@ -249,7 +255,7 @@ namespace CareerDayApi.Controllers
                         var result = await _context.SaveChangesAsync() > 0;
                         if (!result)
                         {
-                            return BadRequest(new ProblemDetails { Title = "Problem processing and importing students " });
+                            return BadRequest(new ProblemDetails { Title = "Problem processing and importing students" });
                         }
                         batch.Clear();
                         batchCount++;
@@ -262,7 +268,7 @@ namespace CareerDayApi.Controllers
                     var result = await _context.SaveChangesAsync() > 0;
                     if (!result)
                     {
-                        return BadRequest(new ProblemDetails { Title = "Problem processing and importing students " });
+                        return BadRequest(new ProblemDetails { Title = "Problem processing and importing students" });
                     }
                 }
             }
@@ -270,40 +276,49 @@ namespace CareerDayApi.Controllers
             {
                 return Conflict(new { message = GetAndLogErrorMsg(e) });
             }
+            
+            var msg = "Students Imported Successfully";
+            if (!string.IsNullOrEmpty(error)) {
+                msg = error;
+            }
 
-            return Ok(new { message = "Students imported successfully " });
+            return Ok(new { message = msg });
         }
 
         private async Task<(bool isValid, string error, List<Student>)> ParseStudentExcelAsync(byte[] fileData, Event careerEvent)
         {
             var students = new List<Student>();
+            var error = string.Empty;
+            var warningCount = 0;
 
             using var stream = new MemoryStream(fileData);
             using var package = new ExcelPackage(stream);
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var worksheet = package.Workbook.Worksheets[0];
 
-            if (!worksheet.Cells[1, 1].Text.ToLower().Equals("school")
-                || !worksheet.Cells[1, 2].Text.ToLower().Equals("student_number")
+            if (!worksheet.Cells[1, 1].Text.ToLower().Contains("school")
+                || (!worksheet.Cells[1, 2].Text.ToLower().Equals("student_number") && !worksheet.Cells[1, 2].Text.ToLower().Equals("id"))
                 || !worksheet.Cells[1, 3].Text.ToLower().Equals("lastfirst")
-                || !worksheet.Cells[1, 4].Text.ToLower().Equals("last_name")
-                || !worksheet.Cells[1, 5].Text.ToLower().Equals("first_name")
-                || !worksheet.Cells[1, 6].Text.ToLower().Equals("gender")
-                || !worksheet.Cells[1, 7].Text.ToLower().Equals("grade_level")
+                || !worksheet.Cells[1, 4].Text.ToLower().Contains("last")
+                || !worksheet.Cells[1, 5].Text.ToLower().Contains("first")
+                || !worksheet.Cells[1, 6].Text.ToLower().Contains("gender")
+                || !worksheet.Cells[1, 7].Text.ToLower().Contains("grade")
                 || !worksheet.Cells[1, 8].Text.ToLower().Equals("student email")
-                || !worksheet.Cells[1, 9].Text.ToLower().Equals("teacher name")
-                || !worksheet.Cells[1, 10].Text.ToLower().Equals("course name")
-                || !worksheet.Cells[1, 11].Text.ToLower().Equals("room number"))
+                || !worksheet.Cells[1, 9].Text.ToLower().Contains("teacher")
+                // || !worksheet.Cells[1, 10].Text.ToLower().Equals("course name")
+                || !worksheet.Cells[1, 11].Text.ToLower().Contains("room"))
             {
                 return (false, "Invalid column headers", null);
             }
 
-            var school = await _context.Schools
-                .Where(s => s.Name == worksheet.Cells[2, 1].Text)
-                .FirstOrDefaultAsync();
+            var school = await _context.Schools.FindAsync(careerEvent.School.Id);
 
             for (int row = 2; row <= worksheet.Dimension.Rows; row++)
             {
+                if (string.IsNullOrEmpty(worksheet.Cells[row, 2].Text.Trim()))
+                {
+                    continue;
+                }
                 var student = new Student
                 {
                     School = school,
@@ -319,10 +334,17 @@ namespace CareerDayApi.Controllers
                     Event = careerEvent
                 };
 
+                if (!IsFullyPopulatedStudent(student)) {
+                    warningCount++;
+                }
+
                 students.Add(student);
             }
+            if (warningCount > 0) {
+                error = warningCount + " Student(s) found with incomplete information";
+            }
 
-            return (true, string.Empty, students);
+            return (true, error, students);
         }
 
         private async Task<bool> IsDuplicateStudentAsync(string studentNumber, Event careerEvent, List<Student> batch)
@@ -353,6 +375,19 @@ namespace CareerDayApi.Controllers
             }
             _logger.LogError(e, "An error occurred creating a student");
             return msg;
+        }
+
+        private bool IsFullyPopulatedStudent(Student student)
+        {
+            return !string.IsNullOrEmpty(student.StudentNumber) &&
+                !string.IsNullOrEmpty(student.LastFirstName) &&
+                !string.IsNullOrEmpty(student.LastName) &&
+                !string.IsNullOrEmpty(student.FirstName) &&
+                !string.IsNullOrEmpty(student.Gender) &&
+                !string.IsNullOrEmpty(student.Email) &&
+                !string.IsNullOrEmpty(student.HomeroomTeacher) &&
+                !string.IsNullOrEmpty(student.HomeroomNumber) &&
+                student.Grade > 0;
         }
     }
 }

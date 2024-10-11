@@ -95,12 +95,7 @@ export default function SurveyResults({ event, back }: Props) {
                 <Grid item xs={8}>
                     <Typography variant="h3" textAlign='center' flexGrow={1}>{event.school.name} Survey Results</Typography>
                 </Grid>
-                <Grid item xs={2}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
-                        <Switch onChange={handleSortOption} color="default" />
-                        <Typography>{sortOption ? "Sort by Value" : "Sort by Category"}</Typography>
-                    </Box>
-                </Grid>
+                <Grid item xs={2}></Grid>
 
                 <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
@@ -140,10 +135,16 @@ export default function SurveyResults({ event, back }: Props) {
                 <Grid item xs={12}>
                     {viewOption ? (
                         <Paper sx={{ px: 2, mx: 2, py: 1, my: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
-                                <Switch onChange={(e) => setShowAlternate(e.target.checked)} color="default" />
-                                <Typography>{showAlternate ? "Show Primary" : "Show Alternate"}</Typography>
-                            </Box>
+                            <Grid container item xs={12}>
+                                <Grid container item xs={4} alignItems="center">
+                                    <Switch onChange={(e) => setShowAlternate(e.target.checked)} color="default" />
+                                    <Typography>{showAlternate ? "Show Primary" : "Show Alternate"}</Typography>
+                                </Grid>
+                                <Grid container item xs={4} justifyContent="center">
+                                    <Typography variant="h6">{showAlternate ? "Alternate Choices" : "Primary Choices"}</Typography>
+                                </Grid>
+                                <Grid item xs={4}></Grid>
+                            </Grid>
                             {surveys.map((item, index) => (
                                 <Box key={index}>
                                     <SurveyStudentLineItem item={item} showAlternate={showAlternate} />
