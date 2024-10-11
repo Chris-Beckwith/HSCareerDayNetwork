@@ -73,7 +73,9 @@ const requests = {
     }).then(responseBody),
     putForm: (url: string, data: FormData) => axios.put(url, data, {
         headers: {'Content-Type': 'multipart/form-data'}
-    }).then(responseBody)
+    }).then(responseBody),
+    getBlob: (url: string, params: URLSearchParams) => 
+        axios.get(url, {params, responseType: 'blob'}).then(responseBody)
 }
 
 function createFormData(item: any, parentKey?: string) {
@@ -140,6 +142,7 @@ const Student = {
         requests.get(`student/${eventId}/${studentNumber}`),
     import: (file: File, eventId: number) => 
         requests.postForm('student/ImportStudents', createFileFormData(file, eventId)),
+    export: (params: URLSearchParams) => requests.getBlob('student/export', params),
     update: (student: any) => requests.putForm('student', createFormData(student)),
     submitSurvey: (survey: any) => requests.post('student/submitSurvey', survey),
     deleteAll: (eventId: number) => requests.delete(`student/deleteAll/${eventId}`)

@@ -11,6 +11,7 @@ import ImportStudents from "./ImportStudents"
 import agent from "../../app/api/agent"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import UpdateNotAllowed from "./UpdateNotAllowed"
+import { StudentParams } from "../../app/models/student"
 
 interface Props {
     eventId: number
@@ -87,6 +88,39 @@ export default function Students({ eventId, eventName, allowUpdate, back }: Prop
         setOpenDelete(false)
     }
 
+    function getAxiosParams(studentParams: StudentParams) {
+        const params = new URLSearchParams()
+        params.append('eventId', eventId.toString())
+        if (studentParams.searchTerm)
+            params.append('searchTerm', studentParams.searchTerm)
+        if (studentParams.gender)
+            params.append('gender', studentParams.gender)
+        if (studentParams.grades.length > 0)
+            params.append('grades', studentParams.grades.toString())
+        if (studentParams.surveyComplete)
+            params.append('surveyComplete', studentParams.surveyComplete.toString())
+        return params
+    }
+
+    const handleExportStudents = async () => {
+        const params = getAxiosParams(studentParams)
+        await agent.Student.export(params)
+            .then(response => {
+                const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+                const link = document.createElement('a')
+                const url = window.URL.createObjectURL(blob)
+
+                link.href = url
+                link.download = `Students_${students[0].school.name}_${new Date().toLocaleDateString()}.xlsx`
+                
+                document.body.appendChild(link)
+                
+                link.click()
+                
+                document.body.removeChild(link)
+            })
+    }
+
     return (
         <Grid container columnSpacing={2}>
             <Grid item xs={2}>
@@ -125,9 +159,10 @@ export default function Students({ eventId, eventName, allowUpdate, back }: Prop
             </Grid>
 
             <Grid item xs={10}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2}}>
-                    <Typography variant="h4" sx={{ mr: 10 }}>{eventName}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2}}>
+                    <Typography variant="h4">{eventName}</Typography>
                     <Typography variant="h5" sx={{ alignItems: 'center', color: 'primary.main' }}>{responseMsg}</Typography>
+                    <Button variant="contained" onClick={handleExportStudents}>Export Student List</Button>
                 </Box>
 
                 <Paper sx={{ width: '100%'}}>
