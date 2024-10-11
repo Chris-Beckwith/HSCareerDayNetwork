@@ -40,7 +40,6 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
     async function handleAddCareer(data: FieldValues) {
         if (data.category === addNewCategory) data.category = data.newCategory
         if (data.description == null) data.description = ''
-        console.log("Add Career", data)
         try {
             if (selectedCareer) {
                 await agent.Career.update(data)
