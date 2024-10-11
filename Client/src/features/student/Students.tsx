@@ -1,4 +1,4 @@
-import { Button, Grid, Paper, Typography } from "@mui/material"
+import { Box, Button, Grid, Paper, Typography } from "@mui/material"
 import useStudents from "../../app/hooks/useStudents"
 import AppTextSearch from "../../app/components/AppTextSearch"
 import { reloadStudents, resetStudentParams, setPageMetaData, setStudentParams } from "./studentSlice"
@@ -41,7 +41,7 @@ const surveyOptions = [
 const columns: GridColDef[] = [
     { field: 'school.name', headerName: 'School',
         valueGetter: (_value, row) => {
-            return `${row.school.name}`
+            return row.school ? `${row.school.name}` : 'School Not Found'
         }
     },
     { field: 'studentNumber', headerName: 'Student Number' },
@@ -64,6 +64,7 @@ export default function Students({ eventId, eventName, allowUpdate, back }: Prop
     const [openDelete, setOpenDelete] = useState(false)
     const [openUpdateNotAllowed, setOpenUpdateNotAllowed] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
+    const [responseMsg, setResponseMsg] = useState('')
 
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: metaData?.pageSize || 20,
@@ -124,7 +125,10 @@ export default function Students({ eventId, eventName, allowUpdate, back }: Prop
             </Grid>
 
             <Grid item xs={10}>
-                <Typography variant="h4" sx={{ mb: 2 }}>{eventName}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2}}>
+                    <Typography variant="h4" sx={{ mr: 10 }}>{eventName}</Typography>
+                    <Typography variant="h5" sx={{ alignItems: 'center', color: 'primary.main' }}>{responseMsg}</Typography>
+                </Box>
 
                 <Paper sx={{ width: '100%'}}>
                     <DataGrid
@@ -153,7 +157,7 @@ export default function Students({ eventId, eventName, allowUpdate, back }: Prop
             </Grid>
 
             <UpdateNotAllowed open={openUpdateNotAllowed} handleClose={() => setOpenUpdateNotAllowed(false)} />
-            <ImportStudents open={openImport} eventId={eventId} handleClose={() => setOpenImport(false)} />
+            <ImportStudents open={openImport} eventId={eventId} setResponse={setResponseMsg} handleClose={() => setOpenImport(false)} />
             <ConfirmDelete open={openDelete} itemName="All Students" itemType={""}
                 customText="Are you sure you want to delete all students for this event?"
                 handleClose={() => setOpenDelete(false)}

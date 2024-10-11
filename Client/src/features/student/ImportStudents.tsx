@@ -8,10 +8,11 @@ import { LoadingButton } from "@mui/lab";
 interface Props {
     open: boolean
     eventId: number
+    setResponse: (response: string) => void
     handleClose: () => void
 }
 
-export default function ImportStudents({ open, eventId, handleClose }: Props) {
+export default function ImportStudents({ open, eventId, setResponse, handleClose }: Props) {
     const [file, setFile] = useState<File | null>(null)
     const [errorMsg, setErrorMsg] = useState(null)
     const [loading, setLoading] = useState(false)
@@ -28,9 +29,13 @@ export default function ImportStudents({ open, eventId, handleClose }: Props) {
         try {
             if (file) {
                 setErrorMsg(null)
+                setResponse('')
                 const formData = new FormData()
                 formData.append('file', file)
                 await agent.Student.import(file, eventId)
+                    .then(response => {
+                        setResponse(response.message)
+                    })
                 dispatch(reloadStudents())
                 handleClose()
             }

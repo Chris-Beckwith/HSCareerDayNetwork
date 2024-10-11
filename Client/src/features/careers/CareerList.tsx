@@ -1,4 +1,4 @@
-import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material"
+import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material"
 import { Career } from "../../app/models/career"
 import CareerCard from "./CareerCard"
 import { useEffect, useState } from "react"
@@ -6,11 +6,12 @@ import useCareers from "../../app/hooks/useCareers"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "react-toastify"
 import LoadingComponent from "../../app/components/LoadingComponent"
-import { Delete } from "@mui/icons-material"
+import { Delete, Edit } from "@mui/icons-material"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import agent from "../../app/api/agent"
 import { useAppDispatch } from "../../app/store/configureStore"
-import { reloadCareerSets } from "./careerSlice"
+import { reloadCareers, reloadCareerSets } from "./careerSlice"
+import { LoadingButton } from "@mui/lab"
 
 interface Props {
     handleSelectCareer: (career: Career) => void
@@ -28,6 +29,9 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
     const [selectedCareerSetName, setSelectedCareerSetName] = useState<string | undefined>('')
     const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
+    const [editCategory, setEditCategory] = useState('')
+    const [updatedCategoryName, setUpdatedCategoryName] = useState('')
+    const [loading, setLoading] = useState(false)
     const { control, reset } = useForm({
         defaultValues: {
             careerSets: ''
@@ -102,6 +106,29 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
         }
     }
 
+    async function updateCategoryName(category: string) {
+        setLoading(true)
+
+        if (updatedCategoryName.length > 0 && category !== updatedCategoryName) {
+            const careersToUpdate = careers.filter(career => career.category == category)
+
+            if (careersToUpdate.length > 0) {
+                try {
+                    await Promise.all(careersToUpdate.map(async career => {
+                        const updatedCareer = { ...career, category: updatedCategoryName}
+                        await agent.Career.update(updatedCareer)
+                    }))
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+            dispatch(reloadCareers())
+        }
+        
+        setLoading(false)
+        setEditCategory('')
+    }
+
     if (!careerSetsLoaded) return <LoadingComponent message="Loading Career Sets..." />
 
     return (
@@ -129,6 +156,7 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                                         <Select label="Career Sets"
                                             {...field}
                                             value={field.value || ''}
+                                            fullWidth
                                             onChange={(event) => handleCareerSetChange(event, field.onChange)}
                                         >
                                             {careerSets && careerSets.map(careerSet => (
@@ -149,7 +177,35 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                 <Grid item xs={hideDescription ? 3 : 6} key={category}>
                     <TableContainer component={Paper}>
                         <Box display='flex' justifyContent='space-between' sx={{ pt: 1, pl: 2 }}>
-                            <Typography variant="h6">{category}</Typography>
+                            {editCategory && editCategory === category ? (
+                                <Box display='flex'>
+                                    <TextField label="Category"
+                                        name="editCategory"
+                                        value={updatedCategoryName}
+                                        onChange={(e) => setUpdatedCategoryName(e.target.value)}
+                                        variant="outlined"
+                                        sx={{
+                                            width: '300px',
+                                            '& .MuiOutlinedInput-input': {
+                                              padding: '6px 8px',
+                                            }
+                                          }}
+                                    />
+                                    <LoadingButton loading={loading} onClick={() => updateCategoryName(category)}>
+                                        Save
+                                    </LoadingButton>
+                                </Box>
+                            ) : (
+                                    <Box display='flex'>
+                                        <Typography variant="h6">{category}</Typography>
+                                        <Button onClick={() => {
+                                            setEditCategory(category)
+                                            setUpdatedCategoryName(category)
+                                        }}>
+                                            <Edit />
+                                        </Button>
+                                    </Box>
+                            )}
                             <Button onClick={() => hideShowCategory(category)} sx={{ pr: 2 }}>
                                 {hiddenCategories.includes(category) ? 'Show' : 'Hide'}
                             </Button>
