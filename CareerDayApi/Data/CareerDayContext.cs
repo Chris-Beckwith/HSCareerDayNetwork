@@ -76,6 +76,10 @@ namespace CareerDayApi.Data
                 .HasIndex(s => s.StudentId)
                 .IsUnique();
 
+            builder.Entity<Classroom>()
+                .HasIndex( c => new { c.SchoolId, c.Building, c.RoomNumber })
+                .IsUnique();
+
             builder.Entity<IdentityRole>()
                 .HasData(
                     new IdentityRole{Name = "Admin", NormalizedName = "ADMIN"}

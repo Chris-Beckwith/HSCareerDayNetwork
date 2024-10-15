@@ -14,5 +14,6 @@ namespace CareerDayApi.Entities
         public string RoomNumber { get; set; }
         public int Capacity { get; set; }
         public int Overflow { get; set; }
+        public int SchoolId { get; set; }
     }
 }

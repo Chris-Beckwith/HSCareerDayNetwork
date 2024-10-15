@@ -183,8 +183,7 @@ const Survey = {
 }
 
 const Schedule = {
-    generateSessions: (eventId: number, stdRoomSize: number) =>
-        requests.get(`scheduling/${eventId}/${stdRoomSize}`)
+    generateSessions: (generationParams: any) => requests.postForm('scheduling', createFormData(generationParams))
 }
 
 const TestErrors = {
