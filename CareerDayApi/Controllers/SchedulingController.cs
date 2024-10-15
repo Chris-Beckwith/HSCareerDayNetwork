@@ -15,16 +15,16 @@ namespace CareerDayApi.Controllers
         private readonly CareerDayContext _context = context;
         private readonly ILogger<SchedulingController> _logger = logger;
 
-        [HttpGet("{eventId}/{stdRoomSize}")]
-        public async Task<ActionResult<List<Session>>> GenerateSchedule(int eventId, int stdRoomSize)
+        [HttpPost]
+        public async Task<ActionResult<List<Session>>> GenerateSchedule([FromForm] GenerateScheduleParamsDto generateScheduleParamsDto)
         {
             var surveys = await _context.Surveys
                                         .Include(s => s.Student)
                                         .Include(s => s.PrimaryCareers)
                                         .Include(s => s.AlternateCareers)
-                                        .Where(s => s.Student.EventId == eventId).ToListAsync();
+                                        .Where(s => s.Student.EventId == generateScheduleParamsDto.EventId).ToListAsync();
 
-            var periodCount = surveys.First().PrimaryCareers.Count;
+            // var periodCount = generateScheduleParamsDto.PeriodCount;
 
             // Dictionary to count the number of times each primary career is selected
             var primaryCareerCounts = surveys
@@ -44,18 +44,18 @@ namespace CareerDayApi.Controllers
             // Initialize Sessions
             foreach(var count in primaryCareerCounts)
             {
-                for (var i = 0; i < Math.Ceiling((double)count.Value / stdRoomSize); i++)
+                for (var i = 0; i < Math.Ceiling((double)count.Value / generateScheduleParamsDto.MaxClassSize); i++)
                 {
                     allSessions.Add(new Session {
                         Subject = count.Key,
-                        EventId = eventId
+                        EventId = generateScheduleParamsDto.EventId
                     });
                 }
             }
 
             // Initialize Periods
             var periods = new List<List<Session>>();
-            for (int i = 0; i < periodCount; i++)
+            for (int i = 0; i < generateScheduleParamsDto.PeriodCount; i++)
             {
                 var sessionList = new List<Session>();
                 periods.Add(sessionList);

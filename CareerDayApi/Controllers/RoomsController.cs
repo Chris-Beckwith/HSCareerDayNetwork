@@ -31,7 +31,7 @@ namespace CareerDayApi.Controllers
         {
             var query = _context.Classrooms
                 .Where(c => c.School.Id == classroomParams.SchoolId)
-                .OrderBy(c => c.Building).OrderBy(c => c.RoomNumber)
+                .OrderBy(c => c.Building).ThenBy(c => c.RoomNumber)
                 .Search(classroomParams.SearchTerm)
                 .Include(c => c.School);
             
@@ -55,11 +55,18 @@ namespace CareerDayApi.Controllers
             var school = await _context.Schools.FindAsync(classroom.School.Id);
             classroom.School = school;
 
-            _context.Classrooms.Add(classroom);
+            try
+            {
+                _context.Classrooms.Add(classroom);
 
-            var result = await _context.SaveChangesAsync() > 0;
+                var result = await _context.SaveChangesAsync() > 0;
 
-            if (result) return CreatedAtRoute("GetClassroomById", new { Id = classroom.Id }, classroom);
+                if (result) return CreatedAtRoute("GetClassroomById", new { Id = classroom.Id }, classroom);
+            }
+            catch (DbUpdateException e) when (IsUniqueConstraintException(e))
+            {
+                return Conflict(new { message = "Classroom must have unique room number for building" });
+            }
 
             return BadRequest(new ProblemDetails { Title = "Problem creating classroom" });
         }
@@ -70,11 +77,17 @@ namespace CareerDayApi.Controllers
             var classroom = await _context.Classrooms.FindAsync(classroomDto.Id);
             if (classroom == null) return NotFound();
 
-            _mapper.Map(classroomDto, classroom);
+            try {
+                _mapper.Map(classroomDto, classroom);
 
-            var result = await _context.SaveChangesAsync() > 0;
+                var result = await _context.SaveChangesAsync() > 0;
 
-            if (result) return Ok(classroom);
+                if (result) return Ok(classroom);
+            }
+            catch (DbUpdateException e) when (IsUniqueConstraintException(e))
+            {
+                return Conflict(new { message = "Classroom must have unique room number for building" });
+            }
             
             return BadRequest(new ProblemDetails { Title = "Problem Updating Classroom" });
         }
@@ -93,6 +106,12 @@ namespace CareerDayApi.Controllers
             if (result) return Ok();
 
             return BadRequest(new ProblemDetails { Title = "Problem deleting classroom" });
+        }
+
+        private static bool IsUniqueConstraintException(DbUpdateException e)
+        {
+            return e.InnerException != null 
+                && (e.InnerException.Message.Contains("23503") || e.InnerException.Message.Contains("23505"));
         }
     }
 }
