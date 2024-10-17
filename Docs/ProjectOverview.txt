@@ -16,6 +16,8 @@ merge branch to 'release'
 manually:
 ---------
 docker build -t beckwithc/careerday .
+docker run --rm -it -p 8080:8080 beckwithc/careerday
+docker login
 docker push beckwithc/careerday:latest
 flyctl auth login
 // flyctl launch --image beckwithc/careerday:latest // only need on first creation

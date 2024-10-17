@@ -67,6 +67,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpGet("GetEventByGuid/{guid}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Event>> GetEventByGuid(string guid)
         {
             var singleEvent = await getEventDetails()
