@@ -119,8 +119,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         allowUpdate={!showSurveyResultsButton()}
         updateCareerEvent={updateCareerEvent} back={back} />
 
-    if (studentMode) return <Students eventId={careerEvent.id} eventName={careerEvent.name}
-        allowUpdate={!showSurveyResultsButton()} back={back} />
+    if (studentMode) return <Students event={careerEvent} back={back} />
 
     if (roomMode) return <Classrooms school={careerEvent.school} back={back} />
 

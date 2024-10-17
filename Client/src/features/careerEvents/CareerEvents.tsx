@@ -131,7 +131,7 @@ export default function CareerEvents() {
 
     if (editMode) return <CareerEventForm selectedEvent={selectedEvent} cancelEdit={cancelEdit} saveEdit={cancelEdit} />
 
-    if (studentMode) return <Students eventId={selectedEvent!.id} eventName={selectedEvent!.name} allowUpdate={allowUpdate()} back={back} />
+    if (studentMode && selectedEvent) return <Students event={selectedEvent} back={back} />
 
     if (careerMode) return <CareerEventCareers careerEventName={selectedEvent!.name}
                                 careerEventCareers={selectedEvent!.careers} 

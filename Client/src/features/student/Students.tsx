@@ -10,13 +10,13 @@ import { useState } from "react"
 import ImportStudents from "./ImportStudents"
 import agent from "../../app/api/agent"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
-import UpdateNotAllowed from "./UpdateNotAllowed"
-import { StudentParams } from "../../app/models/student"
+import { Student, StudentParams } from "../../app/models/student"
+import { Delete, Edit } from "@mui/icons-material"
+import StudentForm from "./StudentForm"
+import { CareerEvent } from "../../app/models/event"
 
 interface Props {
-    eventId: number
-    eventName: string
-    allowUpdate: boolean
+    event: CareerEvent
     back: () => void
 }
 
@@ -39,33 +39,17 @@ const surveyOptions = [
     { value: false, label: 'False'},
 ]
 
-const columns: GridColDef[] = [
-    { field: 'school.name', headerName: 'School',
-        valueGetter: (_value, row) => {
-            return row.school ? `${row.school.name}` : 'School Not Found'
-        }
-    },
-    { field: 'studentNumber', headerName: 'Student Number' },
-    { field: 'lastFirstName', headerName: 'Last, First Name' },
-    { field: 'lastName', headerName: 'Last Name'},
-    { field: 'firstName', headerName: 'First Name' },
-    { field: 'gender', headerName: 'Gender', width: 30 },
-    { field: 'grade', headerName: 'Grade', width: 30 },
-    { field: 'email', headerName: 'Email' },
-    { field: 'homeroomTeacher', headerName: 'Homeroom Teacher' },
-    { field: 'homeroomNumber', headerName: 'Room Number' },
-    { field: 'surveyComplete', headerName: 'Survey Completed' },
-]
-
-export default function Students({ eventId, eventName, allowUpdate, back }: Props) {
-    const { students, studentsLoaded, metaData, studentParams } = useStudents(eventId)
+export default function Students({ event, back }: Props) {
+    const { students, studentsLoaded, metaData, studentParams } = useStudents(event.id)
     const dispatch = useAppDispatch()
     const rows = students
     const [openImport, setOpenImport] = useState(false)
     const [openDelete, setOpenDelete] = useState(false)
-    const [openUpdateNotAllowed, setOpenUpdateNotAllowed] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [responseMsg, setResponseMsg] = useState('')
+    const [editStudent, setEditStudent] = useState<Student | undefined>(undefined)
+    const [deleteStudent, setDeleteStudent] = useState<Student | undefined>(undefined)
+    const [addStudent, setAddStudent] = useState(false)
 
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: metaData?.pageSize || 20,
@@ -80,17 +64,57 @@ export default function Students({ eventId, eventName, allowUpdate, back }: Prop
         }))
     }
 
+    const columns: GridColDef[] = [
+        { field: 'school.name', headerName: 'School',
+            valueGetter: (_value, row) => {
+                return row.school ? `${row.school.name}` : 'School Not Found'
+            }
+        },
+        { field: 'studentNumber', headerName: 'Student Number' },
+        { field: 'lastFirstName', headerName: 'Last, First Name' },
+        { field: 'lastName', headerName: 'Last Name'},
+        { field: 'firstName', headerName: 'First Name' },
+        { field: 'gender', headerName: 'Gender', width: 30 },
+        { field: 'grade', headerName: 'Grade', width: 30 },
+        { field: 'email', headerName: 'Email' },
+        { field: 'homeroomTeacher', headerName: 'Homeroom Teacher' },
+        { field: 'homeroomNumber', headerName: 'Room Number' },
+        { field: 'surveyComplete', headerName: 'Survey Completed' },
+        { field: 'edit', headerName: 'Edit',
+            renderCell: (params) => {
+                return <Button onClick={() => setEditStudent(params.row)}><Edit /></Button>
+            },
+            sortable: false,
+            width: 85
+        },
+        { field: 'delete', headerName: 'Delete',
+            renderCell: (params) => {
+                return <Button onClick={() => setDeleteStudent(params.row)}><Delete /></Button>
+            },
+            sortable: false,
+            width: 85
+        }
+    ]
+
     const deleteAllStudents = async () => {
         setConfirmDeleteLoading(true)
-        await agent.Student.deleteAll(eventId)
+        await agent.Student.deleteAll(event.id)
         dispatch(reloadStudents())
         setConfirmDeleteLoading(false)
         setOpenDelete(false)
     }
 
+    const handleDeleteStudent = async () => {
+        setConfirmDeleteLoading(true)
+        if (deleteStudent) await agent.Student.delete(deleteStudent.id)
+        dispatch(reloadStudents())
+        setConfirmDeleteLoading(false)
+        setDeleteStudent(undefined)
+    }
+
     function getAxiosParams(studentParams: StudentParams) {
         const params = new URLSearchParams()
-        params.append('eventId', eventId.toString())
+        params.append('eventId', event.id.toString())
         if (studentParams.searchTerm)
             params.append('searchTerm', studentParams.searchTerm)
         if (studentParams.gender)
@@ -120,6 +144,15 @@ export default function Students({ eventId, eventName, allowUpdate, back }: Prop
                 document.body.removeChild(link)
             })
     }
+
+    
+    function cancelEdit() {
+        if (editStudent) setEditStudent(undefined)
+        setAddStudent(false)
+    }
+
+    if (editStudent) return <StudentForm student={editStudent} cancelEdit={cancelEdit} />
+    if (addStudent) return <StudentForm cancelEdit={cancelEdit} event={event} />
 
     return (
         <Grid container columnSpacing={2}>
@@ -160,7 +193,7 @@ export default function Students({ eventId, eventName, allowUpdate, back }: Prop
 
             <Grid item xs={10}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2}}>
-                    <Typography variant="h4">{eventName}</Typography>
+                    <Typography variant="h4">{event.name}</Typography>
                     <Typography variant="h5" sx={{ alignItems: 'center', color: 'primary.main' }}>{responseMsg}</Typography>
                     <Button variant="contained" onClick={handleExportStudents}>Export Student List</Button>
                 </Box>
@@ -181,22 +214,24 @@ export default function Students({ eventId, eventName, allowUpdate, back }: Prop
                 
                 <Grid item display='flex' justifyContent='space-between' sx={{ my: 2 }}>
                     <Button variant="contained" 
-                        onClick={() => allowUpdate ? setOpenImport(true) : setOpenUpdateNotAllowed(true)}>
+                        onClick={() => setOpenImport(true)}>
                             Import Students
                     </Button>
+                    <Button variant="contained" color="success" onClick={() => setAddStudent(true)}>Add Student</Button>
                     <Button variant="contained" color="error" 
-                        onClick={() => allowUpdate ? setOpenDelete(true) : setOpenUpdateNotAllowed(true)}>
+                        onClick={() => setOpenDelete(true)}>
                         Delete All Students
                     </Button>
                 </Grid>
             </Grid>
 
-            <UpdateNotAllowed open={openUpdateNotAllowed} handleClose={() => setOpenUpdateNotAllowed(false)} />
-            <ImportStudents open={openImport} eventId={eventId} setResponse={setResponseMsg} handleClose={() => setOpenImport(false)} />
+            <ImportStudents open={openImport} eventId={event.id} setResponse={setResponseMsg} handleClose={() => setOpenImport(false)} />
             <ConfirmDelete open={openDelete} itemName="All Students" itemType={""}
                 customText="Are you sure you want to delete all students for this event?"
                 handleClose={() => setOpenDelete(false)}
                 confirmDelete={deleteAllStudents} loading={confirmDeleteLoading} />
+            <ConfirmDelete open={deleteStudent !== undefined} itemType="Student" itemName={deleteStudent?.lastFirstName || ''}
+                        handleClose={() => setDeleteStudent(undefined)} confirmDelete={handleDeleteStudent} loading={confirmDeleteLoading} />
         </Grid>
     )
 }
