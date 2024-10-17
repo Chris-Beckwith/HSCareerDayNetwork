@@ -143,9 +143,11 @@ const Student = {
     import: (file: File, eventId: number) => 
         requests.postForm('student/ImportStudents', createFileFormData(file, eventId)),
     export: (params: URLSearchParams) => requests.getBlob('student/export', params),
+    create: (student: any) => requests.post('student', student),
     update: (student: any) => requests.putForm('student', createFormData(student)),
     submitSurvey: (survey: any) => requests.post('student/submitSurvey', survey),
-    deleteAll: (eventId: number) => requests.delete(`student/deleteAll/${eventId}`)
+    deleteAll: (eventId: number) => requests.delete(`student/deleteAll/${eventId}`),
+    delete: (id: number) => requests.delete(`student/${id}`)
 }
 
 const Speaker = {

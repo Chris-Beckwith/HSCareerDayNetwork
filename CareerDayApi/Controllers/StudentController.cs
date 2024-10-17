@@ -28,7 +28,8 @@ namespace CareerDayApi.Controllers
                     studentParams.SurveyComplete, studentParams.EventId)
                 .AsQueryable()
                 .Include(s => s.School)
-                .Include(s => s.Event);
+                .Include(s => s.Event).ThenInclude(e => e.School)
+                .Include(s => s.Event).ThenInclude(e => e.EventPhase);
 
             var students = await PagedList<Student>.ToPagedList(query,
                 studentParams.PageNumber, studentParams.PageSize);
@@ -82,6 +83,12 @@ namespace CareerDayApi.Controllers
                     $"A student with student Id Number ({student.StudentNumber}) already exists for this event: {student.Event.Name}");
             }
 
+            var school = await _context.Schools.FindAsync(student.School.Id);
+            var studentEvent = await _context.Events.FindAsync(student.Event.Id);
+
+            student.School = school;
+            student.Event = studentEvent;
+
             _context.Students.Add(student);
 
             var result = await _context.SaveChangesAsync() > 0;
@@ -92,13 +99,13 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult<Student>> UpdateStudent([FromForm] UpdateStudentDto studnetDto)
+        public async Task<ActionResult<Student>> UpdateStudent([FromForm] UpdateStudentDto studentDto)
         {
-            var student = await _context.Students.FindAsync(studnetDto.Id);
+            var student = await _context.Students.FindAsync(studentDto.Id);
 
             if (student == null) return NotFound();
 
-            _mapper.Map(studnetDto, student);
+            _mapper.Map(studentDto, student);
 
             var result = await _context.SaveChangesAsync() > 0;
 
@@ -176,7 +183,7 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails { Title = "Problem submitting survey" });
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteStudent(int id)
         {
             var student = await _context.Students.FindAsync(id);

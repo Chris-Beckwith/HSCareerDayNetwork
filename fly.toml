@@ -4,7 +4,7 @@
 #
 
 app = 'careerday'
-primary_region = 'sjc'
+primary_region = 'lax'
 
 [build]
   image = 'beckwithc/careerday:latest'
@@ -23,4 +23,5 @@ primary_region = 'sjc'
   processes = ['app']
 
 [[vm]]
-  size = 'shared-cpu-1x'
+  size = 'shared-cpu-8x'
+  memory = '4gb'
