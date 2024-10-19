@@ -7,20 +7,24 @@ namespace CareerDayApi.Data
     {
         public static async Task Initialize(CareerDayContext context, UserManager<User> userManager)
         {
-            var admin = await userManager.FindByNameAsync("TempAdmin");
-            
-            if (admin == null)
+            var adminUsername = Environment.GetEnvironmentVariable("ADMIN_USERNAME");
+            if (!string.IsNullOrEmpty(adminUsername))
             {
-                admin = new User
+                User admin = await userManager.FindByNameAsync(adminUsername);
+
+                if (admin == null)
                 {
-                    UserName = "TempAdmin",
-                    Email = "srappaport@hscareerdaynetwork.com"
-                };
-                await userManager.CreateAsync(admin, "P@ssw0rd");
-            }
-            if (!await userManager.IsInRoleAsync(admin, "Admin"))
-            {
-                await userManager.AddToRoleAsync(admin, "Admin");
+                    admin = new User
+                    {
+                        UserName = Environment.GetEnvironmentVariable("ADMIN_USERNAME"),
+                        Email = Environment.GetEnvironmentVariable("ADMIN_EMAIL")
+                    };
+                    await userManager.CreateAsync(admin, Environment.GetEnvironmentVariable("ADMIN_PASSWORD"));
+                }
+                if (!await userManager.IsInRoleAsync(admin, "Admin"))
+                {
+                    await userManager.AddToRoleAsync(admin, "Admin");
+                }
             }
 
             var schools = new List<School>

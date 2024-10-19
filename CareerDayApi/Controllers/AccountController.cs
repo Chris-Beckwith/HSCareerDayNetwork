@@ -28,6 +28,7 @@ namespace CareerDayApi.Controllers
         }
 
         //TODO Require secret password to register new user..?
+        [Authorize(Roles = "Admin")]
         [HttpPost("register")]
         public async Task<ActionResult> Register(RegisterDto registerDto)
         {

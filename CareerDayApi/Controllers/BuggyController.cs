@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CareerDayApi.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class BuggyController : BaseApiController
     {
         [HttpGet("not-found")]
