@@ -11,5 +11,6 @@ namespace CareerDayApi.Entities
         public List<Career> PrimaryCareers { get; set; } = [];
         public List<Career> AlternateCareers { get; set; } = [];
         public int StudentId { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
