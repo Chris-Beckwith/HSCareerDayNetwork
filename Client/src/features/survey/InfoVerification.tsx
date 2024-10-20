@@ -7,7 +7,7 @@ interface Props {
 
 export default function InfoVerification({ student }: Props) {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down(820));
 
   return (
     <>
@@ -21,8 +21,8 @@ export default function InfoVerification({ student }: Props) {
           <Typography variant="body1"><strong>Gender:</strong> {student?.gender}</Typography>
           <Typography variant="body1"><strong>Grade:</strong> {student?.grade}</Typography>
           <Typography variant="body1"><strong>School Email:</strong> {student?.email}</Typography>
-          <Typography variant="body1"><strong>Homeroom Teacher:</strong> {student?.homeroomTeacher}</Typography>
-          <Typography variant="body1"><strong>Homeroom #:</strong> {student?.homeroomNumber}</Typography>
+          <Typography variant="body1"><strong>Teacher:</strong> {student?.homeroomTeacher}</Typography>
+          <Typography variant="body1"><strong>Room #:</strong> {student?.homeroomNumber}</Typography>
         </Box>
       ) : (
         <TableContainer>
@@ -34,8 +34,8 @@ export default function InfoVerification({ student }: Props) {
                 <TableCell>Gender</TableCell>
                 <TableCell>Grade</TableCell>
                 <TableCell>School Email</TableCell>
-                <TableCell>Homeroom Teacher</TableCell>
-                <TableCell>Homeroom #</TableCell>
+                <TableCell>Teacher</TableCell>
+                <TableCell>Room #</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
