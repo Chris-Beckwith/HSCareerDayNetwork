@@ -160,7 +160,10 @@ export default function Survey() {
                 if (onPrimaryCareers) {
                     setOnPrimaryCareers(false)
                     window.scrollTo({ top: 250, behavior: 'smooth'})
-                } else setActiveStep(activeStep + 1)
+                } else {
+                    setActiveStep(activeStep + 1)
+                    window.scrollTo({ top: 250, behavior: 'smooth'})
+                }
             } else if (activeStep === 3) {  //Survey Submitted
                 primaryCareers.forEach(c => appendPrimary(c))
                 alternateCareers.forEach(c => appendAlternate(c))

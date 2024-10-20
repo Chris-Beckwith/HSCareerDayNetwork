@@ -15,7 +15,7 @@ export default function EnterStudentId({ error }: Props) {
         <Grid container display='flex' justifyContent='center'>
             <Typography variant={isMobile ? "h5" : "h4"}>Enter Student ID</Typography>
             <Grid container columnSpacing={4} display='flex' justifyContent='center'>
-                <Grid item xs={12} sm={8} md={6} lg={3} sx={{m: 2}}>
+                <Grid item xs={8} sm={4} md={3} lg={3} sx={{m: 2}}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <AppTextInput control={control} name="studentNumber" label="Student ID" />
                         {error &&

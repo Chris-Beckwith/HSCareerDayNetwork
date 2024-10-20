@@ -10,7 +10,7 @@ interface Props {
 
 export default function ReviewAndSubmit({ student, primaryCareers, alternateCareers }: Props) {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isMobile = useMediaQuery(theme.breakpoints.down(820))
 
   return (
     <>
@@ -24,12 +24,23 @@ export default function ReviewAndSubmit({ student, primaryCareers, alternateCare
           <Typography variant="body1"><strong>Gender:</strong> {student?.gender}</Typography>
           <Typography variant="body1"><strong>Grade:</strong> {student?.grade}</Typography>
           <Typography variant="body1"><strong>School Email:</strong> {student?.email}</Typography>
-          <Typography variant="body1"><strong>Homeroom Teacher:</strong> {student?.homeroomTeacher}</Typography>
-          <Typography variant="body1"><strong>Homeroom #:</strong> {student?.homeroomNumber}</Typography>
+          <Typography variant="body1"><strong>Teacher:</strong> {student?.homeroomTeacher}</Typography>
+          <Typography variant="body1"><strong>Room #:</strong> {student?.homeroomNumber}</Typography>
         </Box>
       ) : (
         <TableContainer sx={{ mb: 4 }}>
           <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Student #</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Gender</TableCell>
+                <TableCell>Grade</TableCell>
+                <TableCell>School Email</TableCell>
+                <TableCell>Teacher</TableCell>
+                <TableCell>Room #</TableCell>
+              </TableRow>
+            </TableHead>
             <TableBody>
               <TableRow>
                 <TableCell>{student?.studentNumber}</TableCell>
@@ -51,7 +62,7 @@ export default function ReviewAndSubmit({ student, primaryCareers, alternateCare
           
           <Grid item xs={12} md={6} display='flex' justifyContent='center'>
             <TableContainer>
-              <Typography variant="h6" component="div">Primary Careers</Typography>
+              <Typography variant="h6" component="div">Primary Career Choices</Typography>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -73,7 +84,7 @@ export default function ReviewAndSubmit({ student, primaryCareers, alternateCare
 
           <Grid item xs={12} md={6} display='flex' justifyContent='center'>
             <TableContainer>
-              <Typography variant="h6" component="div">Alternate Careers</Typography>
+              <Typography variant="h6" component="div">Alternate Career Choices</Typography>
               <Table>
                 <TableHead>
                   <TableRow>
