@@ -1,8 +1,10 @@
+using CareerDayApi.Entities;
+
 namespace CareerDayApi.DTOs
 {
     public class RegisterDto : LoginDto
     {
         public string Email { get; set; }
-        //Secret Password..
+        public int EventId { get; set; }
     }
 }

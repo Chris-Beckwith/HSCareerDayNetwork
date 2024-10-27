@@ -41,7 +41,7 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
                 </Box>
 
                 <List sx={{ display: 'flex' }}>
-                    {user && midLinks.map(({ title, path }) => (
+                    {user && user.roles?.includes("Admin") && midLinks.map(({ title, path }) => (
                         <ListItem
                             component={NavLink}
                             to={path}

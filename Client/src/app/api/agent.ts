@@ -174,8 +174,10 @@ const CareerSet = {
 
 const Account = {
     login: (values: any) => requests.post('account/login', values),
-    register: (values: any) => requests.post('account/register', values),
-    currentUser: () => requests.get('account/currentUser')
+    register: (user: any) => requests.postForm('account/register', createFormData(user)),
+    update: (user: any) => requests.putForm('account', createFormData(user)),
+    currentUser: () => requests.get('account/currentUser'),
+    schoolUsers: (params: URLSearchParams) => requests.get('account/schoolUsers', params)
 }
 
 const Survey = {
