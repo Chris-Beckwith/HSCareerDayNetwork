@@ -8,9 +8,10 @@ import SurveyStudentLineItem from "./SurveyStudentLineItem";
 interface Props {
     event: CareerEvent
     back: () => void
+    schoolUser?: boolean
 }
 
-export default function SurveyResults({ event, back }: Props) {
+export default function SurveyResults({ event, back, schoolUser }: Props) {
     const { surveys } = useSurveys(event.id)
     const [sortOption, setSortOption] = useState(false)
     const [viewOption, setViewOption] = useState(false)
@@ -89,7 +90,7 @@ export default function SurveyResults({ event, back }: Props) {
 
                 <Grid item xs={2}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
-                        <Button variant="contained" color="inherit" onClick={back}>Back</Button>
+                        <Button variant="contained" color="inherit" onClick={back}>{schoolUser ? 'View Students' : 'Back'}</Button>
                     </Box>
                 </Grid>
                 <Grid item xs={8}>

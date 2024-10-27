@@ -61,7 +61,7 @@ export default function Schools() {
     return (
         <>
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
-                <Typography variant="h3">School</Typography>
+                <Typography variant="h3">Schools</Typography>
                 <Box>
                     <AppTextSearch label="Search Schools"
                         stateSearchTerm={schoolParams.searchTerm} setParams={setSchoolParams} />

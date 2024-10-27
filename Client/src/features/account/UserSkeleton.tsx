@@ -12,12 +12,6 @@ export default function ClassroomSkeleton() {
             <TableCell>
                 <Skeleton animation="wave" />
             </TableCell>
-            <TableCell>
-                <Skeleton animation="wave" />
-            </TableCell>
-            <TableCell>
-                <Skeleton animation="wave" />
-            </TableCell>
         </>
     )
 }

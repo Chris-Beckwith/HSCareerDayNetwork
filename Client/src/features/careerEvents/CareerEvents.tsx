@@ -177,6 +177,7 @@ export default function CareerEvents() {
             <Grid item xs={9}>
                 <Grid container spacing={2}>
                     {careerEvents?.map(event => {
+                        if (!event) return null
                         return (
                             <Grid item xs={4} key={event.id}>
                                 {!careerEventsLoaded ? (
