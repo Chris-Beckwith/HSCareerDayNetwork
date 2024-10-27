@@ -10,8 +10,9 @@ import { Paper } from '@mui/material';
 import { FieldValues, useForm } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAppDispatch } from '../../app/store/configureStore';
+import { useAppDispatch, useAppSelector } from '../../app/store/configureStore';
 import { signInUser } from './accountSlice';
+import { useEffect } from 'react';
 
 export default function Login() {
     const navigate = useNavigate()
@@ -20,15 +21,22 @@ export default function Login() {
     const {register, handleSubmit, formState: {isSubmitting, errors, isValid}} = useForm({
         mode: 'onTouched'
     })
+    const {user} = useAppSelector(state => state.account)
 
     async function submitForm(data: FieldValues) {
         try {
             await dispatch(signInUser(data))
-            navigate(location.state?.from || '/')
         } catch (error) {
             console.log(error)
         }
     }
+
+    useEffect(() => {
+        if (user) {
+            if (user.roles?.includes("SchoolUser")) navigate('/event-details')
+            else navigate(location.state?.from || '/')
+        }
+    }, [location.state?.from, navigate, user])
 
     return (
         <Container
@@ -46,6 +54,7 @@ export default function Login() {
                     fullWidth
                     label="Username"
                     autoFocus
+                    autoComplete="username"
                     {...register('username', {required: 'Username is required'})}
                     error={!!errors.username}
                     helperText={errors?.username?.message as string}
@@ -55,6 +64,7 @@ export default function Login() {
                     fullWidth
                     label="Password"
                     type="password"
+                    autoComplete="current-password"
                     {...register('password', {required: 'Password is required'})}
                     error={!!errors.password}
                     helperText={errors?.password?.message as string}

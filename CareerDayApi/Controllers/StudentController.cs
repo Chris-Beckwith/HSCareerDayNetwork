@@ -11,7 +11,6 @@ using OfficeOpenXml;
 
 namespace CareerDayApi.Controllers
 {
-    [Authorize(Roles = "Admin")]
     public class StudentController(CareerDayContext context,
         IMapper mapper, ILogger<StudentController> logger) : BaseApiController
     {
@@ -20,6 +19,7 @@ namespace CareerDayApi.Controllers
         private readonly ILogger<StudentController> _logger = logger;
 
         [HttpGet]
+        [Authorize(Roles = "Admin, SchoolUser")]
         public async Task<ActionResult<PagedList<Student>>> GetStudents([FromQuery] StudentParams studentParams)
         {
             var query = _context.Students
@@ -40,6 +40,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpGet("{id}", Name = "GetStudent")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Student>> GetStudent(int id)
         {
             return await _context.Students
@@ -58,6 +59,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpGet("GetSurveys")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<List<Survey>>> GetSurveys(int eventId, int pageNumber, int pageSize)
         {
             var query = _context.Surveys
@@ -75,6 +77,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Student>> CreateStudent(Student student)
         {
             if (await IsDuplicateStudentAsync(student.StudentNumber, student.Event, null))
@@ -99,6 +102,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Student>> UpdateStudent([FromForm] UpdateStudentDto studentDto)
         {
             var student = await _context.Students.FindAsync(studentDto.Id);
@@ -184,6 +188,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteStudent(int id)
         {
             var student = await _context.Students.FindAsync(id);
@@ -200,6 +205,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpDelete("DeleteAll/{eventId}", Name = "DeleteAll")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteAllStudents(int eventId)
         {
             var students = await _context.Students.Where(s => s.EventId == eventId).ToListAsync();
@@ -216,6 +222,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPost("ImportStudents", Name = "ImportStudents")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> ImportStudents([FromForm] ImportStudentsDto importStudentsDto)
         {
             var careerEvent = await _context.Events
@@ -293,7 +300,8 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpGet("export")]
-        public async Task<ActionResult> ExportStudentListAsync([FromQuery] StudentParams studentParams)
+        [Authorize(Roles = "Admin, SchoolUser")]
+        public async Task<ActionResult> ExportStudents([FromQuery] StudentParams studentParams)
         {
             var students = await _context.Students
                 .Search(studentParams.SearchTerm)

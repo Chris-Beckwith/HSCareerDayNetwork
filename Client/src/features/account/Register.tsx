@@ -1,21 +1,27 @@
 import Avatar from '@mui/material/Avatar';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { Paper } from '@mui/material';
-import { useForm } from 'react-hook-form';
+import { FormControl, FormHelperText, InputLabel, MenuItem, Paper, Select } from '@mui/material';
+import { FieldValues, useForm } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import agent from '../../app/api/agent';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import useEvents from '../../app/hooks/useEvents';
+import LoadingComponent from '../../app/components/LoadingComponent';
+import { useState } from 'react';
+import { reloadUsers } from './userSlice';
+import { useAppDispatch } from '../../app/store/configureStore';
 
 export default function Register() {
     const navigate = useNavigate()
-    const { register, handleSubmit, setError, formState: { isSubmitting, errors, isValid } } = useForm({
+    const dispatch = useAppDispatch()
+    const { careerEvents, careerEventsLoaded } = useEvents()
+    const [selectedEvent, setSelectedEvent] = useState()
+    const { register, handleSubmit, setError, watch, formState: { isSubmitting, errors, isValid } } = useForm({
         mode: 'onTouched'
     })
 
@@ -33,6 +39,18 @@ export default function Register() {
         }
     }
 
+    async function handleRegister(data: FieldValues) {
+        agent.Account.register(data)
+            .then(() => {
+                toast.success('Registration Successful')
+                dispatch(reloadUsers())
+                navigate('/schoolAdmins')
+            })
+            .catch(error => handleApiErrors(error))
+    }
+
+    if (!careerEventsLoaded) return <LoadingComponent message='Loading Events...' />
+
     return (
         <Container
             component={Paper} maxWidth="sm"
@@ -41,30 +59,18 @@ export default function Register() {
                 <LockOutlinedIcon />
             </Avatar>
             <Typography component="h1" variant="h5">
-                Register
+                Register School Administrator
             </Typography>
             <Box component="form"
-                onSubmit={handleSubmit(data => agent.Account.register(data)
-                    .then(() => {
-                        toast.success('Registration Successful')
-                        navigate('/login')
-                    })
-                    .catch(error => handleApiErrors(error)))}
+                onSubmit={handleSubmit(handleRegister)}
                 noValidate sx={{ mt: 1 }}
             >
                 <TextField
                     margin="normal"
                     fullWidth
-                    label="Username"
-                    autoFocus
-                    {...register('username', { required: 'Username is required' })}
-                    error={!!errors.username}
-                    helperText={errors?.username?.message as string}
-                />
-                <TextField
-                    margin="normal"
-                    fullWidth
                     label="Email"
+                    autoFocus
+                    autoComplete='email'
                     {...register('email', {
                         required: 'Email is required',
                         pattern: {
@@ -78,8 +84,18 @@ export default function Register() {
                 <TextField
                     margin="normal"
                     fullWidth
+                    label="Username"
+                    autoComplete="username"
+                    {...register('username', {required: 'Username is required'})}
+                    error={!!errors.username}
+                    helperText={errors?.username?.message as string}
+                />
+                <TextField
+                    margin="normal"
+                    fullWidth
                     label="Password"
                     type="password"
+                    autoComplete='new-password'
                     {...register('password', {
                         required: 'Password is required',
                         pattern: {
@@ -90,10 +106,42 @@ export default function Register() {
                     error={!!errors.password}
                     helperText={errors?.password?.message as string}
                 />
-                <FormControlLabel
-                    control={<Checkbox value="remember" color="primary" />}
-                    label="Remember me"
+                <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Confirm Password"
+                    type="password"
+                    autoComplete='new-password'
+                    {...register('confirmPassword', {
+                        required: 'Confirm password is required',
+                        validate: value =>
+                            value === watch('password') || 'Passwords do not match'
+                    })}
+                    error={!!errors.confirmPassword}
+                    helperText={errors?.confirmPassword?.message as string}
                 />
+                <FormControl fullWidth sx={{ mt: 2 }} error={!!errors.selectedEvent}>
+                    <InputLabel>Career Day Event</InputLabel>
+                    <Select 
+                        label="Career Day Event"
+                        value={selectedEvent ? selectedEvent : "" }
+                        {...register('eventId', {
+                            required: 'Career Day Event is required',
+                            pattern: {
+                                value: /^\d+$/,
+                                message: 'Career Day event is required..'
+                            },
+                            onChange: (e) => setSelectedEvent(e.target.value)
+                        })}
+                    >
+                        {careerEvents.map((event, index) => (
+                            <MenuItem key={index} value={event.id.toString()}>
+                                {event.name} - {new Date(event.eventDate).toLocaleDateString()}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                    <FormHelperText>{errors?.selectedEvent?.message as string}</FormHelperText>
+                </FormControl>
                 <LoadingButton
                     loading={isSubmitting}
                     disabled={!isValid}

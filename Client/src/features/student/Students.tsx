@@ -18,6 +18,7 @@ import { CareerEvent } from "../../app/models/event"
 interface Props {
     event: CareerEvent
     back: () => void
+    schoolUser?: boolean
 }
 
 const genderOptions = [
@@ -39,7 +40,7 @@ const surveyOptions = [
     { value: false, label: 'False'},
 ]
 
-export default function Students({ event, back }: Props) {
+export default function Students({ event, back, schoolUser }: Props) {
     const { students, studentsLoaded, metaData, studentParams } = useStudents(event.id)
     const dispatch = useAppDispatch()
     const rows = students
@@ -157,7 +158,7 @@ export default function Students({ event, back }: Props) {
     return (
         <Grid container columnSpacing={2}>
             <Grid item xs={2}>
-                <Button variant="contained" color="inherit" onClick={back}>Back</Button>
+                <Button variant="contained" color="inherit" onClick={back}>{schoolUser ? 'Survey Results' : 'Back'}</Button>
                 <Paper sx={{ my: 2 }}>
                     <AppTextSearch label="Search Students" 
                         stateSearchTerm={studentParams.searchTerm} setParams={setStudentParams} />
@@ -198,7 +199,7 @@ export default function Students({ event, back }: Props) {
                     <Button variant="contained" onClick={handleExportStudents}>Export Student List</Button>
                 </Box>
 
-                <Paper sx={{ width: '100%'}}>
+                <Paper sx={{ width: '100%', mb: 2 }}>
                     <DataGrid
                         rows={rows}
                         columns={columns}
@@ -212,17 +213,19 @@ export default function Students({ event, back }: Props) {
                     />
                 </Paper>
                 
-                <Grid item display='flex' justifyContent='space-between' sx={{ my: 2 }}>
-                    <Button variant="contained" 
-                        onClick={() => setOpenImport(true)}>
-                            Import Students
-                    </Button>
-                    <Button variant="contained" color="success" onClick={() => setAddStudent(true)}>Add Student</Button>
-                    <Button variant="contained" color="error" 
-                        onClick={() => setOpenDelete(true)}>
-                        Delete All Students
-                    </Button>
-                </Grid>
+                {!schoolUser &&
+                    <Grid item display='flex' justifyContent='space-between' sx={{ my: 2 }}>
+                        <Button variant="contained" 
+                            onClick={() => setOpenImport(true)}>
+                                Import Students
+                        </Button>
+                        <Button variant="contained" color="success" onClick={() => setAddStudent(true)}>Add Student</Button>
+                        <Button variant="contained" color="error" 
+                            onClick={() => setOpenDelete(true)}>
+                            Delete All Students
+                        </Button>
+                    </Grid>
+                }
             </Grid>
 
             <ImportStudents open={openImport} eventId={event.id} setResponse={setResponseMsg} handleClose={() => setOpenImport(false)} />

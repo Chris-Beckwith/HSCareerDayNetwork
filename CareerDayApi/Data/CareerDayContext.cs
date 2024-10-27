@@ -84,6 +84,11 @@ namespace CareerDayApi.Data
                 .HasData(
                     new IdentityRole{Name = "Admin", NormalizedName = "ADMIN"}
                 );
+
+            builder.Entity<IdentityRole>()
+                .HasData(
+                    new IdentityRole{Name = "SchoolUser", NormalizedName = "SCHOOLUSER"}
+                );
         }
 
     }

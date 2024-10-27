@@ -1,5 +1,6 @@
 using CareerDayApi.Data;
 using CareerDayApi.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ namespace CareerDayApi.Controllers
         private readonly ILogger<SurveysController> _logger = logger;
         
         [HttpGet("{eventId}")]
+        [Authorize(Roles = "Admin, SchoolUser")]
         public async Task<ActionResult<List<Survey>>> GetSurveysByEvent(int eventId)
         {
             return await _context.Surveys
@@ -23,6 +25,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpDelete("{eventId}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteSurveysByEvent(int eventId)
         {
             var surveys = await _context.Surveys

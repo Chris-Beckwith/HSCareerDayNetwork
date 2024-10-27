@@ -11,7 +11,6 @@ using QRCoder;
 
 namespace CareerDayApi.Controllers
 {
-    [Authorize(Roles = "Admin")]
     public class EventsController(CareerDayContext context, IConfiguration config,
         ILogger<EventsController> logger, ImageService imageService, 
         DbContextOptions<CareerDayContext> dbContextOptions) : BaseApiController
@@ -23,6 +22,7 @@ namespace CareerDayApi.Controllers
         private readonly DbContextOptions _dbContextOptions = dbContextOptions;
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<PagedList<Event>>> GetEvents([FromQuery]CareerEventParams careerEventParams)
         {
             var query = _context.Events
@@ -50,6 +50,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpGet("{id}", Name = "GetEvent")]
+        [Authorize(Roles = "Admin, SchoolUser")]
         public async Task<ActionResult<Event>> GetEvent(int id)
         {
             var singleEvent = await getEventDetails()
@@ -82,6 +83,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Event>> CreateEvent([FromForm] EventDto eventDto)
         {
             EventPhase eventPhase = await _context.EventPhases.FindAsync(eventDto.EventPhase.Id);
@@ -120,6 +122,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut("updatePhase")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Event>> UpdateEventPhase([FromForm] UpdateEventPhaseDto updateEventPhaseDto)
         {
             var updateEvent = await _context.Events.FindAsync(updateEventPhaseDto.EventId);
@@ -173,6 +176,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut("update")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Event>> UpdateEvent([FromForm] UpdateEventDto updateEventDto)
         {
             var updateEvent = await _context.Events
@@ -264,6 +268,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut("{eventId}/{isDeleted}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Event>> DeleteEvent(int eventId, bool isDeleted)
         {
             var singleEvent = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId);
@@ -287,12 +292,13 @@ namespace CareerDayApi.Controllers
 
             if (totalSubmissions.Count == 0 || totalStudents.Count == 0) return 0;
 
-            return (int)Math.Round(
+            return (int)Math.Floor(
                 (double)totalSubmissions.Count / totalStudents.Count * 100
             );
         }
 
         [HttpGet("phases")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<EventPhase[]>> GetEventPhases()
         {
             var eventPhases = await _context.EventPhases
