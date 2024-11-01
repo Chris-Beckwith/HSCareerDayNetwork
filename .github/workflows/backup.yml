@@ -20,7 +20,7 @@ jobs:
       - name: Set up Flyctl
         run: |
           curl -sL https://fly.io/install.sh | sh
-          echo "::add-path::$(~/fly/bin)"
+          echo "${{ github.workspace }}/.fly/bin" >> $GITHUB_PATH
       - name: Set filename
         run: echo "filename=db-$(date -u +"%Y-%m-%d-%H%M%S").dump" >> $GITHUB_ENV
 
