@@ -1503,6 +1503,8 @@ COPY public."Events" ("Id", "SchoolId", "EventDate", "Name", "Description", "Sur
 7	1	2024-11-12 08:00:00+00	El Segundo High School	null	0	2	f	1e001fa6-7643-4af6-9fa3-35c8be0be70b	eazvqip9ozcp9zhubfyw	https://res.cloudinary.com/da7nuaie7/image/upload/v1726879321/eazvqip9ozcp9zhubfyw.png
 5	5	2025-02-20 08:00:00+00	Demo High	Career Day 2025	100	3	f	d4f5e771-5d05-403a-bc4a-2b7f43636f62	faqa7ypcg9dmwitnxnv5	https://res.cloudinary.com/da7nuaie7/image/upload/v1726532450/faqa7ypcg9dmwitnxnv5.png
 21	5	2024-10-18 07:00:00+00	test school	null	0	2	f	fe6cbc84-b445-4f0c-9d99-20887e7849f6	ehqbpisiudzzoy7byu7q	https://res.cloudinary.com/da7nuaie7/image/upload/v1729317774/ehqbpisiudzzoy7byu7q.png
+22	7	2025-03-26 07:00:00+00	Lawndale High School Career Day	\N	0	1	f	\N	\N	\N
+23	1	2025-03-27 07:00:00+00	El Segundo High School Career Day	\N	0	1	f	\N	\N	\N
 13	8	2025-03-13 07:00:00+00	Leuzinger High School Career Day	null	0	2	f	dcdb61f5-72bc-4415-9644-3dc4c7c38e8a	srmtttzvqdj3lnbh4u93	https://res.cloudinary.com/da7nuaie7/image/upload/v1729294755/srmtttzvqdj3lnbh4u93.png
 15	4	2025-02-20 08:00:00+00	Hawthorne High School Career Day	null	0	2	f	4c04feee-c5a3-4827-ad04-80b28cbcf4ed	eokamfihyv5qvzxt7z5n	https://res.cloudinary.com/da7nuaie7/image/upload/v1729294819/eokamfihyv5qvzxt7z5n.png
 \.
@@ -15047,7 +15049,7 @@ SELECT pg_catalog.setval('public."EventPhases_Id_seq"', 9, true);
 -- Name: Events_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: careerday
 --
 
-SELECT pg_catalog.setval('public."Events_Id_seq"', 21, true);
+SELECT pg_catalog.setval('public."Events_Id_seq"', 23, true);
 
 
 --
@@ -15742,5 +15744,280 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 
 --
 -- Database "careerday_db" dump
+--
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 15.6 (Debian 15.6-1.pgdg120+2)
+-- Dumped by pg_dump version 17.0
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: careerday_db; Type: DATABASE; Schema: -; Owner: postgres
+--
+
+CREATE DATABASE careerday_db WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
+
+
+ALTER DATABASE careerday_db OWNER TO postgres;
+
+\connect careerday_db
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: careerday_db; Type: DATABASE PROPERTIES; Schema: -; Owner: postgres
+--
+
+ALTER DATABASE careerday_db SET default_transaction_read_only TO 'false';
+
+
+\connect careerday_db
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: pg_database_owner
+--
+
+REVOKE USAGE ON SCHEMA public FROM PUBLIC;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- Database "postgres" dump
+--
+
+\connect postgres
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 15.6 (Debian 15.6-1.pgdg120+2)
+-- Dumped by pg_dump version 17.0
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: repmgr; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA repmgr;
+
+
+ALTER SCHEMA repmgr OWNER TO postgres;
+
+--
+-- Name: repmgr; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS repmgr WITH SCHEMA repmgr;
+
+
+--
+-- Name: EXTENSION repmgr; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION repmgr IS 'Replication manager for PostgreSQL';
+
+
+--
+-- Data for Name: events; Type: TABLE DATA; Schema: repmgr; Owner: postgres
+--
+
+COPY repmgr.events (node_id, event, successful, event_timestamp, details) FROM stdin;
+\.
+
+
+--
+-- Data for Name: monitoring_history; Type: TABLE DATA; Schema: repmgr; Owner: postgres
+--
+
+COPY repmgr.monitoring_history (primary_node_id, standby_node_id, last_monitor_time, last_apply_time, last_wal_primary_location, last_wal_standby_location, replication_lag, apply_lag) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nodes; Type: TABLE DATA; Schema: repmgr; Owner: postgres
+--
+
+COPY repmgr.nodes (node_id, upstream_node_id, active, node_name, type, location, priority, conninfo, repluser, slot_name, config_file) FROM stdin;
+\.
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- Database "repmgr" dump
+--
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 15.6 (Debian 15.6-1.pgdg120+2)
+-- Dumped by pg_dump version 17.0
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: repmgr; Type: DATABASE; Schema: -; Owner: repmgr
+--
+
+CREATE DATABASE repmgr WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
+
+
+ALTER DATABASE repmgr OWNER TO repmgr;
+
+\connect repmgr
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: repmgr; Type: SCHEMA; Schema: -; Owner: repmgr
+--
+
+CREATE SCHEMA repmgr;
+
+
+ALTER SCHEMA repmgr OWNER TO repmgr;
+
+--
+-- Name: repmgr; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS repmgr WITH SCHEMA repmgr;
+
+
+--
+-- Name: EXTENSION repmgr; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION repmgr IS 'Replication manager for PostgreSQL';
+
+
+--
+-- Data for Name: events; Type: TABLE DATA; Schema: repmgr; Owner: repmgr
+--
+
+COPY repmgr.events (node_id, event, successful, event_timestamp, details) FROM stdin;
+2077771576	cluster_created	t	2024-10-17 09:00:59.700169+00	\N
+2077771576	primary_register	t	2024-10-17 09:00:59.701933+00	
+2077771576	repmgrd_start	t	2024-10-17 09:01:03.421916+00	monitoring cluster primary "fdaa:9:2d78:a7b:2b4:f187:93fa:2" (ID: 2077771576)
+1616720396	standby_clone	t	2024-10-17 09:01:28.633727+00	cloned from host "fdaa:9:2d78:a7b:2b4:f187:93fa:2", port 5433; backup method: pg_basebackup; --force: Y
+1616720396	standby_register	t	2024-10-17 09:01:29.904684+00	standby registration succeeded; upstream node ID is 2077771576 (-F/--force option was used)
+2077771576	child_node_new_connect	t	2024-10-17 09:01:33.59945+00	new standby "fdaa:9:2d78:a7b:2c1:24d7:1a11:2" (ID: 1616720396) has connected
+1616720396	repmgrd_start	t	2024-10-17 09:01:33.936058+00	monitoring connection to upstream node "fdaa:9:2d78:a7b:2b4:f187:93fa:2" (ID: 2077771576)
+742083948	standby_clone	t	2024-10-17 09:01:47.527511+00	cloned from host "fdaa:9:2d78:a7b:2b4:f187:93fa:2", port 5433; backup method: pg_basebackup; --force: Y
+742083948	standby_register	t	2024-10-17 09:01:48.834116+00	standby registration succeeded; upstream node ID is 2077771576 (-F/--force option was used)
+2077771576	child_node_new_connect	t	2024-10-17 09:01:51.738801+00	new standby "fdaa:9:2d78:a7b:2b5:e252:3edd:2" (ID: 742083948) has connected
+742083948	repmgrd_start	t	2024-10-17 09:01:52.880053+00	monitoring connection to upstream node "fdaa:9:2d78:a7b:2b4:f187:93fa:2" (ID: 2077771576)
+1616720396	repmgrd_shutdown	t	2024-10-17 10:32:46.631938+00	INT signal received
+1616720396	standby_unregister	t	2024-10-17 10:32:51.014982+00	\N
+742083948	repmgrd_shutdown	t	2024-10-17 10:33:28.098688+00	INT signal received
+2077771576	child_node_disconnect	t	2024-10-17 10:33:28.48776+00	standby node "fdaa:9:2d78:a7b:2b5:e252:3edd:2" (ID: 742083948) has disconnected
+742083948	standby_unregister	t	2024-10-17 10:33:32.196597+00	\N
+2077771576	repmgrd_shutdown	t	2024-10-17 10:55:15.932744+00	INT signal received
+2077771576	primary_register	t	2024-10-17 10:55:20.551021+00	existing primary record updated
+2077771576	repmgrd_start	t	2024-10-17 10:55:24.646482+00	monitoring cluster primary "fdaa:9:2d78:a7b:2b4:f187:93fa:2" (ID: 2077771576)
+2077771576	repmgrd_shutdown	t	2024-10-17 10:56:37.41619+00	INT signal received
+2077771576	primary_register	t	2024-10-17 10:56:44.077347+00	existing primary record updated
+2077771576	repmgrd_start	t	2024-10-17 10:56:48.184459+00	monitoring cluster primary "fdaa:9:2d78:a7b:2b4:f187:93fa:2" (ID: 2077771576)
+\.
+
+
+--
+-- Data for Name: monitoring_history; Type: TABLE DATA; Schema: repmgr; Owner: repmgr
+--
+
+COPY repmgr.monitoring_history (primary_node_id, standby_node_id, last_monitor_time, last_apply_time, last_wal_primary_location, last_wal_standby_location, replication_lag, apply_lag) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nodes; Type: TABLE DATA; Schema: repmgr; Owner: repmgr
+--
+
+COPY repmgr.nodes (node_id, upstream_node_id, active, node_name, type, location, priority, conninfo, repluser, slot_name, config_file) FROM stdin;
+2077771576	\N	t	fdaa:9:2d78:a7b:2b4:f187:93fa:2	primary	lax	100	host=fdaa:9:2d78:a7b:2b4:f187:93fa:2 port=5433 user=repmgr dbname=repmgr connect_timeout=5	repmgr	repmgr_slot_2077771576	/data/repmgr.conf
+\.
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- PostgreSQL database cluster dump complete
 --
 
