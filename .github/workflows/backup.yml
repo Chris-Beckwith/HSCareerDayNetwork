@@ -27,9 +27,9 @@ jobs:
       - name: Dump database
         run: |
           flyctl proxy 5555:5432 -a careerday-db-restored &
-          sleep 3
+          sleep 10
           echo Dumping ...
-          pg_dump -Fc -f ${{ env.filename }}
+          pg_dump -h 127.0.0.1 -p 5555 -Fc -f ${{ env.filename }}
           ls
 
       - name: Create Release
