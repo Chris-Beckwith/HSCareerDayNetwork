@@ -19,14 +19,15 @@ jobs:
     steps:
       - name: Set up Flyctl
         run: |
-          curl -sL https://fly.io/install.sh | sh
-          echo "/home/runner/.fly/bin" >> $GITHUB_ENV
+          curl -L https://fly.io/install.sh | sh
+          echo "FLYCTL_INSTALL=/home/runner/.fly" >> $GITHUB_ENV
+          echo "$FLYCTL_INSTALL/bin" >> $GITHUB_PATH  # Update the PATH
       - name: Set filename
         run: echo "filename=db-$(date -u +"%Y-%m-%d-%H%M%S").dump" >> $GITHUB_ENV
 
       - name: Dump database
         run: |
-          export PATH="/home/runner/.fly/bin:$PATH"
+          sleep 5 
           flyctl proxy 5555:5432 -a careerday-db-restored &
           sleep 10
           echo Dumping ...
