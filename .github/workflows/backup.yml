@@ -17,6 +17,10 @@ jobs:
       PGPORT: 5555
 
     steps:
+      - name: Set up Flyctl
+        run: |
+          curl -sL https://fly.io/install.sh | sh
+          echo "::add-path::$(~/fly/bin)"
       - name: Set filename
         run: echo "filename=db-$(date -u +"%Y-%m-%d-%H%M%S").dump" >> $GITHUB_ENV
 
