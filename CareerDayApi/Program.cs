@@ -62,9 +62,9 @@ else
     var pgPass = pgUserPass.Split(":")[1];
     var pgHost = pgHostPort.Split(":")[0];
     var pgPort = pgHostPort.Split(":")[1];
-    var updatedHost = pgHost.Replace("flycast", "internal");
+    // var updatedHost = pgHost.Replace("flycast", "internal");
 
-    connString = $"Server={updatedHost};Port={pgPort};User Id={pgUser};Password={pgPass};Database={pgDb};";
+    connString = $"Server={pgHost};Port={pgPort};User Id={pgUser};Password={pgPass};Database={pgDb};SSL Mode=Require;Trust Server Certificate=true";
 }
 builder.Services.AddDbContext<CareerDayContext>(opt =>
 {
@@ -143,5 +143,8 @@ catch (Exception ex)
     logger.LogError(ex, "An issue occured during migration");
     throw;
 }
+
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://*:{port}");
 
 app.Run();
