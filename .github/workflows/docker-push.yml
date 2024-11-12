@@ -28,7 +28,7 @@ jobs:
   deploy:
     needs: docker
     name: Deploy to Heroku
-    runs-on: ubunto-latest
+    runs-on: ubuntu-latest
     concurrency: deploy-group
     steps:
       - name: Release to Heroku
