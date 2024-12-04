@@ -1,4 +1,6 @@
+using CareerDayApi.Data;
 using CareerDayApi.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Extensions
 {
@@ -49,6 +51,15 @@ namespace CareerDayApi.Extensions
             }
 
             return query;
+        }
+
+        public static IQueryable<Event> getEventDetails(this IQueryable<Event> query) {
+            return query
+                    .Include(p => p.EventPhase)
+                    .Include(s => s.School).ThenInclude(a => a.Address)
+                    .Include(s => s.Speakers).ThenInclude(c => c.Careers)
+                    .Include(s => s.Speakers).ThenInclude(a => a.Address)
+                    .Include(c => c.Careers);
         }
     }
 }

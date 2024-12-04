@@ -53,7 +53,7 @@ namespace CareerDayApi.Controllers
         [Authorize(Roles = "Admin, SchoolUser")]
         public async Task<ActionResult<Event>> GetEvent(int id)
         {
-            var singleEvent = await getEventDetails()
+            var singleEvent = await _context.Events.getEventDetails()
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (singleEvent == null) return NotFound();
@@ -71,7 +71,7 @@ namespace CareerDayApi.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<Event>> GetEventByGuid(string guid)
         {
-            var singleEvent = await getEventDetails()
+            var singleEvent = await _context.Events.getEventDetails()
                 .FirstOrDefaultAsync(e => e.GUID == guid);
 
             if (singleEvent == null) return NotFound();
@@ -113,7 +113,7 @@ namespace CareerDayApi.Controllers
             var result = await _context.SaveChangesAsync() > 0;
 
             if (result) {
-                Event createdEvent = await getEventDetails()
+                Event createdEvent = await _context.Events.getEventDetails()
                     .FirstOrDefaultAsync(e => e.Id == newEvent.Id);
 
                 return CreatedAtRoute("GetEvent", new { id = createdEvent.Id }, createdEvent);
@@ -310,13 +310,13 @@ namespace CareerDayApi.Controllers
             return Ok(eventPhases);
         }
 
-        private IQueryable<Event> getEventDetails() {
-            return _context.Events
-                    .Include(p => p.EventPhase)
-                    .Include(s => s.School).ThenInclude(a => a.Address)
-                    .Include(s => s.Speakers).ThenInclude(c => c.Careers)
-                    .Include(s => s.Speakers).ThenInclude(a => a.Address)
-                    .Include(c => c.Careers);
-        }
+        // private IQueryable<Event> getEventDetails() {
+        //     return _context.Events
+        //             .Include(p => p.EventPhase)
+        //             .Include(s => s.School).ThenInclude(a => a.Address)
+        //             .Include(s => s.Speakers).ThenInclude(c => c.Careers)
+        //             .Include(s => s.Speakers).ThenInclude(a => a.Address)
+        //             .Include(c => c.Careers);
+        // }
     }
 }

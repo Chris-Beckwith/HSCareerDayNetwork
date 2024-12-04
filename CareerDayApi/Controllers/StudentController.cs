@@ -4,6 +4,7 @@ using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
 using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
+using CareerDayApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,11 @@ using OfficeOpenXml;
 
 namespace CareerDayApi.Controllers
 {
-    public class StudentController(CareerDayContext context,
+    public class StudentController(CareerDayContext context, ExcelService excelService,
         IMapper mapper, ILogger<StudentController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
+        private readonly ExcelService _excelService = excelService;
         private readonly IMapper _mapper = mapper;
         private readonly ILogger<StudentController> _logger = logger;
 
@@ -312,42 +314,81 @@ namespace CareerDayApi.Controllers
                 .ToListAsync();
 
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using ExcelPackage excelPackage = new();
-            ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets.Add("Students");
+            if (!students.Any())
+                return NotFound("No students found matching the specified criteria.");
 
-            //Headers
-            worksheet.Cells[1, 1].Value = "Student Number";
-            worksheet.Cells[1, 2].Value = "Last, First Name";
-            worksheet.Cells[1, 3].Value = "Last Name";
-            worksheet.Cells[1, 4].Value = "First Name";
-            worksheet.Cells[1, 5].Value = "Gender";
-            worksheet.Cells[1, 6].Value = "Grade";
-            worksheet.Cells[1, 7].Value = "Email";
-            worksheet.Cells[1, 8].Value = "Teacher";
-            worksheet.Cells[1, 9].Value = "Room";
-            worksheet.Cells[1, 10].Value = "Survey Complete";
-
-            for (int i = 0; i < students.Count; i++)
+            var headers = new List<string>
             {
-                worksheet.Cells[i + 2, 1].Value = students[i].StudentNumber;
-                worksheet.Cells[i + 2, 2].Value = students[i].LastFirstName;
-                worksheet.Cells[i + 2, 3].Value = students[i].LastName;
-                worksheet.Cells[i + 2, 4].Value = students[i].FirstName;
-                worksheet.Cells[i + 2, 5].Value = students[i].Gender;
-                worksheet.Cells[i + 2, 6].Value = students[i].Grade;
-                worksheet.Cells[i + 2, 7].Value = students[i].Email;
-                worksheet.Cells[i + 2, 8].Value = students[i].HomeroomTeacher;
-                worksheet.Cells[i + 2, 9].Value = students[i].HomeroomNumber;
-                worksheet.Cells[i + 2, 10].Value = students[i].SurveyComplete;
-            }
+                "Student Number", "Last, First Name", "Last Name", "First Name",
+                "Gender", "Grade", "Email", "Teacher", "Room", "Survey Complete"
+            };
 
-            var stream = new MemoryStream();
-            excelPackage.SaveAs(stream);
-            stream.Position = 0;
+            var rows = students.Select(student => new object[]
+            {
+                student.StudentNumber,
+                student.LastFirstName,
+                student.LastName,
+                student.FirstName,
+                student.Gender,
+                student.Grade,
+                student.Email,
+                student.HomeroomTeacher,
+                student.HomeroomNumber,
+                student.SurveyComplete
+            }).ToList();
 
-            var fileName = "Students_" + students[0].School.Name + "_" + DateTime.Now.ToString("MM-dd-yyyy");
-            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            string fileName = $"Students_{students.First().School.Name}_{DateTime.Now:MM-dd-yyyy}.xlsx";
+
+            var stream = await _excelService.ExportToExcel(headers, rows, "Students");
+            
+            Response.AddExcelHeader(fileName, _excelService.excelMimeType);
+            
+            return File(stream, _excelService.excelMimeType, fileName);
+        }
+
+        //Unused atm, will want to export ALL sessions
+        [HttpGet("exportSession")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> ExportSessionStudents([FromQuery] SessionParams sessionParams)
+        {
+            var session = await _context.Sessions.FindAsync(sessionParams.Id);
+
+            var careerEvent = await _context.Events
+                .Where(e => e.Id == session.EventId).FirstOrDefaultAsync();
+
+            if (careerEvent == null)
+                return NotFound("No event found for session");
+
+            if (session.Students.Count <= 0)
+                return NotFound("No Students found for session");
+
+            var headers = new List<string>
+            {
+                "Student Number",
+                "Student Name",
+                "Gender",
+                "Grade",
+                "Teacher",
+                "Room",
+            };
+
+            var rows = session.Students.Select(student => new object[]
+            {
+                student.StudentNumber,
+                student.LastFirstName,
+                student.Gender,
+                student.Grade,
+                student.HomeroomTeacher,
+                student.HomeroomNumber,
+            }).ToList();
+
+            string fileName = $"Session_{session.Period}_{session.Subject.Name}_{careerEvent.Name}_{DateTime.Now:MM-dd-yyyy}.xlsx";
+
+            var stream = await _excelService.ExportToExcel(headers, rows, $"Session_{session.Period}_{session.Subject.Name}");
+
+            Response.AddExcelHeader(fileName, _excelService.excelMimeType);
+
+            return File(stream, _excelService.excelMimeType, fileName);
         }
 
         private async Task<(bool isValid, string error, List<Student>)> ParseStudentExcelAsync(byte[] fileData, Event careerEvent)
