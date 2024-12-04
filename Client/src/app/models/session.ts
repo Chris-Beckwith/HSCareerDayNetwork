@@ -5,7 +5,7 @@ import { Student } from "./student"
 
 export interface Session {
     id: number
-    classroom: Classroom
+    classroom?: Classroom
     students: Student[]
     speakers: Speaker[]
     period: number

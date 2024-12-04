@@ -14,6 +14,7 @@ import { Student, StudentParams } from "../../app/models/student"
 import { Delete, Edit } from "@mui/icons-material"
 import StudentForm from "./StudentForm"
 import { CareerEvent } from "../../app/models/event"
+import { downloadExcel } from "../../app/util/util"
 
 interface Props {
     event: CareerEvent
@@ -130,20 +131,7 @@ export default function Students({ event, back, schoolUser }: Props) {
     const handleExportStudents = async () => {
         const params = getAxiosParams(studentParams)
         await agent.Student.export(params)
-            .then(response => {
-                const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-                const link = document.createElement('a')
-                const url = window.URL.createObjectURL(blob)
-
-                link.href = url
-                link.download = `Students_${students[0].school.name}_${new Date().toLocaleDateString()}.xlsx`
-                
-                document.body.appendChild(link)
-                
-                link.click()
-                
-                document.body.removeChild(link)
-            })
+            .then(response => downloadExcel(response))
     }
 
     

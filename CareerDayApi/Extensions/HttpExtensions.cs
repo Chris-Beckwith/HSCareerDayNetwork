@@ -12,5 +12,12 @@ namespace CareerDayApi.Extensions
             response.Headers.Append("Pagination", JsonSerializer.Serialize(metaData, options));
             response.Headers.Append("Access-Control-Expose-Headers", "Pagination");
         }
+
+        public static void AddExcelHeader(this HttpResponse response, string fileName, string mimeType)
+        {
+            response.Headers.Append("Content-Disposition", $"attachment; filename={fileName}");
+            response.Headers.Append("Access-Control-Expose-Headers", "Content-Disposition");
+            response.Headers.Append("Content-Type", mimeType);
+        }
     }
 }
