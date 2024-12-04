@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { router } from "../router/Routes";
 import { PaginatedResponse } from "../models/pagination";
 import { store } from "../store/configureStore";
+import { ExcelResponse } from "../models/excelExport";
 
 //Dev only sleep for testing loading animations
 const sleep = () => new Promise(resolve => setTimeout(resolve, 250))
@@ -25,6 +26,20 @@ axios.interceptors.response.use(async response => {
         response.data = new PaginatedResponse(response.data, JSON.parse(pagination))
         return response
     }
+
+    if (response.config.responseType === 'blob') {
+        const contentDisposition = response.headers['content-disposition']
+        const contentType = response.headers['content-type']
+
+        let fileName = null
+        if (contentDisposition) {
+            const match = contentDisposition.match(/filename="?([^";]+)"?/)
+            fileName = match ? match[1] : `Export_${new Date().toLocaleDateString()}.xlsx`
+        }
+
+        response.data = new ExcelResponse(response.data, fileName, contentType)
+    }
+    
     return response
 }, (error: AxiosError) => {
     const {data, status} = error.response as AxiosResponse
@@ -181,7 +196,7 @@ const Account = {
 }
 
 const Survey = {
-    // submit: (values: any) => requests.put('survey/submit', values)
+    export: (params: URLSearchParams) => requests.getBlob('surveys/export', params),
     listByEvent: (eventId: number) => requests.get(`surveys/${eventId}`),
     deleteSurveysByEvent: (eventId: number) => requests.delete(`surveys/${eventId}`)
 }

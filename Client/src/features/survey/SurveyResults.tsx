@@ -4,6 +4,8 @@ import { CareerEvent } from "../../app/models/event";
 import { useEffect, useState } from "react";
 import SurveyResultLineItem from "./SurveyResultLineItem";
 import SurveyStudentLineItem from "./SurveyStudentLineItem";
+import { downloadExcel } from "../../app/util/util";
+import agent from "../../app/api/agent";
 
 interface Props {
     event: CareerEvent
@@ -79,6 +81,18 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
         setSortOption(event.target.checked)
     }
 
+    const handleExport = async () => {
+        const params = new URLSearchParams()
+        params.append('eventId', event.id.toString())
+        params.append('sortOption', sortOption.toString())
+        params.append('viewOption', viewOption.toString())
+        params.append('includeAlternate', includeAlternate.toString())
+        params.append('showAlternate', showAlternate.toString())
+
+        await agent.Survey.export(params)
+            .then(response => downloadExcel(response))
+    }
+
     //Max Values
     let maxValue = Math.max(...primaryCounts.map(c => c.value))
     if (maxValue === 0) maxValue = 1
@@ -98,26 +112,28 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                 </Grid>
                 <Grid item xs={2}></Grid>
 
-                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
-                        <Button onClick={() => {
-                            if (viewOption) setViewOption(!viewOption)
-                        }}
+                <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                    <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-start' }}></Grid>
+                    <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
+                            <Button onClick={() => {
+                                if (viewOption) setViewOption(!viewOption)
+                                }}
                             sx={{
                                 variant: viewOption ? '' : 'outlined',
-                                bgcolor: viewOption ? 'lightgray' : 'white',
-                                width: '120px', borderRadius: '4px 0 0 4px',
-                                transition: 'background-color 0.3s',
-                                '&:hover': {
-                                    cursor: viewOption ? 'pointer' : 'default',
-                                    bgcolor: viewOption ? '' : 'white'
-                                }
-                            }}>
-                            Categories
-                        </Button>
-                        <Button onClick={() => {
-                            if (!viewOption) setViewOption(!viewOption)
-                        }}
+                                    bgcolor: viewOption ? 'lightgray' : 'white',
+                                    width: '120px', borderRadius: '4px 0 0 4px',
+                                    transition: 'background-color 0.3s',
+                                    '&:hover': {
+                                        cursor: viewOption ? 'pointer' : 'default',
+                                        bgcolor: viewOption ? '' : 'white'
+                                    }
+                                }}>
+                                Categories
+                            </Button>
+                            <Button onClick={() => {
+                                if (!viewOption) setViewOption(!viewOption)
+                                }}
                             sx={{
                                 variant: viewOption ? 'outlined' : '',
                                 bgcolor: viewOption ? 'white' : 'lightgray',
@@ -128,9 +144,15 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                                     bgcolor: viewOption ? 'white' : ''
                                 }
                             }}>
-                            Students
+                                Students
+                            </Button>
+                        </Box>
+                    </Grid>
+                    <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', pr: 2 }}>
+                        <Button variant="contained" onClick={handleExport}>
+                            Export
                         </Button>
-                    </Box>
+                    </Grid>
                 </Grid>
 
                 <Grid item xs={12}>

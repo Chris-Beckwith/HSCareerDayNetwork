@@ -21,8 +21,6 @@ interface CheckedState {
     [key: number]: boolean[]
 }
 
-// const steps = ['Initial Page', 'Session View']
-
 export default function SchedulingTool({ event, back }: Props) {
     const { classrooms, metaData } = useClassrooms(event.school.id, 500)
     const [loading, setLoading] = useState(false)
@@ -93,12 +91,6 @@ export default function SchedulingTool({ event, back }: Props) {
     async function generateSchedule(data: FieldValues) {
         setLoading(true)
 
-        console.log("Data: ", data)
-        console.log("Event ID: ", event.id)
-        console.log("Session Count: ", sessionCountValue)
-        console.log("Checked State: ", checkedState)
-        console.log("Same Speakers: ", sameSpeakers)
-
         const generationParams = {
             eventId: event.id,
             maxClassSize: data.maxClassSize,
@@ -108,13 +100,9 @@ export default function SchedulingTool({ event, back }: Props) {
             sameSpeakersForCareerList: sameSpeakers
         }
 
-        console.log(generationParams)
-
         try {
             agent.Schedule.generateSessions(generationParams)
                 .then((response) => {
-                    console.log(response.allSessions)
-                    console.log(response.unplacedStudents)
                     setSessions(response.allSessions)
                     setUnplacedStudents(response.unplacedStudents)
                     setActiveStep(activeStep + 1)
@@ -129,7 +117,7 @@ export default function SchedulingTool({ event, back }: Props) {
     const getStepContent = (step: number) => {
         switch (step) {
             case 0: return;
-            case 1: return <SessionView sessions={sessions} unplacedStudents={unplacedStudents} />
+            case 1: return <SessionView event={event} sessions={sessions} classrooms={classrooms} unplacedStudents={unplacedStudents} />
             case 2:
             case 3:
             default:

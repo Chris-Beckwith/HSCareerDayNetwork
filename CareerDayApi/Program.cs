@@ -98,6 +98,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<ImageService>();
+builder.Services.AddScoped<ExcelService>();
 
 var app = builder.Build();
 
