@@ -309,14 +309,5 @@ namespace CareerDayApi.Controllers
 
             return Ok(eventPhases);
         }
-
-        // private IQueryable<Event> getEventDetails() {
-        //     return _context.Events
-        //             .Include(p => p.EventPhase)
-        //             .Include(s => s.School).ThenInclude(a => a.Address)
-        //             .Include(s => s.Speakers).ThenInclude(c => c.Careers)
-        //             .Include(s => s.Speakers).ThenInclude(a => a.Address)
-        //             .Include(c => c.Careers);
-        // }
     }
 }
