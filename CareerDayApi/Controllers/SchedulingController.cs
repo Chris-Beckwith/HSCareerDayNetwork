@@ -452,5 +452,90 @@ namespace CareerDayApi.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("{eventId}")]
+        public async Task<ActionResult<List<Session>>> GetSessions(int eventId)
+        {
+            var sessions = await _context.Sessions.Where(s => s.EventId == eventId)
+                .Include(s => s.Classroom).ThenInclude(c => c.School)
+                .Include(s => s.Students).ThenInclude(st => st.School)
+                .Include(s => s.Speakers).ThenInclude(sp => sp.SchoolLastSpokeAt)
+                .Include(s => s.Speakers).ThenInclude(sp => sp.Address)
+                .Include(s => s.Speakers).ThenInclude(sp => sp.Careers)
+                .Include(s => s.Subject)
+                .ToListAsync();
+
+            return sessions;
+        }
+
+        [HttpPost("save")]
+        public async Task<ActionResult<List<Session>>> SaveSessions([FromBody] SessionsDto sessionsDto)
+        {
+            List<Session> sessions = [];
+
+            foreach(var session in sessionsDto.Sessions)
+            {
+                Classroom classroom = null;
+                if (session.Classroom != null) {
+                    classroom = await _context.Classrooms.FindAsync(session.Classroom.Id);
+                    if (classroom == null) {
+                        return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Classroom not found"});
+                    }
+                }
+                List<Speaker> speakers = [];
+                if (session.Speakers.Count > 0) {
+                    var speakerIds = session.Speakers.Select(sp => sp.Id).ToList();
+                    speakers = await _context.Speakers.Where(s => speakerIds.Contains(s.Id)).ToListAsync();
+                    if (speakers == null) {
+                        return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Speakers not found"});
+                    }
+                }
+
+                var studentIds = session.Students.Select(st => st.Id).ToList();
+                List<Student> students = await _context.Students.Where(s => studentIds.Contains(s.Id)).ToListAsync();
+                Career subject = await _context.Careers.FindAsync(session.Subject.Id);
+                
+                if (students == null) {
+                    return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Students not found"});
+                }
+                if (subject == null) {
+                    return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Subject not found"});
+                }
+
+                Session newSession = new()
+                {
+                    Classroom = classroom,
+                    Students = students,
+                    Speakers = speakers,
+                    Period = session.Period,
+                    Subject = subject,
+                    EventId = session.EventId
+                };
+                sessions.Add(newSession);
+            }
+
+            _context.Sessions.AddRange(sessions);
+
+            var result = await _context.SaveChangesAsync() > 0;
+
+            if (result) return Ok(new { message = "Successfully Saved Sessions" });
+
+            return BadRequest(new ProblemDetails { Title = "Problem creating sessions" });
+        }
+
+        [HttpDelete("{eventId}")]
+        public async Task<ActionResult> DeleteSessions(int eventId)
+        {
+            var sessions = await _context.Sessions.Where(s => s.EventId == eventId).ToListAsync();
+
+            _context.Sessions.RemoveRange(sessions);
+
+            var result = await _context.SaveChangesAsync() > 0;
+
+            if (result) return Ok();
+
+            return BadRequest(new ProblemDetails { Title = "Problem deleting sessions for event: " + eventId });
+        }
     }
+
 }

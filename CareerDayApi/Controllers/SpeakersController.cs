@@ -68,13 +68,15 @@ namespace CareerDayApi.Controllers
             var speaker = _mapper.Map<Speaker>(speakerDto);
             speaker.Careers = careers;
 
-            School school = await _context.Schools.Where(s => s.Id == speakerDto.SchoolLastSpokeAt.Id).FirstOrDefaultAsync();
+            if (speakerDto.SchoolLastSpokeAt != null) {
+                School school = await _context.Schools.Where(s => s.Id == speakerDto.SchoolLastSpokeAt.Id).FirstOrDefaultAsync();
 
-            if (school == null)
-            {
-                return BadRequest(new ProblemDetails { Title = "Problem creating new speaker: School not found "});
+                if (school == null)
+                {
+                    return BadRequest(new ProblemDetails { Title = "Problem creating new speaker: School not found "});
+                }
+                speaker.SchoolLastSpokeAt = school;
             }
-            speaker.SchoolLastSpokeAt = school;
 
             if (speakerDto.File != null)
             {
@@ -101,20 +103,21 @@ namespace CareerDayApi.Controllers
             var speaker = await _context.Speakers
                 .Include(s => s.Careers)
                 .Include(s => s.Address)
-                .Include(s => s.SchoolLastSpokeAt)
                 .FirstOrDefaultAsync(s => s.Id == speakerDto.Id);
 
             if (speaker == null) return NotFound();
 
-            School school = await _context.Schools
-                .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.Id == speakerDto.SchoolLastSpokeAt.Id);
+            if (speakerDto.SchoolLastSpokeAt != null) {
+                School school = await _context.Schools
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.Id == speakerDto.SchoolLastSpokeAt.Id);
 
-            if (school == null)
-            {
-                return BadRequest(new ProblemDetails { Title = "Problem updating speaker: School not found" });
+                if (school == null)
+                {
+                    return BadRequest(new ProblemDetails { Title = "Problem updating speaker: School not found" });
+                }
+                speaker.SchoolLastSpokeAt = school;
             }
-            speaker.SchoolLastSpokeAt = school;
 
             List<Career> careers = await _context.Careers.Where(c => speakerDto.CareerIds.Any(id => id == c.Id)).ToListAsync();
 

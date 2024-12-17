@@ -90,7 +90,10 @@ const requests = {
         headers: {'Content-Type': 'multipart/form-data'}
     }).then(responseBody),
     getBlob: (url: string, params: URLSearchParams) => 
-        axios.get(url, {params, responseType: 'blob'}).then(responseBody)
+        axios.get(url, {params, responseType: 'blob'}).then(responseBody),
+    postJson: (url: string, body: string) => axios.post(url, body, {
+        headers: {'Content-Type': 'application/json'}
+    }).then(responseBody)
 }
 
 function createFormData(item: any, parentKey?: string) {
@@ -202,7 +205,10 @@ const Survey = {
 }
 
 const Schedule = {
-    generateSessions: (generationParams: any) => requests.postForm('scheduling', createFormData(generationParams))
+    generateSessions: (generationParams: any) => requests.postForm('scheduling', createFormData(generationParams)),
+    getSessions: (eventId: number) => requests.get(`scheduling/${eventId}`),
+    saveSessions: (sessions: any) => requests.postJson('scheduling/save', JSON.stringify({sessions}) ),
+    deleteSessions: (eventId: number) => requests.delete(`scheduling/${eventId}`)
 }
 
 const TestErrors = {

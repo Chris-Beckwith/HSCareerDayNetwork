@@ -23,6 +23,8 @@ import SurveyResults from "../survey/SurveyResults";
 import ConfirmPreviousPhase from "./components/ConfirmPreviousPhase";
 import SchedulingTool from "../scheduling/SchedulingTool";
 import { LoadingButton } from "@mui/lab";
+import { findNextEventPhaseId, findPrevEventPhaseId } from "../../app/util/util";
+import ExportTool from "../scheduling/ExportTool";
 
 interface Props {
     careerEvent: CareerEvent
@@ -41,6 +43,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [roomMode, setRoomMode] = useState(false)
     const [surveyMode, setSurveyMode] = useState(false)
     const [scheduleMode, setScheduleMode] = useState(false)
+    const [exportMode, setExportMode] = useState(false)
     const [confirmPreviousPhase, setConfirmPreviousPhase] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [eventPhaseName, setEventPhaseName] = useState('')
@@ -127,14 +130,16 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
 
     if (scheduleMode) return <SchedulingTool event={careerEvent} back={back} />
 
+    if (exportMode) return <ExportTool />
+
     const nextEventPhaseText = () => {
         switch (eventPhaseName) {
             case EVENT_PHASES.CREATED: return "Open Survey"
             case EVENT_PHASES.SURVEYINPROGRESS: return "Close Survey"
             case EVENT_PHASES.SURVEYCLOSED: return "Scheduling Tool"
-            case EVENT_PHASES.SESSIONSGENERATED: return "Assign Rooms"
-            case EVENT_PHASES.ROOMSASSIGNED: return "Assign Speakers"
-            case EVENT_PHASES.SPEAKERSASSIGNED: return "Generate Schedule"
+            case EVENT_PHASES.SESSIONSGENERATED: return "Schedule Exporter"
+            // case EVENT_PHASES.ROOMSASSIGNED: return "Assign Speakers"
+            // case EVENT_PHASES.SPEAKERSASSIGNED: return "Generate Schedule"
             case EVENT_PHASES.SCHEDULEEXPORT: return "Schedule Exporter"
             case EVENT_PHASES.COMPLETED:
             case EVENT_PHASES.CANCELLED: return "Reopen Event"
@@ -146,78 +151,10 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             case EVENT_PHASES.SURVEYINPROGRESS:
             case EVENT_PHASES.SURVEYCLOSED:
             case EVENT_PHASES.SESSIONSGENERATED:
-            case EVENT_PHASES.ROOMSASSIGNED:
-            case EVENT_PHASES.SPEAKERSASSIGNED:
             case EVENT_PHASES.SCHEDULEEXPORT: return "Previous Phase"
             case EVENT_PHASES.COMPLETED:
             case EVENT_PHASES.CANCELLED: return "Reopen Event"
         }
-    }
-
-    const findNextEventPhaseId = (phaseName: string) => {
-        let eventPhase;
-        switch (phaseName) {
-            case EVENT_PHASES.CREATED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYINPROGRESS)
-                break;
-            case EVENT_PHASES.SURVEYINPROGRESS:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYCLOSED)
-                break;
-            case EVENT_PHASES.SURVEYCLOSED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
-                break;
-            case EVENT_PHASES.SESSIONSGENERATED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.ROOMSASSIGNED)
-                break;
-            case EVENT_PHASES.ROOMSASSIGNED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SPEAKERSASSIGNED)
-                break;
-            case EVENT_PHASES.SPEAKERSASSIGNED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULEEXPORT)
-                break;
-            case EVENT_PHASES.SCHEDULEEXPORT:
-            case EVENT_PHASES.COMPLETED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.COMPLETED)
-                break;
-            case EVENT_PHASES.CANCELLED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CANCELLED)
-                break;
-            default:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
-        }
-        if (eventPhase === undefined) return -1
-        return eventPhase.id
-    }
-
-    const findPrevEventPhaseId = (phaseName: string) => {
-        let eventPhase;
-        switch (phaseName) {
-            case EVENT_PHASES.SURVEYINPROGRESS:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
-                break;
-            case EVENT_PHASES.SURVEYCLOSED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYINPROGRESS)
-                break;
-            case EVENT_PHASES.SESSIONSGENERATED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYCLOSED)
-                break;
-            case EVENT_PHASES.ROOMSASSIGNED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
-                break;
-            case EVENT_PHASES.SPEAKERSASSIGNED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.ROOMSASSIGNED)
-                break;
-            case EVENT_PHASES.SCHEDULEEXPORT:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SPEAKERSASSIGNED)
-                break;
-            case EVENT_PHASES.COMPLETED:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULEEXPORT)
-                break;
-            default:
-                eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
-        }
-        if (eventPhase === undefined) return -1
-        return eventPhase.id
     }
 
     async function progressEventPhaseAction() {
@@ -233,32 +170,30 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     return toast.error("Survey is still under 5% complete")
                 break;
             case EVENT_PHASES.SURVEYCLOSED: setScheduleMode(true); return;
-            case EVENT_PHASES.SESSIONSGENERATED: return "Assign Rooms"
-            case EVENT_PHASES.ROOMSASSIGNED: return "Assign Speakers"
-            case EVENT_PHASES.SPEAKERSASSIGNED: return "Generate Schedule"
+            case EVENT_PHASES.SESSIONSGENERATED: setExportMode(true); return;
+            // case EVENT_PHASES.ROOMSASSIGNED: return "Assign Speakers"
+            // case EVENT_PHASES.SPEAKERSASSIGNED: return "Generate Schedule"
             case EVENT_PHASES.SCHEDULEEXPORT: return "Schedule Exporter"
             case EVENT_PHASES.COMPLETED:
             case EVENT_PHASES.CANCELLED: return "Reopen Event"
         }
 
         setLoading(true)
-        const eventPhaseId = findNextEventPhaseId(eventPhaseName)
+        const eventPhaseId = findNextEventPhaseId(eventPhases, eventPhaseName)
         await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
         dispatch(reloadEvents())
         setLoading(false)
     }
 
     const handlePreviousPhaseConfirm = () => {
-        const prevEventPhase = eventPhases.find(e => e.id === findPrevEventPhaseId(eventPhaseName))
+        const prevEventPhase = eventPhases.find(e => e.id === findPrevEventPhaseId(eventPhases, eventPhaseName))
 
         if (prevEventPhase) {
             setPrevEventPhaseName(prevEventPhase.phaseName)
             switch (prevEventPhase.phaseName) {
-                case EVENT_PHASES.CREATED: 
-                    setConfirmPrevMessage("Going back to created will delete all student surveys!")
-                    break;
                 case EVENT_PHASES.SURVEYINPROGRESS:
                     setConfirmPrevMessage("Are you sure you want to reopen the survey?")
+                    break;
             }
             setConfirmPreviousPhase(true)
         }
@@ -267,18 +202,16 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     async function regressEventPhaseAction() {
         if (!careerEvent) return;
 
-        const eventPhaseId = findPrevEventPhaseId(eventPhaseName)
-        await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
-        dispatch(reloadEvents())
-
         switch (eventPhaseName) {
-            case EVENT_PHASES.SURVEYINPROGRESS:
-                await agent.Survey.deleteSurveysByEvent(careerEvent.id)
-                    .catch((error) => {
-                        console.log(error)
-                    })
+            case EVENT_PHASES.SESSIONSGENERATED:
+                await agent.Schedule.deleteSessions(careerEvent.id)
+                    .catch(error => console.log(error))
                 break;
         }
+        
+        const eventPhaseId = findPrevEventPhaseId(eventPhases, eventPhaseName)
+        await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
+        dispatch(reloadEvents())
         setConfirmPreviousPhase(false)
     }
 
@@ -288,9 +221,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             case EVENT_PHASES.CANCELLED: return false
             case EVENT_PHASES.SURVEYINPROGRESS: 
             case EVENT_PHASES.SURVEYCLOSED: 
-            case EVENT_PHASES.SESSIONSGENERATED: 
-            case EVENT_PHASES.ROOMSASSIGNED: 
-            case EVENT_PHASES.SPEAKERSASSIGNED: 
+            case EVENT_PHASES.SESSIONSGENERATED:
             case EVENT_PHASES.SCHEDULEEXPORT: 
             case EVENT_PHASES.COMPLETED: return true
         }
