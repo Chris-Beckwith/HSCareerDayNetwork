@@ -6,6 +6,7 @@ import SessionCard from "./SessionCard"
 import { CareerEvent } from "../../app/models/event"
 import { Classroom } from "../../app/models/classroom"
 import { useState } from "react"
+import { Speaker } from "../../app/models/speaker"
 
 export interface UnplacedStudent {
     student: Student
@@ -43,6 +44,17 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
         }
     }
 
+    const updateSpeakers = (session: Session, speakers: Speaker[], propagate: boolean) =>  {
+        session.speakers = speakers
+        if (propagate) {
+            sessions.forEach(s => {
+                if (s.subject.id === session.subject.id && s.period !== session.period && s.speakers.length == 0) {
+                    s.speakers = speakers
+                }
+            })
+        }
+    }
+
     return (
         <Grid container item xs={12}>
             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -64,9 +76,14 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
                                             const availableClassrooms = classrooms.filter(
                                                 classroom => !sessions.some(s => s.period === session.period && s.classroom?.id === classroom.id)
                                             )
+                                            const availableSpeakers = event.speakers.filter(
+                                                speaker => !sessions.some(s =>
+                                                    s.period === session.period && s.speakers.some(sp => sp.id === speaker.id))
+                                            )
                                             return (
                                                 <Grid item key={index} sx={{ my: 2 }}>
-                                                    <SessionCard session={session} availableClassrooms={availableClassrooms} updateClassroom={updateClassroom} triggerRefresh={triggerRefresh} />
+                                                    <SessionCard session={session} availableClassrooms={availableClassrooms} updateClassroom={updateClassroom} 
+                                                        availableSpeakers={availableSpeakers} updateSpeakers={updateSpeakers} triggerRefresh={triggerRefresh} />
                                                 </Grid>
                                             )
                                         })}

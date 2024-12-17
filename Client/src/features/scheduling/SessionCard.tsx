@@ -5,17 +5,23 @@ import SessionStudentView from "./SessionStudentView";
 import { Classroom } from "../../app/models/classroom";
 import EditClassroom from "./EditClassroom";
 import { getClassroomText } from "../../app/util/util";
+import { Speaker } from "../../app/models/speaker";
+import EditSpeakers from "./EditSpeakers";
 
 interface Props {
     session: Session
     availableClassrooms: Classroom[]
     updateClassroom: (session: Session, classroom: Classroom, propagate: boolean) => void
+    availableSpeakers: Speaker[]
+    updateSpeakers: (session: Session, speakers: Speaker[], propagate: boolean) => void
     triggerRefresh: () => void
 }
 
-export default function SessionCard({ session, availableClassrooms, updateClassroom, triggerRefresh }: Props) {
+export default function SessionCard({ session, availableClassrooms, updateClassroom, 
+        availableSpeakers, updateSpeakers, triggerRefresh }: Props) {
     const [showStudents, setShowStudents] = useState(false)
-    const [showRoom, setShowRoom] = useState(false)
+    const [showRooms, setShowRooms] = useState(false)
+    const [showSpeakers, setShowSpeakers] = useState(false)
 
     return (
         <>
@@ -45,7 +51,6 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                     }}
                 />
                 <CardContent sx={{ py: 1 }}>
-                    <Typography variant="body1">Classroom: {getClassroomText(session.classroom)}</Typography>
                     <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', alignContent: 'center' }}>
                         Number of Students: 
                         <Button 
@@ -56,12 +61,17 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                                 {session.students.length}
                         </Button>
                     </Typography>
+                    <Typography variant="body1">Classroom: {getClassroomText(session.classroom)}</Typography>
+                    <Typography variant="body1">
+                        Speakers: {session.speakers.map(s =>
+                            s.firstName + " " + s.middleName + " " + s.lastName).join(", ")}
+                    </Typography>
                 </CardContent>
                 <CardActions sx={{ py: 0, px: 1 }}>
-                    <Button onClick={() => setShowRoom(true)}>
+                    <Button onClick={() => setShowRooms(true)}>
                         Assign Room
                     </Button>
-                    <Button>
+                    <Button onClick={() => setShowSpeakers(true)}>
                         Assign Speakers
                     </Button>
                 </CardActions>
@@ -69,7 +79,9 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
 
             <SessionStudentView session={session} open={showStudents} handleClose={() => setShowStudents(false)} />
             <EditClassroom session={session} availableClassrooms={availableClassrooms} updateClassroom={updateClassroom}
-                triggerRefresh={triggerRefresh} open={showRoom} handleClose={() => setShowRoom(false)} />
+                triggerRefresh={triggerRefresh} open={showRooms} handleClose={() => setShowRooms(false)} />
+            <EditSpeakers session={session} availableSpeakers={availableSpeakers} updateSpeakers={updateSpeakers}
+                triggerRefresh={triggerRefresh} open={showSpeakers} handleClose={() => setShowSpeakers(false)} />
         </>
     )
 }

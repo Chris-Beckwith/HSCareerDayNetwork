@@ -56,10 +56,11 @@ export default function EditClassroom({ session, availableClassrooms, updateClas
                         <TableBody>
                             {availableClassrooms.map(room => (
                                 <TableRow key={room.id} sx={{ cursor: "pointer" }} hover 
-                                onClick={() => {
-                                    addClassroom(session, room, false)
-                                    setShowPropConfirm(true)
-                                }}>
+                                    onClick={() => {
+                                        addClassroom(session, room, false)
+                                        setShowPropConfirm(true)
+                                    }}
+                                >
                                     <TableCell>{room.building}</TableCell>
                                     <TableCell>{room.roomNumber}</TableCell>
                                     <TableCell>{room.capacity}</TableCell>

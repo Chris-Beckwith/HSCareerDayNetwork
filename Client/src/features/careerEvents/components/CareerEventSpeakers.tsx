@@ -18,7 +18,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
     const [searchQuery, setSearchQuery] = useState('');
     const [searchEventQuery, setSearchEventQuery] = useState('')
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(25);
 
     useEffect(() => {
         if (eventSpeakers.length == 0)
@@ -142,7 +142,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
             </TableContainer>
 
             <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
+                rowsPerPageOptions={[5, 10, 25, 50]}
                 component="div"
                 count={filterSpeakers(eventSpeakers, true).length}
                 rowsPerPage={rowsPerPage}
@@ -204,7 +204,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                 </Table>
             </TableContainer>
             <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
+                rowsPerPageOptions={[5, 10, 25, 50]}
                 component="div"
                 count={filterSpeakers(availableSpeakers, false).length}
                 rowsPerPage={rowsPerPage}

@@ -80,14 +80,30 @@ namespace CareerDayApi.Data
                 .HasIndex( c => new { c.SchoolId, c.Building, c.RoomNumber })
                 .IsUnique();
 
+            builder.Entity<Session>()
+                .HasMany(s => s.Students)
+                .WithMany(s => s.Sessions);
+
+            builder.Entity<Session>()
+                .HasMany(s => s.Speakers)
+                .WithMany(s => s.Sessions);
+
             builder.Entity<IdentityRole>()
                 .HasData(
-                    new IdentityRole{Name = "Admin", NormalizedName = "ADMIN"}
+                    new IdentityRole{
+                        Id = "26a8eac8-f02a-46e3-923a-11ccd8a42cb1",
+                        Name = "Admin",
+                        NormalizedName = "ADMIN"
+                    }
                 );
 
             builder.Entity<IdentityRole>()
                 .HasData(
-                    new IdentityRole{Name = "SchoolUser", NormalizedName = "SCHOOLUSER"}
+                    new IdentityRole{
+                        Id = "28f040ce-d05d-4996-b30f-674ed9e3eda4",
+                        Name = "SchoolUser",
+                        NormalizedName = "SCHOOLUSER"
+                    }
                 );
         }
 
