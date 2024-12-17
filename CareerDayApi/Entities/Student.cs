@@ -16,5 +16,6 @@ namespace CareerDayApi.Entities
         public int EventId { get; set; }
         public bool SurveyComplete { get; set; }
         public Event Event { get; set; }
+        public List<Session> Sessions { get; set; } = [];
     }
 }

@@ -15,5 +15,6 @@ namespace CareerDayApi.Entities
         public SpeakerAddress Address { get; set; }
         public List<Career> Careers { get; set; }
         public string PublicId { get; set; }
+        public List<Session> Sessions { get; set; } = [];
     }
 }

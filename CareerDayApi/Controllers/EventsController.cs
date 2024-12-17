@@ -30,10 +30,7 @@ namespace CareerDayApi.Controllers
                 .Search(careerEventParams.SearchTerm)
                 .Filter(careerEventParams.EventPhases, careerEventParams.SurveyCompletePercent, careerEventParams.IsDeleted)
                 .AsQueryable()
-                .Include(e => e.School).ThenInclude(s => s.Address)
-                .Include(e => e.EventPhase)
-                .Include(e => e.Speakers)
-                .Include(e => e.Careers);
+                .getEventDetails();
 
             var events = await PagedList<Event>.ToPagedList(query,
                 careerEventParams.PageNumber, careerEventParams.PageSize);
