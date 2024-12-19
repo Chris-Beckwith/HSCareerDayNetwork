@@ -76,6 +76,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         setRoomMode(false)
         setSurveyMode(false)
         setScheduleMode(false)
+        setExportMode(false)
     }
 
     const deleteEvent = () => {
@@ -130,17 +131,13 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
 
     if (scheduleMode) return <SchedulingTool event={careerEvent} back={back} />
 
-    if (exportMode) return <ExportTool />
-
     const nextEventPhaseText = () => {
         switch (eventPhaseName) {
             case EVENT_PHASES.CREATED: return "Open Survey"
             case EVENT_PHASES.SURVEYINPROGRESS: return "Close Survey"
             case EVENT_PHASES.SURVEYCLOSED: return "Scheduling Tool"
-            case EVENT_PHASES.SESSIONSGENERATED: return "Schedule Exporter"
-            // case EVENT_PHASES.ROOMSASSIGNED: return "Assign Speakers"
-            // case EVENT_PHASES.SPEAKERSASSIGNED: return "Generate Schedule"
-            case EVENT_PHASES.SCHEDULEEXPORT: return "Schedule Exporter"
+            case EVENT_PHASES.SESSIONSGENERATED: return "Assign Rooms/Speakers"
+            // case EVENT_PHASES.SCHEDULEEXPORT: return "Schedule Exporter"
             case EVENT_PHASES.COMPLETED:
             case EVENT_PHASES.CANCELLED: return "Reopen Event"
         }
@@ -170,7 +167,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     return toast.error("Survey is still under 5% complete")
                 break;
             case EVENT_PHASES.SURVEYCLOSED: setScheduleMode(true); return;
-            case EVENT_PHASES.SESSIONSGENERATED: setExportMode(true); return;
+            case EVENT_PHASES.SESSIONSGENERATED: setScheduleMode(true); return;
             // case EVENT_PHASES.ROOMSASSIGNED: return "Assign Speakers"
             // case EVENT_PHASES.SPEAKERSASSIGNED: return "Generate Schedule"
             case EVENT_PHASES.SCHEDULEEXPORT: return "Schedule Exporter"
@@ -260,10 +257,22 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                         <LoadingButton onClick={progressEventPhaseAction}
                             loading={loading}
                             variant="contained"
-                            color="primary">
+                            color="primary"
+                            sx={ careerEvent.eventPhase.phaseName == EVENT_PHASES.SESSIONSGENERATED 
+                                ? { px: '11px', fontSize: '0.80rem' }
+                                : {}}>
                             {nextEventPhaseText()}
                         </LoadingButton>
                     </Grid>
+                    {careerEvent.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED &&
+                        <Grid item xs={12}>
+                            <Button onClick={() => setExportMode(true)}
+                                variant="contained"
+                                color="warning">
+                                    Export Schedules
+                            </Button>
+                        </Grid>
+                    }
                     {showSurveyResultsButton() &&
                         <Grid item xs={12}>
                             <Button onClick={() => setSurveyMode(true)}
@@ -390,6 +399,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                 handleConfirm={regressEventPhaseAction} />
             <ConfirmDelete open={deleteMode} itemName={careerEvent.name} itemType="Event"
                 handleClose={cancelDelete} confirmDelete={confirmDelete} loading={confirmDeleteLoading} />
+            <ExportTool open={exportMode} careerEvent={careerEvent} handleClose={() => setExportMode(false)} />
         </Grid>
     )
 }

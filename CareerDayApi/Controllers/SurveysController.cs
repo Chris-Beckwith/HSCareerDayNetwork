@@ -83,7 +83,12 @@ namespace CareerDayApi.Controllers
 
             //By Students
             if (surveyParams.ViewOption) {
+                headers.Add("Student Number");
                 headers.Add("Student Name");
+                headers.Add("Gender");
+                headers.Add("Grade");
+                headers.Add("Teacher");
+                headers.Add("Room");
                 headers.Add("Primary Choice 1");
                 headers.Add("Primary Choice 2");
                 headers.Add("Primary Choice 3");
@@ -108,7 +113,12 @@ namespace CareerDayApi.Controllers
             if (surveyParams.ViewOption) {
                 rows.AddRange(surveyResults.Select(survey => new object[]
                 {
+                    survey.Student.StudentNumber,
                     survey.Student.LastFirstName,
+                    survey.Student.Gender,
+                    survey.Student.Grade,
+                    survey.Student.HomeroomTeacher,
+                    survey.Student.HomeroomNumber,
                     survey.PrimaryCareers[0].Name,
                     survey.PrimaryCareers[1].Name,
                     survey.PrimaryCareers[2].Name,
