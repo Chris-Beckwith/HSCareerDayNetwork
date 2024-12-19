@@ -1,7 +1,7 @@
 import { Button, Checkbox, Grid, Typography } from "@mui/material"
 import { CareerEvent } from "../../app/models/event"
 import { LoadingButton } from "@mui/lab"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import SessionView, { UnplacedStudent } from "./SessionView"
 import { FieldValues, useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
@@ -14,7 +14,9 @@ import { Career } from "../../app/models/career"
 import { findNextEventPhaseId } from "../../app/util/util"
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
 import { reloadEvents } from "../careerEvents/careerEventSlice"
-import ExportTool from "./ExportTool"
+import { EVENT_PHASES } from "../../app/util/constants"
+import { reloadClassrooms } from "../classroom/classroomSlice"
+import SessionViewSkeleton from "./SessionViewSkeleton"
 
 interface Props {
     event: CareerEvent
@@ -29,6 +31,7 @@ export default function SchedulingTool({ event, back }: Props) {
     const dispatch = useAppDispatch()
     const { classrooms, metaData } = useClassrooms(event.school.id, 500)
     const [loading, setLoading] = useState(false)
+    const [loadingSessions, setLoadingSessions] = useState(false)
     const [activeStep, setActiveStep] = useState(0)
     const [sessions, setSessions] = useState<Session[]>([])
     const [unplacedStudents, setUnplacedStudents] = useState<UnplacedStudent[]>([])
@@ -36,6 +39,23 @@ export default function SchedulingTool({ event, back }: Props) {
     const [sameSpeakers, setSameSpeakers] = useState<Career[][]>([])
     const [sameSpeakersIndex, setSameSpeakersIndex] = useState(0)
     const { eventPhases } = useAppSelector(state => state.careerEvents)
+
+    useEffect(() => {
+        if (event.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED) {
+            setLoadingSessions(true)
+            setActiveStep(1)
+            agent.Schedule.getSessionsAndUnplaced(event.id)
+                .then(response => {
+                    setSessions(response.allSessions)
+                    setUnplacedStudents(response.unplacedStudents)
+                })
+                .catch(error => console.log(error))
+                .finally(() => {
+                    reloadClassrooms()
+                    setLoadingSessions(false)
+                })
+        }
+    }, [event.eventPhase.phaseName, event.id])
 
     const { control, handleSubmit, watch } = useForm({
         resolver: yupResolver<any>(schedulingValidationSchema),
@@ -120,22 +140,28 @@ export default function SchedulingTool({ event, back }: Props) {
         }
     }
 
-    async function finalizeSchedule() {
+    async function SaveSchedule() {
         setLoading(true)
 
+        const isSave = event.eventPhase.phaseName === EVENT_PHASES.SURVEYCLOSED
+
         try {
-            await agent.Schedule.saveSessions(sessions)
+            if (isSave)
+                await agent.Schedule.saveSessions(sessions)
+            else
+                await agent.Schedule.updateSessions(sessions)
                 
             try {
-                await agent.Event.updatePhase(event.id, 
-                    findNextEventPhaseId(eventPhases, event.eventPhase.phaseName))
+                if (isSave) {
+                    await agent.Event.updatePhase(event.id, 
+                        findNextEventPhaseId(eventPhases, event.eventPhase.phaseName))
+                }
             } catch (error) {
                 console.log(error)
             } finally {
                 dispatch(reloadEvents())
             }
             back()
-            // setActiveStep(activeStep + 1)
         } catch (error) {
             console.log(error)
         }
@@ -146,9 +172,11 @@ export default function SchedulingTool({ event, back }: Props) {
     const getStepContent = (step: number) => {
         switch (step) {
             case 0: return;
-            case 1: return <SessionView event={event} sessions={sessions} classrooms={classrooms} unplacedStudents={unplacedStudents} />
-            case 2: return <ExportTool />
-            case 3:
+            case 1: 
+                if (loadingSessions)
+                    return <SessionViewSkeleton event={event} />
+                else
+                    return <SessionView event={event} sessions={sessions} classrooms={classrooms} unplacedStudents={unplacedStudents} />
             default:
                 throw new Error('Unknown step')
         }
@@ -164,7 +192,7 @@ export default function SchedulingTool({ event, back }: Props) {
 
                 {activeStep === 1 &&
                     <Grid container item xs={6} sx={{ alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                        <LoadingButton loading={loading} variant="contained" onClick={finalizeSchedule}>Finalize Schedule</LoadingButton>
+                        <LoadingButton loading={loading} variant="contained" onClick={SaveSchedule}>Save Schedule</LoadingButton>
                     </Grid>
                 }
 

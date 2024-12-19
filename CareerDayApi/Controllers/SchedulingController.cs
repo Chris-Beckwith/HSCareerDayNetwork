@@ -1,7 +1,11 @@
 
+using AutoMapper;
 using CareerDayApi.Data;
 using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
+using CareerDayApi.Extensions;
+using CareerDayApi.RequestHelpers;
+using CareerDayApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +13,12 @@ using Microsoft.EntityFrameworkCore;
 namespace CareerDayApi.Controllers
 {
     [Authorize(Roles = "Admin")]
-    public class SchedulingController(CareerDayContext context,
-        ILogger<SchedulingController> logger) : BaseApiController
+    public class SchedulingController(CareerDayContext context, ExcelService excelService,
+        IMapper mapper, ILogger<SchedulingController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
+        private readonly ExcelService _excelService = excelService;
+        private readonly IMapper _mapper = mapper;
         private readonly ILogger<SchedulingController> _logger = logger;
 
         [HttpPost]
@@ -454,7 +460,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpGet("{eventId}")]
-        public async Task<ActionResult<List<Session>>> GetSessions(int eventId)
+        public async Task<ActionResult<List<Session>>> GetSessionsAndUnplaced(int eventId)
         {
             var sessions = await _context.Sessions.Where(s => s.EventId == eventId)
                 .Include(s => s.Classroom).ThenInclude(c => c.School)
@@ -465,7 +471,64 @@ namespace CareerDayApi.Controllers
                 .Include(s => s.Subject)
                 .ToListAsync();
 
-            return sessions;
+            var unplacedStudents = new List<SessionUnplacedStudentDto>();
+
+            var students = await _context.Students.Where(s => s.EventId == eventId)
+                .Include(s => s.Sessions).ThenInclude(s => s.Subject)
+                .Where(s => s.Sessions.Count < _context.Surveys
+                    .Where(sv => sv.Student.Id == s.Id)
+                    .Select(sv => sv.PrimaryCareers.Count)
+                    .FirstOrDefault())
+                .ToListAsync();
+
+            var surveys = await _context.Surveys
+                .Include(s => s.Student)
+                .Include(s => s.PrimaryCareers)
+                .Include(s => s.AlternateCareers)
+                .Where(s => s.Student.EventId == eventId).ToListAsync();
+
+            var numOfSessions = surveys[0].PrimaryCareers.Count;
+
+            foreach (var student in students)
+            {
+                var survey = surveys.FirstOrDefault(s => s.Student.Id == student.Id);
+                if (survey == null || survey.PrimaryCareers == null || survey.PrimaryCareers.Count == 0)
+                    continue;
+
+                var primaryCareers = survey.PrimaryCareers;
+
+                var sessionSubjects = student.Sessions.Select(s => s.Subject).ToList();
+
+                var missingCareers = primaryCareers.Where(pc => !sessionSubjects.Contains(pc)).ToList();
+
+                foreach(var career in missingCareers)
+                {
+                    unplacedStudents.Add(new SessionUnplacedStudentDto
+                    {
+                        Student = _mapper.Map(student, new StudentDto()),
+                        Career = career
+                    });
+                }
+            }
+
+            var allSessions = sessions.Select(session => new SessionDto
+            {
+                Id = session.Id,
+                Classroom = session.Classroom,
+                Students = session.Students.Select(st => _mapper.Map(st, new StudentDto())).ToList(),
+                Speakers = session.Speakers.Select(sp => _mapper.Map(sp, new SpeakerDto())).ToList(),
+                Period = session.Period,
+                Subject = session.Subject,
+                EventId = session.EventId
+            }).ToList();
+
+            var result = new SessionResultDto
+            {
+                AllSessions = allSessions,
+                UnplacedStudents = unplacedStudents
+            };
+
+            return Ok(result);
         }
 
         [HttpPost("save")]
@@ -523,6 +586,66 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails { Title = "Problem creating sessions" });
         }
 
+        [HttpPut]
+        public async Task<ActionResult> UpdateSessions([FromBody] SessionsDto sessionsDto)
+        {
+            var sessions = await _context.Sessions
+                .Where(s => sessionsDto.Sessions.Select(se => se.Id).ToList().Contains(s.Id))
+                .Include(s => s.Classroom)
+                .Include(s => s.Students)
+                .Include(s => s.Speakers)
+                .Include(s => s.Subject)
+                .ToListAsync();
+
+            if (sessions.Count != sessionsDto.Sessions.Count)
+                return BadRequest(new ProblemDetails { Title = "Problem finding all sessions. "});
+
+            foreach(var sessionDto in sessionsDto.Sessions)
+            {
+                var session = sessions.FirstOrDefault(s => s.Id == sessionDto.Id);
+                if (session == null) continue;
+
+                if (sessionDto.Classroom != null) {
+                    var classroom = await _context.Classrooms.FindAsync(sessionDto.Classroom.Id);
+                    if (classroom == null) {
+                        return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Classroom not found"});
+                    }
+                    session.Classroom = classroom;
+                }
+                
+                if (sessionDto.Speakers.Count > 0) {
+                    var speakers = await _context.Speakers
+                        .Where(s => sessionDto.Speakers.Select(sp => sp.Id).ToList().Contains(s.Id))
+                        .ToListAsync();
+                    session.Speakers = speakers;
+                }
+
+                List<Student> students = await _context.Students
+                    .Where(s => sessionDto.Students.Select(st => st.Id).ToList().Contains(s.Id))
+                    .ToListAsync();
+
+                Career subject = await _context.Careers.FindAsync(sessionDto.Subject.Id);
+                
+                if (students == null) {
+                    return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Students not found"});
+                }
+                if (subject == null) {
+                    return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Subject not found"});
+                }
+
+                session.Students = students;
+                session.Period = sessionDto.Period;
+                session.Subject = subject;
+                session.EventId = sessionDto.EventId;
+            }
+
+            var result = await _context.SaveChangesAsync() > 0;
+
+            if (result) return Ok(new { message = "Successfully Saved Sessions" });
+
+            return BadRequest(new ProblemDetails { Title = "Problem creating sessions" });
+        }
+
         [HttpDelete("{eventId}")]
         public async Task<ActionResult> DeleteSessions(int eventId)
         {
@@ -535,6 +658,71 @@ namespace CareerDayApi.Controllers
             if (result) return Ok();
 
             return BadRequest(new ProblemDetails { Title = "Problem deleting sessions for event: " + eventId });
+        }
+
+        [HttpGet("primary")]
+        public async Task<ActionResult> ExportPrimary([FromQuery] ExportParams exportParams)
+        {
+            var careerEvent = await _context.Events.FindAsync(exportParams.EventId);
+            
+            var students = await _context.Students
+                .Where(s => s.EventId == exportParams.EventId)
+                .Include(s => s.Sessions).ThenInclude(s => s.Classroom)
+                .Include(s => s.Sessions).ThenInclude(s => s.Speakers)
+                .Include(s => s.Sessions).ThenInclude(s => s.Subject)
+                .ToListAsync();
+
+            var numOfSessions = students[0].Sessions.Count;
+
+            var headers = new List<string>(){
+                "Student Id",
+                "Last First Name",
+                "Gender",
+                "Grade",
+                "Teacher",
+                "Room"
+            };
+
+            for (var i = 1; i <= numOfSessions; i++)
+            {
+                headers.Add("Career " + i);
+                headers.Add("Room " + i);
+            }
+
+            var rows = new List<object[]>();
+
+            foreach(var student in students)
+            {
+                var sessions = student.Sessions.OrderBy(s => s.Period).ToList();
+                var rowIndex = 6;
+
+                var row = new object[rowIndex + sessions.Count * 2];
+                row[0] = student.StudentNumber;
+                row[1] = student.LastFirstName;
+                row[2] = student.Gender;
+                row[3] = student.Grade;
+                row[4] = student.HomeroomTeacher;
+                row[5] = student.HomeroomNumber;
+
+                foreach(var session in sessions)
+                {
+                    row[rowIndex++] = session.Subject.Name;
+                    if (session.Classroom != null)
+                        row[rowIndex++] = session.Classroom.Building + session.Classroom.RoomNumber;
+                    else
+                        rowIndex++;
+                }
+
+                rows.Add(row);
+            }
+
+            string fileName = $"{careerEvent.Name}_{careerEvent.EventDate.ToString("MM-dd-yyyy")}_PrimarySchedule.xlsx";
+
+            var stream = await _excelService.ExportToExcel(headers, rows, "Primary Schedule");
+
+            Response.AddExcelHeader(fileName, _excelService.excelMimeType);
+
+            return File(stream, _excelService.excelMimeType, fileName);
         }
     }
 
