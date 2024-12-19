@@ -6,6 +6,7 @@ import SurveyResultLineItem from "./SurveyResultLineItem";
 import SurveyStudentLineItem from "./SurveyStudentLineItem";
 import { downloadExcel } from "../../app/util/util";
 import agent from "../../app/api/agent";
+import { LoadingButton } from "@mui/lab";
 
 interface Props {
     event: CareerEvent
@@ -15,6 +16,7 @@ interface Props {
 
 export default function SurveyResults({ event, back, schoolUser }: Props) {
     const { surveys } = useSurveys(event.id)
+    const [loading, setLoading] = useState(false)
     const [sortOption, setSortOption] = useState(false)
     const [viewOption, setViewOption] = useState(false)
     const [showAlternate, setShowAlternate] = useState(false)
@@ -82,6 +84,7 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
     }
 
     const handleExport = async () => {
+        setLoading(true)
         const params = new URLSearchParams()
         params.append('eventId', event.id.toString())
         params.append('sortOption', sortOption.toString())
@@ -89,8 +92,10 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
         params.append('includeAlternate', includeAlternate.toString())
         params.append('showAlternate', showAlternate.toString())
 
-        await agent.Survey.export(params)
+        agent.Survey.export(params)
             .then(response => downloadExcel(response))
+            .catch(error => console.log(error))
+            .finally(() => setLoading(false))
     }
 
     //Max Values
@@ -149,9 +154,9 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                         </Box>
                     </Grid>
                     <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', pr: 2 }}>
-                        <Button variant="contained" onClick={handleExport}>
+                        <LoadingButton loading={loading} variant="contained" onClick={handleExport}>
                             Export
-                        </Button>
+                        </LoadingButton>
                     </Grid>
                 </Grid>
 

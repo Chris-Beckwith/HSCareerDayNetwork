@@ -93,6 +93,9 @@ const requests = {
         axios.get(url, {params, responseType: 'blob'}).then(responseBody),
     postJson: (url: string, body: string) => axios.post(url, body, {
         headers: {'Content-Type': 'application/json'}
+    }).then(responseBody),
+    putJson: (url: string, body: string) => axios.put(url, body, {
+        headers: {'Content-Type': 'application/json'}
     }).then(responseBody)
 }
 
@@ -206,9 +209,12 @@ const Survey = {
 
 const Schedule = {
     generateSessions: (generationParams: any) => requests.postForm('scheduling', createFormData(generationParams)),
-    getSessions: (eventId: number) => requests.get(`scheduling/${eventId}`),
+    // getSessions: (eventId: number) => requests.get(`scheduling/${eventId}`),
+    getSessionsAndUnplaced: (eventId: number) => requests.get(`scheduling/${eventId}`),
     saveSessions: (sessions: any) => requests.postJson('scheduling/save', JSON.stringify({sessions}) ),
-    deleteSessions: (eventId: number) => requests.delete(`scheduling/${eventId}`)
+    updateSessions: (sessions: any) => requests.putJson('scheduling', JSON.stringify({sessions}) ),
+    deleteSessions: (eventId: number) => requests.delete(`scheduling/${eventId}`),
+    exportPrimary: (params: URLSearchParams) => requests.getBlob('scheduling/primary', params)
 }
 
 const TestErrors = {
