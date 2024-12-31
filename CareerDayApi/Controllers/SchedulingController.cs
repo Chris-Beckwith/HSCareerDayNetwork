@@ -30,7 +30,9 @@ namespace CareerDayApi.Controllers
                                         .Include(s => s.AlternateCareers)
                                         .Where(s => s.Student.EventId == generateScheduleParamsDto.EventId).ToListAsync();
 
-            // var periodCount = generateScheduleParamsDto.PeriodCount;
+            var maxClassSize = generateScheduleParamsDto.MaxClassSize;
+
+            var maxSessionSize = surveys.Count;
 
             // Dictionary to count the number of times each primary career is selected
             var primaryCareerCounts = surveys
@@ -45,17 +47,46 @@ namespace CareerDayApi.Controllers
                 .ThenByDescending(s => s.Student.Grade)
                 .ToList();
             
+            
+            // Initialize Sessions
             var allSessions = new List<Session>();
 
-            // Initialize Sessions
+            var sameSpeakerCareers = new List<Career>();
+
+            //Add Same Speaker sessions first
+            if (generateScheduleParamsDto.SameSpeakersForCareerList != null) {
+                foreach(var sameSpeakers in generateScheduleParamsDto.SameSpeakersForCareerList)
+                {
+                    var studentCount = 0;
+                    foreach(var career in sameSpeakers)
+                    {
+                        var sameSpeakerCareer = primaryCareerCounts.Where(c => c.Key.Id == career.Id).FirstOrDefault();
+                        studentCount += sameSpeakerCareer.Value;
+                        sameSpeakerCareers.Add(sameSpeakerCareer.Key);
+                    }
+
+                    for (var i = 0; i < Math.Ceiling((double)studentCount / generateScheduleParamsDto.MaxClassSize); i++)
+                    {
+                        allSessions.Add(new Session {
+                            Subject = sameSpeakers[0],
+                            EventId = generateScheduleParamsDto.EventId
+                        });
+                    }
+
+                }
+            }
+
+            //Add the rest, excluding the same speaker careers/subject
             foreach(var count in primaryCareerCounts)
             {
-                for (var i = 0; i < Math.Ceiling((double)count.Value / generateScheduleParamsDto.MaxClassSize); i++)
-                {
-                    allSessions.Add(new Session {
-                        Subject = count.Key,
-                        EventId = generateScheduleParamsDto.EventId
-                    });
+                if (!sameSpeakerCareers.Contains(count.Key)) {
+                    for (var i = 0; i < Math.Ceiling((double)count.Value / generateScheduleParamsDto.MaxClassSize); i++)
+                    {
+                        allSessions.Add(new Session {
+                            Subject = count.Key,
+                            EventId = generateScheduleParamsDto.EventId
+                        });
+                    }
                 }
             }
 
@@ -77,10 +108,22 @@ namespace CareerDayApi.Controllers
             List<Session> FindSessionsForCareerSorted(Career career)
             {
                 return sessionPopulation
-                    .Where(kvp => kvp.Key.Subject == career)
+                    .Where(kvp => kvp.Key.Subject.Id == career.Id && kvp.Value < maxClassSize)
                     .OrderBy(kvp => kvp.Value)
                     .Select(kvp => kvp.Key)
                     .ToList();
+            }
+
+            Career FindSameSpeakerCareer(Career career)
+            {
+                foreach (var careerArray in generateScheduleParamsDto.SameSpeakersForCareerList)
+                {
+                    if (careerArray.Any(c => c.Id == career.Id))
+                    {
+                        return careerArray.First();
+                    }
+                }
+                return career;
             }
 
             // Initialize Conflict Map
@@ -100,8 +143,10 @@ namespace CareerDayApi.Controllers
                 {
                     bool isAdded = false;
 
+                    var actualPCareer = FindSameSpeakerCareer(pCareer);
+
                     // Find session for that career with least students
-                    var sessions = FindSessionsForCareerSorted(pCareer);
+                    var sessions = FindSessionsForCareerSorted(actualPCareer);
                     foreach(Session session in sessions)
                     {
                         // If period already assigned, check if student already has session in that period
@@ -115,7 +160,7 @@ namespace CareerDayApi.Controllers
                             // Determine the minimum count of sessions for the specified career subject
                             int minCount = careerSubjectCounts.Min();
 
-                            // Return only those with the minimum count of sessions of that subject
+                            // Return only those periods with the minimum count of sessions of that subject
                             var availablePeriods = periods
                                 .Select((period, index) => new { Period = period, Index = index })
                                 .Where(x => careerSubjectCounts[x.Index] == minCount)
@@ -125,7 +170,7 @@ namespace CareerDayApi.Controllers
                             foreach(var availPeriod in availablePeriods)
                             {
                                 int periodIndex = availPeriod.Index;
-                                var periodSessions = availPeriod.Period;
+                                // var periodSessions = availPeriod.Period;
 
                                 // Check for conflict
                                 bool hasConflict = conflictMap[periodIndex].Contains(survey.Student);
@@ -172,7 +217,7 @@ namespace CareerDayApi.Controllers
                         unplacedStudents.Add(new UnplacedStudentDto
                             {
                                 Student = survey.Student,
-                                Career = pCareer
+                                Career = actualPCareer
                             });
                     }
                 }
@@ -213,12 +258,12 @@ namespace CareerDayApi.Controllers
                         if (!enrolledPeriods.Contains(i)) {
                             // Available session
                             Session openSession = periods[i]
-                                .Where(session => session.Subject == enrolledSession.Subject)
+                                .Where(session => session.Subject.Id == enrolledSession.Subject.Id && session.Students.Count < maxClassSize)
                                 .OrderBy(session => session.Students.Count)
                                 .FirstOrDefault();
 
                             Session sessionToPlace = periods[enrolledSession.Period - 1]
-                                .Where(session => session.Subject == unplacedCareer)
+                                .Where(session => session.Subject.Id == unplacedCareer.Id && session.Students.Count < maxClassSize)
                                 .OrderBy(session => session.Students.Count)
                                 .FirstOrDefault();
 
@@ -266,12 +311,12 @@ namespace CareerDayApi.Controllers
                                     // otherEnrolledSession go into open.period
                                     if (sessionToPlace != null && openSession == null) {
                                         openSession = periods[i]
-                                            .Where(session => session.Subject == otherEnrolledSession.Subject)
+                                            .Where(session => session.Subject.Id == otherEnrolledSession.Subject.Id && session.Students.Count < maxClassSize)
                                             .OrderBy(session => session.Students.Count)
                                             .FirstOrDefault();
 
                                         Session enrolledToOtherEnrolled = periods[otherEnrolledSession.Period - 1]
-                                            .Where(session => session.Subject == enrolledSession.Subject)
+                                            .Where(session => session.Subject.Id == enrolledSession.Subject.Id && session.Students.Count < maxClassSize)
                                             .OrderBy(session => session.Students.Count)
                                             .FirstOrDefault();
 
@@ -334,12 +379,12 @@ namespace CareerDayApi.Controllers
                                     // sessionToPlace go into otherEnrolledSession.period
                                     if (openSession != null && sessionToPlace == null) {
                                         sessionToPlace = periods[otherEnrolledSession.Period - 1]
-                                            .Where(session => session.Subject == unplacedCareer)
+                                            .Where(session => session.Subject.Id == unplacedCareer.Id && session.Students.Count < maxClassSize)
                                             .OrderBy(session => session.Students.Count)
                                             .FirstOrDefault();
 
                                         Session otherEnrolledToEnrolled = periods[enrolledSession.Period - 1]
-                                            .Where(session => session.Subject == otherEnrolledSession.Subject)
+                                            .Where(session => session.Subject.Id == otherEnrolledSession.Subject.Id && session.Students.Count < maxClassSize)
                                             .OrderBy(session => session.Students.Count)
                                             .FirstOrDefault();
 
@@ -393,12 +438,12 @@ namespace CareerDayApi.Controllers
                                     // Can otherEnrolledSession go into open.period
                                     if (openSession == null && sessionToPlace == null) {
                                         openSession = periods[i]
-                                            .Where(session => session.Subject == otherEnrolledSession.Subject)
+                                            .Where(session => session.Subject.Id == otherEnrolledSession.Subject.Id && session.Students.Count < maxClassSize)
                                             .OrderBy(session => session.Students.Count)
                                             .FirstOrDefault();
 
                                         sessionToPlace = periods[otherEnrolledSession.Period - 1]
-                                            .Where(session => session.Subject == unplacedCareer)
+                                            .Where(session => session.Subject.Id == unplacedCareer.Id && session.Students.Count < maxClassSize)
                                             .OrderBy(session => session.Students.Count)
                                             .FirstOrDefault();
                                         
@@ -446,13 +491,14 @@ namespace CareerDayApi.Controllers
                 unplacedStudents.Remove(studentToRemove);
             }
 
-            // var one = periods[0].SelectMany(s => s.Students).Distinct().ToList();
-            // var two = periods[1].SelectMany(s => s.Students).Distinct().ToList();
-            // var tre = periods[2].SelectMany(s => s.Students).Distinct().ToList();
-
+            var periodCounts = periods
+                .Select(period => period.SelectMany(s => s.Students).ToList().Count)
+                .ToList();
+            
             var result = new ScheduleResultDto
             {
                 AllSessions = allSessions,
+                PeriodCounts = periodCounts,
                 UnplacedStudents = unplacedStudents
             };
 
