@@ -116,11 +116,13 @@ namespace CareerDayApi.Controllers
 
             Career FindSameSpeakerCareer(Career career)
             {
-                foreach (var careerArray in generateScheduleParamsDto.SameSpeakersForCareerList)
-                {
-                    if (careerArray.Any(c => c.Id == career.Id))
+                if (generateScheduleParamsDto.SameSpeakersForCareerList != null) {
+                    foreach (var careerArray in generateScheduleParamsDto.SameSpeakersForCareerList)
                     {
-                        return careerArray.First();
+                        if (careerArray.Any(c => c.Id == career.Id))
+                        {
+                            return careerArray.First();
+                        }
                     }
                 }
                 return career;
