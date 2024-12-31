@@ -18,7 +18,7 @@ export default function UnplacedStudentList({ unplacedStudents, open, handleClos
                     <Divider sx={{ mb: 1 }}/>
                     {unplacedStudents.map((s, index) => (
                         <Grid item key={index}>
-                            <Typography variant="body2">{s.student.lastFirstName}</Typography>
+                            <Typography variant="body2">{s.student.lastFirstName} - Grade: {s.student.grade}</Typography>
                             <Typography variant="body2">{s.career.name}</Typography>
                             <Divider />
                         </Grid>
