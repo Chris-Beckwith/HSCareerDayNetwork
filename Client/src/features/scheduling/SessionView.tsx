@@ -17,16 +17,17 @@ export interface UnplacedStudent {
 interface Props {
     event: CareerEvent
     sessions: Session[]
+    periodCounts: number[]
     classrooms: Classroom[]
     unplacedStudents: UnplacedStudent[]
 }
 
-export default function SessionView({ event, sessions, classrooms, unplacedStudents }: Props) {
+export default function SessionView({ event, sessions, periodCounts, classrooms, unplacedStudents }: Props) {
     const [refreshKey, setRefreshKey] = useState(0)
     const [showUnplacedStudents, setShowUnplacedStudents] = useState(false)
     
     const periods = Array.from(new Set(sessions.map(s => s.period))).sort((a, b) => a - b)
-
+    
     const triggerRefresh = () => {
         setRefreshKey((prev: number) => prev + 1)
     }
@@ -75,7 +76,7 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
                     {periods.map(p => (
                         <Grid key={p} item xs={Math.floor(12/periods.length)}>
                             <Typography variant="body1">
-                                Session {p} (Classes: {sessions.filter(s => s.period === p).length})
+                                Session {p} (Classes: {sessions.filter(s => s.period === p).length} - Students: {periodCounts[p-1]})
                             </Typography>
                             <Grid item>
                                 {sessions.filter(s => s.period === p)
