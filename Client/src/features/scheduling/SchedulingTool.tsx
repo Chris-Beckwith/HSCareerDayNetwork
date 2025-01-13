@@ -147,8 +147,6 @@ export default function SchedulingTool({ event, back }: Props) {
             sameSpeakersForCareerList: sameSpeakers
         }
 
-        console.log("PARAMS: ", generationParams)
-
         try {
             agent.Schedule.generateSessions(generationParams)
                 .then(response => {

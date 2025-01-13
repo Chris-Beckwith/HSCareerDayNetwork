@@ -72,16 +72,6 @@ namespace CareerDayApi.Controllers
 
                     var count = new KeyValuePair<Career, int>(sameSpeakers[0], studentCount);
                     AddRestrictedSession(generateScheduleParamsDto, count, allSessions, periods);
-
-                    // for (var i = 0; i < Math.Ceiling((double)studentCount / generateScheduleParamsDto.MaxClassSize); i++)
-                    // {
-                    //     //TODO if I make this a new career, check and update RequiredPeriodForCareerList (would need to make a new list)
-                    //     allSessions.Add(new Session {
-                    //         Subject = sameSpeakers[0],
-                    //         EventId = generateScheduleParamsDto.EventId
-                    //     });
-                    // }
-
                 }
             }
 
@@ -89,79 +79,7 @@ namespace CareerDayApi.Controllers
             foreach(var count in primaryCareerCounts)
             {
                 if (!sameSpeakerCareers.Contains(count.Key)) {
-                    //TODO if I create new careers above, need to use TryGetValue first
-                    // var restrictPeriods = generateScheduleParamsDto.RequiredPeriodForCareerList[count.Key.Id];
-
-                    // // Restricted Career/Subject
-                    // if (restrictPeriods.Count(p => p == 0) < generateScheduleParamsDto.PeriodCount) {
                     AddRestrictedSession(generateScheduleParamsDto, count, allSessions, periods);
-
-                        // If available periods > totalSessions, partially restricted ("OR" restriction)
-                            // add without period
-                        // If available periods < totalSessions
-                            // available periods % totalSessions, split evenly add
-                            // else add all but extra (1 or 2)
-                        // If available periods = totalSessions, add
-
-                        //TODO if a career has requested additional sessions, add here
-                        // var totalSessions = Math.Ceiling((double)count.Value / generateScheduleParamsDto.MaxClassSize);
-                        
-                        // var availablePeriods = restrictPeriods.Contains(1)
-                        //     ? restrictPeriods.Select((value, index) => value == 1 ? index : -1).Where(index => index != -1).ToList()
-                        //     : restrictPeriods.Select((value, index) => value == 2 ? index : -1).Where(index => index != -1).ToList();
-
-                        // if (availablePeriods.Count > totalSessions) {
-                        //     for (var i = 0; i < totalSessions; i++)
-                        //     {
-                        //         allSessions.Add(new Session {
-                        //             Subject = count.Key,
-                        //             EventId = generateScheduleParamsDto.EventId
-                        //         });
-                        //     }
-                        // } else if (availablePeriods.Count < totalSessions) {
-                        //     var availableCount = availablePeriods.Count;
-                        //     while (availableCount <= totalSessions)
-                        //     {
-                        //         foreach(var period in availablePeriods)
-                        //         {
-                        //             var newSession = new Session {
-                        //                 Period = period + 1,
-                        //                 Subject = count.Key,
-                        //                 EventId = generateScheduleParamsDto.EventId
-                        //             };
-                        //             periods[period].Add(newSession);
-                        //             allSessions.Add(newSession);
-                        //             totalSessions--;
-                        //         }
-                        //     }
-                        //     for (var i = 0; i < totalSessions; i++)
-                        //     {
-                        //         allSessions.Add(new Session {
-                        //             Subject = count.Key,
-                        //             EventId = generateScheduleParamsDto.EventId
-                        //         });
-                        //     }
-                        // } else {                            
-                        //     foreach(var period in availablePeriods)
-                        //     {
-                        //         var newSession = new Session {
-                        //             Period = period + 1,
-                        //             Subject = count.Key,
-                        //             EventId = generateScheduleParamsDto.EventId
-                        //         };
-                        //         periods[period].Add(newSession);
-                        //         allSessions.Add(newSession);
-                        //     }
-                        // }
-                    // } else {
-                    //     for (var i = 0; i < Math.Ceiling((double)count.Value / generateScheduleParamsDto.MaxClassSize); i++)
-                    //     {
-                    //         allSessions.Add(new Session {
-                    //             Subject = count.Key,
-                    //             EventId = generateScheduleParamsDto.EventId
-                    //         });
-                    //     }
-                    // }
                 }
             }
 
