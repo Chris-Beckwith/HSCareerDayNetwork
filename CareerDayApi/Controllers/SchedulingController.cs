@@ -32,8 +32,6 @@ namespace CareerDayApi.Controllers
 
             var maxClassSize = generateScheduleParamsDto.MaxClassSize;
 
-            var maxSessionSize = surveys.Count;
-
             // Dictionary to count the number of times each primary career is selected
             var primaryCareerCounts = surveys
                 .SelectMany(s => s.PrimaryCareers)
@@ -43,10 +41,17 @@ namespace CareerDayApi.Controllers
             // Sort the surveys list based on primary career popularity, then gender, then grade
             var sortedSurveys = surveys
                 .OrderBy(s => s.PrimaryCareers.Max(c => primaryCareerCounts.TryGetValue(c, out int value) ? value : 0))
-                .ThenBy(s => s.Student.Gender)
                 .ThenByDescending(s => s.Student.Grade)
+                .ThenBy(s => s.Student.Gender)
                 .ToList();
             
+            // Initialize Periods
+            var periods = new List<List<Session>>();
+            for (int i = 0; i < generateScheduleParamsDto.PeriodCount; i++)
+            {
+                var sessionList = new List<Session>();
+                periods.Add(sessionList);
+            }
             
             // Initialize Sessions
             var allSessions = new List<Session>();
@@ -65,14 +70,8 @@ namespace CareerDayApi.Controllers
                         sameSpeakerCareers.Add(sameSpeakerCareer.Key);
                     }
 
-                    for (var i = 0; i < Math.Ceiling((double)studentCount / generateScheduleParamsDto.MaxClassSize); i++)
-                    {
-                        allSessions.Add(new Session {
-                            Subject = sameSpeakers[0],
-                            EventId = generateScheduleParamsDto.EventId
-                        });
-                    }
-
+                    var count = new KeyValuePair<Career, int>(sameSpeakers[0], studentCount);
+                    AddRestrictedSession(generateScheduleParamsDto, count, allSessions, periods);
                 }
             }
 
@@ -80,25 +79,11 @@ namespace CareerDayApi.Controllers
             foreach(var count in primaryCareerCounts)
             {
                 if (!sameSpeakerCareers.Contains(count.Key)) {
-                    for (var i = 0; i < Math.Ceiling((double)count.Value / generateScheduleParamsDto.MaxClassSize); i++)
-                    {
-                        allSessions.Add(new Session {
-                            Subject = count.Key,
-                            EventId = generateScheduleParamsDto.EventId
-                        });
-                    }
+                    AddRestrictedSession(generateScheduleParamsDto, count, allSessions, periods);
                 }
             }
 
-            // Initialize Periods
-            var periods = new List<List<Session>>();
-            for (int i = 0; i < generateScheduleParamsDto.PeriodCount; i++)
-            {
-                var sessionList = new List<Session>();
-                periods.Add(sessionList);
-            }
-
-            // Initialize Session population map
+            // Initialize Session population map TODO this can be replaced by allSessions right???
             var sessionPopulation = new Dictionary<Session, int>();
             foreach(var session in allSessions)
             {
@@ -151,9 +136,20 @@ namespace CareerDayApi.Controllers
                     var sessions = FindSessionsForCareerSorted(actualPCareer);
                     foreach(Session session in sessions)
                     {
-                        // If period already assigned, check if student already has session in that period
-                        // Else, Find periods with least sessions and no session with current session's career subject
+                        // If period not assigned, Find periods with least sessions and no session with current session's career subject
+                        // Else, check if student already has session in that period
                         if (session.Period == 0) {
+                            // Check if restricted.
+                            var restrictPeriods = generateScheduleParamsDto.RequiredPeriodForCareerList[session.Subject.Id];
+
+                            var allowedPeriods = Enumerable.Range(0, generateScheduleParamsDto.PeriodCount);
+                            
+                            if (restrictPeriods.Count(p => p == 0) < generateScheduleParamsDto.PeriodCount) {
+                                allowedPeriods = restrictPeriods.Contains(1)
+                                    ? restrictPeriods.Select((value, index) => value == 1 ? index : -1).Where(index => index != -1).ToList()
+                                    : restrictPeriods.Select((value, index) => value == 2 ? -1 : index).Where(index => index != -1).ToList();
+                            }
+
                             // Session not assigned period, find a period
                             var careerSubjectCounts = periods
                                 .Select(period => period.Count(s => s.Subject == session.Subject))
@@ -165,7 +161,7 @@ namespace CareerDayApi.Controllers
                             // Return only those periods with the minimum count of sessions of that subject
                             var availablePeriods = periods
                                 .Select((period, index) => new { Period = period, Index = index })
-                                .Where(x => careerSubjectCounts[x.Index] == minCount)
+                                .Where(x => careerSubjectCounts[x.Index] == minCount && allowedPeriods.Contains(x.Index))
                                 .OrderBy(x => x.Period.Count)
                                 .ToList();
                             
@@ -212,7 +208,6 @@ namespace CareerDayApi.Controllers
                         }
                         if (isAdded) break;
                     }
-
 
                     // If Conflict, add Student, Conflicting PrimaryCareer
                     if (!isAdded) {
@@ -507,6 +502,95 @@ namespace CareerDayApi.Controllers
             return Ok(result);
         }
 
+        private static void AddRestrictedSession(GenerateScheduleParamsDto generateScheduleParamsDto, KeyValuePair<Career, int> count,
+            List<Session> allSessions, List<List<Session>> periods)
+        {
+            // If allowed periods > totalSessions, partially restricted ("OR" restriction)
+                // add without period
+            // If allowed periods < totalSessions
+                // allowed periods % totalSessions, split evenly add
+                // else add all but extra (1 or 2)
+            // If allowed periods = totalSessions, add
+
+            var restrictPeriods = generateScheduleParamsDto.RequiredPeriodForCareerList[count.Key.Id];
+            
+            //TODO if a career has requested additional sessions, add here (from generateScheduleParamsDto)
+            var totalSessions = Math.Ceiling((double)count.Value / generateScheduleParamsDto.MaxClassSize);
+
+            // Number of restricted periods is not equal to the total periods
+            if (restrictPeriods.Count(p => p == 0) < generateScheduleParamsDto.PeriodCount) {
+                // Get periods allowed for subject/career
+                var allowedPeriods = restrictPeriods.Contains(1)
+                    ? restrictPeriods.Select((value, index) => value == 1 ? index : -1).Where(index => index != -1).ToList()
+                    : restrictPeriods.Select((value, index) => value == 2 ? -1 : index).Where(index => index != -1).ToList();
+
+                // Allowed periods greater than the number of sessions for a subject
+                // Pick a period when placing students
+                if (allowedPeriods.Count > totalSessions) {
+                    for (var i = 0; i < totalSessions; i++)
+                    {
+                        allSessions.Add(new Session
+                        {
+                            Subject = count.Key,
+                            EventId = generateScheduleParamsDto.EventId
+                        });
+                    }
+                // Multiple careers will need to be placed in the same period (rare case)
+                // Assign evenly in each allowed period,
+                // then add any remaining without period to be assigned when placing students.
+                } else if (allowedPeriods.Count < totalSessions) {
+                    var availableCount = allowedPeriods.Count;
+                    while (availableCount <= totalSessions)
+                    {
+                        foreach (var period in allowedPeriods)
+                        {
+                            var newSession = new Session
+                            {
+                                Period = period + 1,
+                                Subject = count.Key,
+                                EventId = generateScheduleParamsDto.EventId
+                            };
+                            periods[period].Add(newSession);
+                            allSessions.Add(newSession);
+                            totalSessions--;
+                        }
+                    }
+                    for (var i = 0; i < totalSessions; i++)
+                    {
+                        allSessions.Add(new Session
+                        {
+                            Subject = count.Key,
+                            EventId = generateScheduleParamsDto.EventId
+                        });
+                    }
+                // Most common case
+                // Even allowed periods and number of sessions, place one session in each allowed period
+                } else {
+                    foreach (var period in allowedPeriods)
+                    {
+                        var newSession = new Session
+                        {
+                            Period = period + 1,
+                            Subject = count.Key,
+                            EventId = generateScheduleParamsDto.EventId
+                        };
+                        periods[period].Add(newSession);
+                        allSessions.Add(newSession);
+                    }
+                }
+            // Unrestricted Subject/Career
+            } else {
+                for (var i = 0; i < totalSessions; i++)
+                {
+                    allSessions.Add(new Session
+                    {
+                        Subject = count.Key,
+                        EventId = generateScheduleParamsDto.EventId
+                    });
+                }
+            }
+        }
+
         [HttpGet("{eventId}")]
         public async Task<ActionResult<List<Session>>> GetSessionsAndUnplaced(int eventId)
         {
@@ -604,6 +688,7 @@ namespace CareerDayApi.Controllers
 
                 var studentIds = session.Students.Select(st => st.Id).ToList();
                 List<Student> students = await _context.Students.Where(s => studentIds.Contains(s.Id)).ToListAsync();
+                //TODO if I create custom subject, I would need to handle that here.
                 Career subject = await _context.Careers.FindAsync(session.Subject.Id);
                 
                 if (students == null) {

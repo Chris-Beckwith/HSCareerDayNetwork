@@ -16,7 +16,8 @@ import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
 import { reloadEvents } from "../careerEvents/careerEventSlice"
 import { EVENT_PHASES } from "../../app/util/constants"
 import { reloadClassrooms } from "../classroom/classroomSlice"
-import SessionViewSkeleton from "./SessionViewSkeleton"
+import SessionViewSkeleton from "./SessionViewSkeleton" 
+import TriStateCheckbox from "./components/TriStateCheckbox"
 
 interface Props {
     event: CareerEvent
@@ -24,7 +25,7 @@ interface Props {
 }
 
 interface CheckedState {
-    [key: number]: boolean[]
+    [key: number]: (0 | 1 | 2)[]
 }
 
 export default function SchedulingTool({ event, back }: Props) {
@@ -70,7 +71,7 @@ export default function SchedulingTool({ event, back }: Props) {
     
     const [checkedState, setCheckedState] = useState<CheckedState>(
         event.careers.reduce((acc: CheckedState, career) => {
-            acc[career.id] = Array(sessionCountValue).fill(false);
+            acc[career.id] = Array(sessionCountValue).fill(0);
             return acc;
         }, {} as CheckedState)
     )
@@ -109,10 +110,29 @@ export default function SchedulingTool({ event, back }: Props) {
     }
 
     const handleCheckboxChange = (careerId: number, index: number) => {
-        setCheckedState(prevState => ({
-            ...prevState,
-            [careerId]: prevState[careerId].map((checked, i) => (i === index ? !checked : checked)),
-        }))
+        setCheckedState(prevState => {
+            const currentState = prevState[careerId]
+
+            let checkedValue = 0
+            currentState.forEach((checked, i) => {
+                if (i !== index && checked !== 0) {
+                    checkedValue = checked
+                }
+            })
+
+            let nextValue = (currentState[index] + 1) % 3 as 0 | 1 | 2
+
+            if (checkedValue !== 0 && nextValue !== 0 && nextValue !== checkedValue) {
+                nextValue = (nextValue + 1) % 3 as 0 | 1 | 2
+            }
+
+            return {
+                ...prevState,
+                [careerId]: prevState[careerId].map((checked, i) =>
+                    i === index ? nextValue : checked
+                )
+            }
+        })
     }
 
     async function generateSchedule(data: FieldValues) {
@@ -237,6 +257,17 @@ export default function SchedulingTool({ event, back }: Props) {
                                                 ))}
                                             </Grid>
                                         </Grid>
+                                        
+                                        <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Typography variant="body1">
+                                                Click Same Speakers to allow careers to use the same speakers.  This will combine classes for the selected careers.
+                                            </Typography>
+                                            {selectCareers && 
+                                                <Typography>
+                                                    Click save to add same speaker grouping.  You may add another group after saving a group.
+                                                </Typography>
+                                            }
+                                        </Grid>
 
                                         <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
                                             <Grid item xs={3} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'start' }}>
@@ -247,14 +278,30 @@ export default function SchedulingTool({ event, back }: Props) {
                                             <Grid item xs={8} sx={{ justifyContent: 'flex-start' }}>
                                                 {sameSpeakers.map((c, outIndex) => (
                                                     <Grid item key={outIndex} xs={12}>
+                                                        <span>{outIndex + 1}.</span>
                                                         {c.map((cc, index) => (
                                                             <span key={cc.id}>
-                                                                <Typography key={cc.id} sx={{ display: 'inline' }}>{cc.name}</Typography>
+                                                                <Typography key={cc.id} sx={{ display: 'inline', pl: 1 }}>{cc.name}</Typography>
                                                                 {index !== c.length - 1 && <Typography sx={{ display: 'inline', px: 1 }}>-</Typography>}
                                                             </span>
                                                         ))}
                                                     </Grid>
                                                 ))}
+                                            </Grid>
+                                        </Grid>
+
+                                        <Grid container item xs={12}>
+                                            <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center'}}>
+                                                <Typography sx={{ display: 'flex', width: '400px'}}>
+                                                    <Checkbox defaultChecked disabled size="small" sx={{ p: 0, '&.Mui-disabled': { color: 'primary.main' } }} />
+                                                    Select sessions you want to force a career to be in
+                                                </Typography>
+                                            </Grid>
+                                            <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center'}}>
+                                                <Typography sx={{ display: 'flex', width: '400px' }}>
+                                                    <Checkbox defaultChecked disabled size="small" sx={{ p: 0, '&.Mui-disabled': { color: 'error.main' } }} />
+                                                    Select sessions you want to a career NOT to be in
+                                                </Typography>
                                             </Grid>
                                         </Grid>
 
@@ -286,9 +333,9 @@ export default function SchedulingTool({ event, back }: Props) {
                                             {event.careers.map(career => (
                                                 <Grid item xs={4} key={career.id} sx={{ display: 'flex', alignItems: 'center'}}>
                                                     {[...Array(sessionCountValue)].map((_, index) => (
-                                                        <Checkbox key={index} size="small" sx={{ p: 0 }}
-                                                            checked={checkedState[career.id][index]}
-                                                            onChange={() => handleCheckboxChange(career.id, index)} />
+                                                        <TriStateCheckbox key={index}
+                                                            value={checkedState[career.id][index]}
+                                                            handleChange={() => handleCheckboxChange(career.id, index)} />
                                                     ))}
                                                         <Typography variant="body2" 
                                                             sx={{ ml: 1, cursor: selectCareers ? 'pointer' : 'default', '&:hover': {
