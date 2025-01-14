@@ -29,6 +29,60 @@ namespace CareerDayApi.Controllers
                 .ToListAsync();
         }
 
+        [HttpPut]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<Survey>> UpdateSurvey([FromForm] UpdateSurveyDto surveyDto)
+        {
+            var survey = await _context.Surveys
+                .Include(s => s.Student)
+                .Include(s => s.PrimaryCareers)
+                .Include(s => s.AlternateCareers)
+                .FirstOrDefaultAsync(s => s.Id == surveyDto.Id);
+
+            if (survey == null) return NotFound();
+
+            var primaryCareerIds = surveyDto.PrimaryCareers.Select(pc => pc.Id).ToList();
+            var alternateCareerIds = surveyDto.AlternateCareers.Select(ac => ac.Id).ToList();
+
+            List<Career> primaryCareers = await _context.Careers.Where(c => primaryCareerIds.Contains(c.Id)).ToListAsync();
+            List<Career> alternateCareers = await _context.Careers.Where(c => alternateCareerIds.Contains(c.Id)).ToListAsync();
+
+            if (primaryCareers == null || alternateCareers == null)
+            {
+                return BadRequest(new ProblemDetails { Title = "Problem updating survey: Careers not found" });
+            }
+
+            var primaryCareersToRemove = survey.PrimaryCareers.Except(primaryCareers).ToList();
+            foreach (var career in primaryCareersToRemove)
+            {
+                survey.PrimaryCareers.Remove(career);
+            }
+
+            var primaryCareersToAdd = primaryCareers.Except(survey.PrimaryCareers).ToList();
+            foreach (var career in primaryCareersToAdd)
+            {
+                survey.PrimaryCareers.Add(career);
+            }
+
+            var alternateCareersToRemove = survey.AlternateCareers.Except(alternateCareers).ToList();
+            foreach (var career in alternateCareersToRemove)
+            {
+                survey.AlternateCareers.Remove(career);
+            }
+
+            var alternateCareersToAdd = alternateCareers.Except(survey.AlternateCareers).ToList();
+            foreach (var career in alternateCareersToAdd)
+            {
+                survey.AlternateCareers.Add(career);
+            }
+
+            var result = await _context.SaveChangesAsync() > 0;
+
+            if (result) return Ok(survey);
+
+            return BadRequest(new ProblemDetails { Title = "Problem updating survey" });
+        }
+
         [HttpDelete("{eventId}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteSurveysByEvent(int eventId)

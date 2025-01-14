@@ -168,7 +168,6 @@ namespace CareerDayApi.Controllers
                             foreach(var availPeriod in availablePeriods)
                             {
                                 int periodIndex = availPeriod.Index;
-                                // var periodSessions = availPeriod.Period;
 
                                 // Check for conflict
                                 bool hasConflict = conflictMap[periodIndex].Contains(survey.Student);
@@ -486,6 +485,16 @@ namespace CareerDayApi.Controllers
             foreach(var studentToRemove in placedStudents)
             {
                 unplacedStudents.Remove(studentToRemove);
+            }
+
+            foreach(var unplacedStudent in unplacedStudents)
+            {
+                for(var i = 0; i < generateScheduleParamsDto.PeriodCount; i++)
+                {
+                    if (!conflictMap[i].Contains(unplacedStudent.Student)) {
+                        unplacedStudent.Period = i + 1;
+                    }
+                }
             }
 
             var periodCounts = periods
