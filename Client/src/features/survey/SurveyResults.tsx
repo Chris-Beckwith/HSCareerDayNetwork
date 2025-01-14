@@ -173,9 +173,9 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                                 </Grid>
                                 <Grid item xs={4}></Grid>
                             </Grid>
-                            {surveys.map((item, index) => (
+                            {surveys.sort((a,b) => a.student.lastFirstName.localeCompare(b.student.lastFirstName)).map((item, index) => (
                                 <Box key={index}>
-                                    <SurveyStudentLineItem item={item} showAlternate={showAlternate} />
+                                    <SurveyStudentLineItem item={item} showAlternate={showAlternate} event={event} schoolUser={schoolUser} />
                                 </Box>
                             ))}
                         </Paper>

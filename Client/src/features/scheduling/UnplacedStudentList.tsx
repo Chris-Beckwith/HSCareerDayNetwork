@@ -16,10 +16,11 @@ export default function UnplacedStudentList({ unplacedStudents, open, handleClos
             <DialogContent>
                 <Grid item xs={12}>
                     <Divider sx={{ mb: 1 }}/>
-                    {unplacedStudents.map((s, index) => (
+                    {unplacedStudents.sort((a,b) => a.student.lastFirstName.localeCompare(b.student.lastFirstName)).map((s, index) => (
                         <Grid item key={index}>
-                            <Typography variant="body2">{s.student.lastFirstName} - Grade: {s.student.grade}</Typography>
-                            <Typography variant="body2">{s.career.name}</Typography>
+                            <Typography variant="body2">{s.student.lastFirstName}</Typography>
+                            <Typography variant="body2">Open Session: {s.period} - Grade: {s.student.grade}</Typography>
+                            <Typography variant="body2"><strong>{s.career.name}</strong></Typography>
                             <Divider />
                         </Grid>
                     ))}

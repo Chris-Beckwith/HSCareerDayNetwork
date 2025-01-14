@@ -12,6 +12,7 @@ import UnplacedStudentList from "./UnplacedStudentList"
 export interface UnplacedStudent {
     student: Student
     career: Career
+    period: number
 }
 
 interface Props {
