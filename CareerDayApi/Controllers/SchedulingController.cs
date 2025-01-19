@@ -213,7 +213,8 @@ namespace CareerDayApi.Controllers
                         unplacedStudents.Add(new UnplacedStudentDto
                             {
                                 Student = survey.Student,
-                                Career = actualPCareer
+                                Career = actualPCareer,
+                                AltCareers = survey.AlternateCareers
                             });
                     }
                 }
@@ -496,15 +497,10 @@ namespace CareerDayApi.Controllers
                     }
                 }
             }
-
-            var periodCounts = periods
-                .Select(period => period.SelectMany(s => s.Students).ToList().Count)
-                .ToList();
             
             var result = new ScheduleResultDto
             {
                 AllSessions = allSessions,
-                PeriodCounts = periodCounts,
                 UnplacedStudents = unplacedStudents
             };
 
@@ -628,8 +624,6 @@ namespace CareerDayApi.Controllers
                 .Include(s => s.AlternateCareers)
                 .Where(s => s.Student.EventId == eventId).ToListAsync();
 
-            var numOfSessions = surveys[0].PrimaryCareers.Count;
-
             foreach (var student in students)
             {
                 var survey = surveys.FirstOrDefault(s => s.Student.Id == student.Id);
@@ -642,12 +636,18 @@ namespace CareerDayApi.Controllers
 
                 var missingCareers = primaryCareers.Where(pc => !sessionSubjects.Contains(pc)).ToList();
 
+                var periods = Enumerable.Range(1, primaryCareers.Count);
+                var missingPeriods = periods.Except([.. student.Sessions.Select(s => s.Period)]).ToList();
+                var i = 0;
+
                 foreach(var career in missingCareers)
                 {
                     unplacedStudents.Add(new SessionUnplacedStudentDto
                     {
                         Student = _mapper.Map(student, new StudentDto()),
-                        Career = career
+                        Career = career,
+                        AltCareers = survey.AlternateCareers,
+                        Period = missingPeriods[i++]
                     });
                 }
             }

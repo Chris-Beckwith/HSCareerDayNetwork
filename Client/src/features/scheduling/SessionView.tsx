@@ -8,24 +8,29 @@ import { Classroom } from "../../app/models/classroom"
 import { useState } from "react"
 import { Speaker } from "../../app/models/speaker"
 import UnplacedStudentList from "./UnplacedStudentList"
+import PlacementDialog from "./PlacementDialog"
 
 export interface UnplacedStudent {
     student: Student
     career: Career
+    altCareers: Career[]
     period: number
 }
 
 interface Props {
     event: CareerEvent
     sessions: Session[]
-    periodCounts: number[]
     classrooms: Classroom[]
     unplacedStudents: UnplacedStudent[]
 }
 
-export default function SessionView({ event, sessions, periodCounts, classrooms, unplacedStudents }: Props) {
+export default function SessionView({ event, sessions, classrooms, unplacedStudents }: Props) {
     const [refreshKey, setRefreshKey] = useState(0)
     const [showUnplacedStudents, setShowUnplacedStudents] = useState(false)
+    const [showPlacementDialog, setShowPlacementDialog] = useState(false)
+    const [placementStudent, setPlacementStudent] = useState<UnplacedStudent | undefined>(undefined)
+    // const [placementSessions, setPlacementSessions] = useState<Session[]>([])
+    // const [placedSessions, setPlacedSessions] = useState<Session[]>([])
     
     const periods = Array.from(new Set(sessions.map(s => s.period))).sort((a, b) => a - b)
     
@@ -59,6 +64,16 @@ export default function SessionView({ event, sessions, periodCounts, classrooms,
         }
     }
 
+    const placeStudent = (unplacedStudent: UnplacedStudent) => {
+        setPlacementStudent(unplacedStudent)
+        setShowPlacementDialog(true)
+    }
+
+    const handleClosePlacement = () => {
+        setShowPlacementDialog(false)
+        setPlacementStudent(undefined)
+    }
+
     return (
         <Grid container item xs={12}>
             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -77,7 +92,7 @@ export default function SessionView({ event, sessions, periodCounts, classrooms,
                     {periods.map(p => (
                         <Grid key={p} item xs={Math.floor(12/periods.length)}>
                             <Typography variant="body1">
-                                Session {p} (Classes: {sessions.filter(s => s.period === p).length} - Students: {periodCounts[p-1]})
+                                Session {p} (Classes: {sessions.filter(s => s.period === p).length} - Students: {sessions.filter(s => s.period === p).reduce((total, s) => total + s.students.length, 0)})
                             </Typography>
                             <Grid item>
                                 {sessions.filter(s => s.period === p)
@@ -103,9 +118,11 @@ export default function SessionView({ event, sessions, periodCounts, classrooms,
                     ))}
                 </Grid>
             </Grid>
-            <UnplacedStudentList unplacedStudents={unplacedStudents}
+            <UnplacedStudentList unplacedStudents={unplacedStudents} placeStudent={placeStudent}
                 open={showUnplacedStudents} 
                 handleClose={() => setShowUnplacedStudents(false)} />
+            <PlacementDialog placementStudent={placementStudent} sessions={sessions} unplacedStudents={unplacedStudents}
+                open={showPlacementDialog} handleClose={handleClosePlacement} />
         </Grid>
     )
 }

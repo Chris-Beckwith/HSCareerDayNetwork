@@ -136,7 +136,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             case EVENT_PHASES.CREATED: return "Open Survey"
             case EVENT_PHASES.SURVEYINPROGRESS: return "Close Survey"
             case EVENT_PHASES.SURVEYCLOSED: return "Scheduling Tool"
-            case EVENT_PHASES.SESSIONSGENERATED: return "Assign Rooms/Speakers"
+            case EVENT_PHASES.SESSIONSGENERATED: return "View Schedule"
             // case EVENT_PHASES.SCHEDULEEXPORT: return "Schedule Exporter"
             case EVENT_PHASES.COMPLETED:
             case EVENT_PHASES.CANCELLED: return "Reopen Event"
@@ -258,9 +258,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             loading={loading}
                             variant="contained"
                             color="primary"
-                            sx={ careerEvent.eventPhase.phaseName == EVENT_PHASES.SESSIONSGENERATED 
-                                ? { px: '11px', fontSize: '0.80rem' }
-                                : {}}>
+                        >
                             {nextEventPhaseText()}
                         </LoadingButton>
                     </Grid>
