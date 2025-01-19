@@ -35,7 +35,6 @@ export default function SchedulingTool({ event, back }: Props) {
     const [loadingSessions, setLoadingSessions] = useState(false)
     const [activeStep, setActiveStep] = useState(0)
     const [sessions, setSessions] = useState<Session[]>([])
-    const [periodCounts, setPeriodCounts] = useState<number[]>([])
     const [unplacedStudents, setUnplacedStudents] = useState<UnplacedStudent[]>([])
     const [selectCareers, setSelectCareers] = useState(false)
     const [sameSpeakers, setSameSpeakers] = useState<Career[][]>([])
@@ -151,7 +150,6 @@ export default function SchedulingTool({ event, back }: Props) {
             agent.Schedule.generateSessions(generationParams)
                 .then(response => {
                     setSessions(response.allSessions)
-                    setPeriodCounts(response.periodCounts)
                     setUnplacedStudents(response.unplacedStudents)
                     setActiveStep(activeStep + 1)
                 })
@@ -198,7 +196,7 @@ export default function SchedulingTool({ event, back }: Props) {
                 if (loadingSessions)
                     return <SessionViewSkeleton event={event} />
                 else
-                    return <SessionView event={event} sessions={sessions} periodCounts={periodCounts} classrooms={classrooms} unplacedStudents={unplacedStudents} />
+                    return <SessionView event={event} sessions={sessions} classrooms={classrooms} unplacedStudents={unplacedStudents} />
             default:
                 throw new Error('Unknown step')
         }
