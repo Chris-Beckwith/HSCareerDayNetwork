@@ -9,6 +9,9 @@ import { useState } from "react"
 import { Speaker } from "../../app/models/speaker"
 import UnplacedStudentList from "./UnplacedStudentList"
 import PlacementDialog from "./PlacementDialog"
+import SwapDialog from "./SwapDialog"
+import useSurveys from "../../app/hooks/useSurveys"
+import { Survey } from "../../app/models/survey"
 
 export interface UnplacedStudent {
     student: Student
@@ -29,8 +32,10 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
     const [showUnplacedStudents, setShowUnplacedStudents] = useState(false)
     const [showPlacementDialog, setShowPlacementDialog] = useState(false)
     const [placementStudent, setPlacementStudent] = useState<UnplacedStudent | undefined>(undefined)
-    // const [placementSessions, setPlacementSessions] = useState<Session[]>([])
-    // const [placedSessions, setPlacedSessions] = useState<Session[]>([])
+    const [showSwap, setShowSwap] = useState(false)
+    const [swapStudent, setSwapStudent] = useState<Student | undefined>(undefined)
+    const [swapSurvey, setSwapSurvey] = useState<Survey | undefined>(undefined)
+    const { surveys } = useSurveys(event.id)
     
     const periods = Array.from(new Set(sessions.map(s => s.period))).sort((a, b) => a - b)
     
@@ -74,6 +79,16 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
         setPlacementStudent(undefined)
     }
 
+    const onSwapStudent = (student: Student) => {
+        setSwapStudent(student)
+        setSwapSurvey(surveys.find(s => s.studentId === student.id))
+        setShowSwap(true)
+    }
+
+    const handleCloseSwap = () => {
+        setShowSwap(false)
+    }
+
     return (
         <Grid container item xs={12}>
             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -109,7 +124,9 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
                                         return (
                                             <Grid item key={index} sx={{ my: 2 }}>
                                                 <SessionCard session={session} availableClassrooms={availableClassrooms} updateClassroom={updateClassroom} 
-                                                    availableSpeakers={availableSpeakers} updateSpeakers={updateSpeakers} triggerRefresh={triggerRefresh} />
+                                                    availableSpeakers={availableSpeakers} updateSpeakers={updateSpeakers} triggerRefresh={triggerRefresh}
+                                                    onSwapStudent={onSwapStudent}
+                                                />
                                             </Grid>
                                         )
                                     })}
@@ -123,6 +140,7 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
                 handleClose={() => setShowUnplacedStudents(false)} />
             <PlacementDialog placementStudent={placementStudent} sessions={sessions} unplacedStudents={unplacedStudents}
                 open={showPlacementDialog} handleClose={handleClosePlacement} />
+            <SwapDialog swapStudent={swapStudent} swapSurvey={swapSurvey} sessions={sessions} open={showSwap} handleClose={handleCloseSwap} />
         </Grid>
     )
 }

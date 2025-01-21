@@ -68,7 +68,7 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
             <DialogTitle>Choose Alternate Career for {placementStudent?.student.lastFirstName}</DialogTitle>
 
             <DialogContent>
-                <Grid container xs={12} spacing={1} sx={{ pb: 1 }}>
+                <Grid container spacing={1} sx={{ pb: 1 }}>
                     <Grid container item xs={6}>
                         <Grid item xs={12}>
                             <Typography variant="h6">Primary Choices:</Typography>
@@ -100,7 +100,7 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
                         </Typography>
                     </Grid>}
 
-                <Grid container xs={12} spacing={1}>
+                <Grid container spacing={1}>
                     {placementSessions.map(s =>
                         <Grid container item key={s.id} xs={6}>
                             <Paper elevation={8}
@@ -109,7 +109,7 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
                                     p: 1, width: '100%', 
                                     cursor: selectedSession === undefined || selectedSession === s ? 'pointer' : 'default',
                                     bgcolor: selectedSession === s ? 'primary.light' : undefined,
-                                    '&:hover': selectedSession === undefined || selectedSession === s ? { bgcolor: 'info.main' } : {}
+                                    '&:hover': selectedSession === undefined || selectedSession === s ? { bgcolor: 'lightgray' } : {}
                                 }}
                             >
                                 <Grid item xs={12}>
