@@ -7,6 +7,7 @@ import EditClassroom from "./EditClassroom";
 import { getClassroomText } from "../../app/util/util";
 import { Speaker } from "../../app/models/speaker";
 import EditSpeakers from "./EditSpeakers";
+import { Student } from "../../app/models/student";
 
 interface Props {
     session: Session
@@ -15,10 +16,11 @@ interface Props {
     availableSpeakers: Speaker[]
     updateSpeakers: (session: Session, speakers: Speaker[], propagate: boolean) => void
     triggerRefresh: () => void
+    onSwapStudent: (student: Student) => void
 }
 
 export default function SessionCard({ session, availableClassrooms, updateClassroom, 
-        availableSpeakers, updateSpeakers, triggerRefresh }: Props) {
+        availableSpeakers, updateSpeakers, triggerRefresh, onSwapStudent }: Props) {
     const [showStudents, setShowStudents] = useState(false)
     const [showRooms, setShowRooms] = useState(false)
     const [showSpeakers, setShowSpeakers] = useState(false)
@@ -77,7 +79,8 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                 </CardActions>
             </Card>
 
-            <SessionStudentView session={session} open={showStudents} handleClose={() => setShowStudents(false)} />
+            <SessionStudentView session={session} onSwapStudent={onSwapStudent}
+                open={showStudents} handleClose={() => setShowStudents(false)} />
             <EditClassroom session={session} availableClassrooms={availableClassrooms} updateClassroom={updateClassroom}
                 triggerRefresh={triggerRefresh} open={showRooms} handleClose={() => setShowRooms(false)} />
             <EditSpeakers session={session} availableSpeakers={availableSpeakers} updateSpeakers={updateSpeakers}
