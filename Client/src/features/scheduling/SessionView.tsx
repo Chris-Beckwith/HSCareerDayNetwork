@@ -142,7 +142,8 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
                 handleClose={() => setShowUnplacedStudents(false)} />
             <PlacementDialog placementStudent={placementStudent} sessions={sessions} unplacedStudents={unplacedStudents}
                 open={showPlacementDialog} handleClose={handleClosePlacement} />
-            <SwapDialog swapStudent={swapStudent} swapSurvey={swapSurvey} sessions={sessions} open={showSwap} handleClose={handleCloseSwap} />
+            <SwapDialog swapStudent={swapStudent} swapSurvey={swapSurvey} sessions={sessions} unplacedStudents={unplacedStudents}
+                open={showSwap} handleClose={handleCloseSwap} />
         </Grid>
     )
 }

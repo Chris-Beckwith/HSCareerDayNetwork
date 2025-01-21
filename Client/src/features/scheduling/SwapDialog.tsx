@@ -6,16 +6,18 @@ import { Survey } from "../../app/models/survey";
 import SessionDisplay from "./components/SessionDisplay";
 import ConfirmLessSwap from "./components/ComfirmLessSwap";
 import ConfirmSwap from "./components/ConfirmSwap";
+import { UnplacedStudent } from "./SessionView";
 
 interface Props {
     swapStudent: Student | undefined
     swapSurvey: Survey | undefined
     sessions: Session[]
+    unplacedStudents: UnplacedStudent[]
     open: boolean
     handleClose: () => void
 }
 
-export default function SwapDialog({ swapStudent, swapSurvey, sessions, open, handleClose }: Props) {
+export default function SwapDialog({ swapStudent, swapSurvey, sessions, unplacedStudents, open, handleClose }: Props) {
     const [studentSessions, setStudentSessions] = useState<Session[]>([])
     const [availableSessions, setAvailableSessions] = useState<Session[]>([])
     const [altAvailSessions, setAltAvailSessions] = useState<Session[]>([])
@@ -92,6 +94,24 @@ export default function SwapDialog({ swapStudent, swapSurvey, sessions, open, ha
                     s.students.push(swapStudent)
                 }
             })
+
+            if (selectedSessions.length === periods.length) {
+                let index = unplacedStudents.findIndex(u => u.student.id === swapStudent.id)
+                while (index !== -1) {
+                    unplacedStudents.splice(index, 1)
+                    index = unplacedStudents.findIndex(u => u.student.id === swapStudent.id)
+                }
+            }
+
+            let index = unplacedStudents.findIndex(u => u.student.id === swapStudent.id && 
+                selectedSessions.some(sel => sel.subject.id === u.career.id || u.altCareers.some(alt => alt.id === sel.subject.id))
+            )
+            while (index !== -1) {
+                unplacedStudents.splice(index, 1)
+                index = unplacedStudents.findIndex(u => u.student.id === swapStudent.id && 
+                    selectedSessions.some(sel => sel.subject.id === u.career.id || u.altCareers.some(alt => alt.id === sel.subject.id))
+                )
+            }
         }
         setShowSwapConfirm(false)
         handleClose()
