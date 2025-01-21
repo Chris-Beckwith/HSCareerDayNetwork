@@ -120,9 +120,9 @@ export default function SwapDialog({ swapStudent, swapSurvey, sessions, open, ha
                         </Grid>
 
                         <SessionDisplay title="Current Sessions:" selectedSessions={selectedSessions} handleSelectSession={handleSelectSession}
-                            periods={periods} sessions={studentSessions} />
+                            periods={periods} sessions={studentSessions} alternateCareers={swapSurvey?.alternateCareers} />
 
-                        <SessionDisplay title="Available Sessions:" selectedSessions={selectedSessions} handleSelectSession={handleSelectSession}
+                        <SessionDisplay title="Primary Sessions:" selectedSessions={selectedSessions} handleSelectSession={handleSelectSession}
                             periods={periods} sessions={availableSessions} />
                         
                         <SessionDisplay title="Alternate Sessions:" selectedSessions={selectedSessions} handleSelectSession={handleSelectSession}
