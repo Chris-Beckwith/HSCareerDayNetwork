@@ -642,13 +642,15 @@ namespace CareerDayApi.Controllers
 
                 foreach(var career in missingCareers)
                 {
-                    unplacedStudents.Add(new SessionUnplacedStudentDto
-                    {
-                        Student = _mapper.Map(student, new StudentDto()),
-                        Career = career,
-                        AltCareers = survey.AlternateCareers,
-                        Period = missingPeriods[i++]
-                    });
+                    if (i < missingPeriods.Count) {
+                        unplacedStudents.Add(new SessionUnplacedStudentDto
+                        {
+                            Student = _mapper.Map(student, new StudentDto()),
+                            Career = career,
+                            AltCareers = survey.AlternateCareers,
+                            Period = missingPeriods[i++]
+                        });
+                    }
                 }
             }
 

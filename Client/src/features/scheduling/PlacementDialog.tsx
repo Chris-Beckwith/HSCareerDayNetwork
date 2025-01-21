@@ -19,21 +19,23 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
 
     useEffect(() => {
         if (placementStudent) {
+            const newPlacedSessions = sessions.filter(s => s.students.some(st => st.id === placementStudent.student.id))
+            setPlacedSessions(newPlacedSessions)
+
             const availableSessions = sessions.filter(s =>
                 s.period === placementStudent.period &&
+                !newPlacedSessions.some(pc => pc.subject.id === s.subject.id) &&
                 placementStudent.altCareers.some(alt => alt.id === s.subject.id)
-            )
-            setPlacementSessions(availableSessions)
-            setPlacedSessions(
-                sessions.filter(s => s.students.some(st => st.id === placementStudent.student.id))
             )
 
             if (availableSessions.length === 0) {
                 setNoAltMatch(true)
                 setPlacementSessions(
-                    sessions.filter(s => s.period === placementStudent.period)
+                    sessions.filter(s => s.period === placementStudent.period 
+                        && !newPlacedSessions.some(pc => pc.subject.id === s.subject.id))
                 )
             } else {
+                setPlacementSessions(availableSessions)
                 setNoAltMatch(false)
             }
         }
@@ -55,9 +57,10 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
     const onPlace = () => {
         if (placementStudent && selectedSession) {
             selectedSession.students.push(placementStudent.student)
-            const index = unplacedStudents.findIndex(u => u.student.id === placementStudent.student.id)
-            if (index !== -1) {
+            let index = unplacedStudents.findIndex(u => u.student.id === placementStudent.student.id)
+            while (index !== -1) {
                 unplacedStudents.splice(index, 1)
+                index = unplacedStudents.findIndex(u => u.student.id === placementStudent.student.id)
             }
         }
         onClose()
@@ -71,7 +74,7 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
                 <Grid container spacing={1} sx={{ pb: 1 }}>
                     <Grid container item xs={6}>
                         <Grid item xs={12}>
-                            <Typography variant="h6">Primary Choices:</Typography>
+                            <Typography variant="h6">Placed Careers:</Typography>
                         </Grid>
                         {placedSessions.map(s =>
                             <Grid item xs={12} key={s.id} sx={{ pl: 1 }}>

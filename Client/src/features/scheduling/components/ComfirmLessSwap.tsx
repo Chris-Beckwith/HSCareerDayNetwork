@@ -1,3 +1,4 @@
+import { Warning } from "@mui/icons-material";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
 
 interface Props {
@@ -9,7 +10,7 @@ interface Props {
 export default function ConfirmLessSwap({ open, handleClose, setShowSwapConfirm }: Props) {
     return (
         <Dialog open={open} onClose={handleClose}>
-            <DialogTitle>You have removed an already assigned Session</DialogTitle>
+            <DialogTitle sx={{ display: 'flex', alignItems: 'center' }}><Warning sx={{ color: 'error.main' }}/>You have removed an already assigned Session</DialogTitle>
 
             <DialogContent>
                 <Typography>Are you sure you would like to remove a session?</Typography>
