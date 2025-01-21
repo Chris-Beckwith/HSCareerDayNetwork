@@ -87,6 +87,8 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
 
     const handleCloseSwap = () => {
         setShowSwap(false)
+        setSwapSurvey(undefined)
+        setSwapStudent(undefined)
     }
 
     return (
