@@ -15,6 +15,7 @@ export default function SessionStudentView({ session, onSwapStudent, open, handl
     const [genderCount, setGenderCount] = useState<{ [key: string]: number}>({})
     const [gradeCount, setGradeCount] = useState<{ [key: number]: number}>({})
     const totalStudents = session.students.length
+    const isSaved = session.id !== 0
 
     useEffect(() => {
         const newGenderCount: { [key: string]: number} = {}
@@ -63,7 +64,7 @@ export default function SessionStudentView({ session, onSwapStudent, open, handl
                 <List sx={{  }}>
                     {session.students.sort((a, b) => a.lastFirstName.localeCompare(b.lastFirstName)).map(s => (
                         <ListItem key={s.id} sx={{ pl: 1, py: 0, '&:hover': { bgcolor: 'lightgray' } }}>
-                            <IconButton onClick={() => onSwapStudent(s)} sx={{ p: 0, color: 'primary.dark' }}><SwapHoriz fontSize="small" /></IconButton>
+                            <IconButton disabled={!isSaved} onClick={() => onSwapStudent(s)} sx={{ p: 0, color: 'primary.dark' }}><SwapHoriz fontSize="small" /></IconButton>
                             <Typography component="span" sx={{ fontSize: 'inherit', fontWeight: 'bold', pl: 1 }}>
                                 {s.lastFirstName}
                             </Typography>
