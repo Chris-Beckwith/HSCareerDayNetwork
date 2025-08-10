@@ -7,17 +7,19 @@ import SessionDisplay from "./components/SessionDisplay";
 import ConfirmLessSwap from "./components/ComfirmLessSwap";
 import ConfirmSwap from "./components/ConfirmSwap";
 import { UnplacedStudent } from "./SessionView";
+import { ScheduleParams } from "../../app/models/scheduleParams";
 
 interface Props {
     swapStudent: Student | undefined
     swapSurvey: Survey | undefined
     sessions: Session[]
     unplacedStudents: UnplacedStudent[]
+    scheduleParams: ScheduleParams | undefined
     open: boolean
     handleClose: () => void
 }
 
-export default function SwapDialog({ swapStudent, swapSurvey, sessions, unplacedStudents, open, handleClose }: Props) {
+export default function SwapDialog({ swapStudent, swapSurvey, sessions, unplacedStudents, scheduleParams, open, handleClose }: Props) {
     const [studentSessions, setStudentSessions] = useState<Session[]>([])
     const [availableSessions, setAvailableSessions] = useState<Session[]>([])
     const [altAvailSessions, setAltAvailSessions] = useState<Session[]>([])
@@ -143,10 +145,10 @@ export default function SwapDialog({ swapStudent, swapSurvey, sessions, unplaced
                             periods={periods} sessions={studentSessions} alternateCareers={swapSurvey?.alternateCareers} />
 
                         <SessionDisplay title="Primary Sessions:" selectedSessions={selectedSessions} handleSelectSession={handleSelectSession}
-                            periods={periods} sessions={availableSessions} />
+                            periods={periods} sessions={availableSessions} scheduleParams={scheduleParams} />
                         
                         <SessionDisplay title="Alternate Sessions:" selectedSessions={selectedSessions} handleSelectSession={handleSelectSession}
-                            periods={periods} sessions={altAvailSessions} isAlt={true} />
+                            periods={periods} sessions={altAvailSessions} isAlt={true} scheduleParams={scheduleParams} />
                         
                     </Grid>
                 </DialogContent>

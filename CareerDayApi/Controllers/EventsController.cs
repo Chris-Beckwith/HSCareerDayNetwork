@@ -1,3 +1,4 @@
+using AutoMapper;
 using CareerDayApi.Data;
 using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
@@ -12,11 +13,12 @@ using QRCoder;
 namespace CareerDayApi.Controllers
 {
     public class EventsController(CareerDayContext context, IConfiguration config,
-        ILogger<EventsController> logger, ImageService imageService, 
+        IMapper mapper, ILogger<EventsController> logger, ImageService imageService, 
         DbContextOptions<CareerDayContext> dbContextOptions) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
         private readonly IConfiguration _config = config;
+        private readonly IMapper _mapper = mapper;
         private readonly ImageService _imageService = imageService;
         private readonly ILogger<EventsController> _logger = logger;
         private readonly DbContextOptions _dbContextOptions = dbContextOptions;
@@ -305,6 +307,45 @@ namespace CareerDayApi.Controllers
                 .ToListAsync();
 
             return Ok(eventPhases);
+        }
+
+        [HttpPost("scheduleParams")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ScheduleParams>> SaveScheduleParams([FromBody] ScheduleParams scheduleParams)
+        {
+            var existing = await _context.ScheduleParams.FirstOrDefaultAsync(sp => sp.EventId == scheduleParams.EventId);
+            
+            if (existing != null) {
+                existing.MaxClassSize = scheduleParams.MaxClassSize;
+                existing.MinClassSize = scheduleParams.MinClassSize;
+                existing.PeriodCount = scheduleParams.PeriodCount;
+                existing.RequiredPeriodForCareerList = scheduleParams.RequiredPeriodForCareerList;
+                existing.SameSpeakersForCareerList = scheduleParams.SameSpeakersForCareerList;
+
+                _context.ScheduleParams.Update(existing);
+            } else {
+                _context.ScheduleParams.Add(scheduleParams);
+            }
+
+            var result = await _context.SaveChangesAsync() > 0;
+
+            if (result) return Ok(scheduleParams);
+
+            return BadRequest(new ProblemDetails { Title = "Problem saving schedule paramters" });
+        }
+
+        [HttpGet("scheduleParams/{id}", Name = "getScheduleParams")]
+        public async Task<ActionResult<GenerateScheduleParamsDto>> GetScheduleParams(int id)
+        {
+            var scheduleParams = await _context.ScheduleParams.FirstOrDefaultAsync(sp => sp.EventId == id);
+
+            if (scheduleParams == null) return NotFound();
+
+            var dto = new GenerateScheduleParamsDto();
+
+            _mapper.Map(scheduleParams, dto);
+
+            return dto;
         }
     }
 }

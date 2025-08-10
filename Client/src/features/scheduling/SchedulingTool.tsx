@@ -18,6 +18,7 @@ import { EVENT_PHASES } from "../../app/util/constants"
 import { reloadClassrooms } from "../classroom/classroomSlice"
 import SessionViewSkeleton from "./SessionViewSkeleton" 
 import TriStateCheckbox from "./components/TriStateCheckbox"
+import { ScheduleParams } from "../../app/models/scheduleParams"
 
 interface Props {
     event: CareerEvent
@@ -36,6 +37,7 @@ export default function SchedulingTool({ event, back }: Props) {
     const [activeStep, setActiveStep] = useState(0)
     const [sessions, setSessions] = useState<Session[]>([])
     const [unplacedStudents, setUnplacedStudents] = useState<UnplacedStudent[]>([])
+    const [scheduleParams, setScheduleParams] = useState<ScheduleParams>()
     const [selectCareers, setSelectCareers] = useState(false)
     const [sameSpeakers, setSameSpeakers] = useState<Career[][]>([])
     const [sameSpeakersIndex, setSameSpeakersIndex] = useState(0)
@@ -54,6 +56,10 @@ export default function SchedulingTool({ event, back }: Props) {
                 .finally(() => {
                     reloadClassrooms()
                     setLoadingSessions(false)
+                })
+            agent.Event.getScheduleParams(event.id)
+                .then(response => {
+                    setScheduleParams(response)
                 })
         }
     }, [event.eventPhase.phaseName, event.id])
@@ -151,6 +157,7 @@ export default function SchedulingTool({ event, back }: Props) {
                 .then(response => {
                     setSessions(response.allSessions)
                     setUnplacedStudents(response.unplacedStudents)
+                    setScheduleParams(generationParams)
                     setActiveStep(activeStep + 1)
                 })
                 .catch(error => console.log(error))
@@ -175,6 +182,8 @@ export default function SchedulingTool({ event, back }: Props) {
                 if (isSave) {
                     await agent.Event.updatePhase(event.id, 
                         findNextEventPhaseId(eventPhases, event.eventPhase.phaseName))
+                    if (scheduleParams !== undefined)
+                        await agent.Event.saveScheduleParams(scheduleParams)
                 }
             } catch (error) {
                 console.log(error)
@@ -196,7 +205,8 @@ export default function SchedulingTool({ event, back }: Props) {
                 if (loadingSessions)
                     return <SessionViewSkeleton event={event} />
                 else
-                    return <SessionView event={event} sessions={sessions} classrooms={classrooms} unplacedStudents={unplacedStudents} />
+                    return <SessionView event={event} sessions={sessions} classrooms={classrooms} unplacedStudents={unplacedStudents}
+                        scheduleParams={scheduleParams} />
             default:
                 throw new Error('Unknown step')
         }

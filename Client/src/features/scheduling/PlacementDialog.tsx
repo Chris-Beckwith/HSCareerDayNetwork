@@ -2,16 +2,18 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Paper,
 import { UnplacedStudent } from "./SessionView";
 import { Session } from "../../app/models/session";
 import { useEffect, useState } from "react";
+import { ScheduleParams } from "../../app/models/scheduleParams";
 
 interface Props {
     placementStudent: UnplacedStudent | undefined
     sessions: Session[]
     unplacedStudents: UnplacedStudent[]
+    scheduleParams: ScheduleParams | undefined
     open: boolean
     handleClose: () => void
 }
 
-export default function PlacementDialog({ placementStudent, sessions, unplacedStudents, open, handleClose }: Props) {
+export default function PlacementDialog({ placementStudent, sessions, unplacedStudents, scheduleParams, open, handleClose }: Props) {
     const [placementSessions, setPlacementSessions] = useState<Session[]>([])
     const [placedSessions, setPlacedSessions] = useState<Session[]>([])
     const [noAltMatch, setNoAltMatch] = useState(false)
@@ -32,14 +34,16 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
                 setNoAltMatch(true)
                 setPlacementSessions(
                     sessions.filter(s => s.period === placementStudent.period 
-                        && !newPlacedSessions.some(pc => pc.subject.id === s.subject.id))
+                        && !newPlacedSessions.some(pc => pc.subject.id === s.subject.id)
+                        && (scheduleParams?.maxClassSize === undefined || s.students.length < scheduleParams.maxClassSize)
+                    )
                 )
             } else {
                 setPlacementSessions(availableSessions)
                 setNoAltMatch(false)
             }
         }
-    }, [placementStudent, sessions])
+    }, [placementStudent, scheduleParams?.maxClassSize, sessions])
 
     const handleSelectSession = (session: Session) => {
         if (selectedSession === session) {
