@@ -806,7 +806,7 @@ namespace CareerDayApi.Controllers
 
         /**
          * Exports the primary student schedule to .xlsx file.
-         * Contains student Id, Student Name, Gender, Grade, Homeroom Teacher, Homeroom
+         * Contains student Id, Student Name, Gender, Grade, Homeroom Teacher, (Home)Room
          * Sessions and room number if assigned.
          */
         [HttpGet("primary")]
@@ -829,7 +829,7 @@ namespace CareerDayApi.Controllers
                 "Gender",
                 "Grade",
                 "Teacher",
-                "Homeroom"
+                "Room"
             };
 
             for (var i = 1; i <= numOfSessions; i++)
