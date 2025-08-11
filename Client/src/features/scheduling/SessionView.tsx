@@ -1,5 +1,5 @@
 import { Session } from "../../app/models/session"
-import { Button, Grid, Typography } from "@mui/material"
+import { Box, Button, Grid, Typography } from "@mui/material"
 import { Student } from "../../app/models/student"
 import { Career } from "../../app/models/career"
 import SessionCard from "./SessionCard"
@@ -12,6 +12,7 @@ import PlacementDialog from "./PlacementDialog"
 import SwapDialog from "./SwapDialog"
 import useSurveys from "../../app/hooks/useSurveys"
 import { Survey } from "../../app/models/survey"
+import { ScheduleParams } from "../../app/models/scheduleParams"
 
 export interface UnplacedStudent {
     student: Student
@@ -25,9 +26,10 @@ interface Props {
     sessions: Session[]
     classrooms: Classroom[]
     unplacedStudents: UnplacedStudent[]
+    scheduleParams: ScheduleParams | undefined
 }
 
-export default function SessionView({ event, sessions, classrooms, unplacedStudents }: Props) {
+export default function SessionView({ event, sessions, classrooms, unplacedStudents, scheduleParams }: Props) {
     const [refreshKey, setRefreshKey] = useState(0)
     const [showUnplacedStudents, setShowUnplacedStudents] = useState(false)
     const [showPlacementDialog, setShowPlacementDialog] = useState(false)
@@ -96,12 +98,16 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
                 <Typography variant="h4">{event.name} - Session View</Typography>
             </Grid>
-            <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                <Button onClick={() => setShowUnplacedStudents(true)}
-                    sx={{ fontSize: '0.74rem', mb: 1 }} variant="outlined"
-                >
-                    Unplaced Students - {unplacedStudents.length}
-                </Button>
+            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end'}}>
+                <Box display="flex" flexDirection="column" alignItems="flex-end" sx={{ mb: 2 }}>
+                    <Button onClick={() => setShowUnplacedStudents(true)}
+                        sx={{ fontSize: '0.74rem' }} variant="outlined"
+                        >
+                        Unplaced Students - {unplacedStudents.length}
+                    </Button>
+                    <Typography variant="h6">Max Class Size: {scheduleParams?.maxClassSize}</Typography>
+                    <Typography variant="h6">Min Class Size: {scheduleParams?.minClassSize}</Typography>
+                </Box>
             </Grid>
 
             <Grid container item xs={12} spacing={2} key={refreshKey}>
@@ -141,9 +147,9 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
                 open={showUnplacedStudents} 
                 handleClose={() => setShowUnplacedStudents(false)} />
             <PlacementDialog placementStudent={placementStudent} sessions={sessions} unplacedStudents={unplacedStudents}
-                open={showPlacementDialog} handleClose={handleClosePlacement} />
+                scheduleParams={scheduleParams} open={showPlacementDialog} handleClose={handleClosePlacement} />
             <SwapDialog swapStudent={swapStudent} swapSurvey={swapSurvey} sessions={sessions} unplacedStudents={unplacedStudents}
-                open={showSwap} handleClose={handleCloseSwap} />
+                scheduleParams={scheduleParams} open={showSwap} handleClose={handleCloseSwap} />
         </Grid>
     )
 }

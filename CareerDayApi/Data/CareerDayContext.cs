@@ -18,6 +18,7 @@ namespace CareerDayApi.Data
         public DbSet<Classroom> Classrooms { get; set; }
         public DbSet<CareerSet> CareerSets { get; set; }
         public DbSet<Session> Sessions { get; set; }
+        public DbSet<ScheduleParams> ScheduleParams { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -87,6 +88,10 @@ namespace CareerDayApi.Data
             builder.Entity<Session>()
                 .HasMany(s => s.Speakers)
                 .WithMany(s => s.Sessions);
+
+            builder.Entity<ScheduleParams>()
+                .HasIndex(sp => sp.EventId)
+                .IsUnique();
 
             builder.Entity<IdentityRole>()
                 .HasData(
