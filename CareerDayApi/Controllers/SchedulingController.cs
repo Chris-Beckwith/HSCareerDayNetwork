@@ -804,6 +804,11 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails { Title = "Problem deleting sessions for event: " + eventId });
         }
 
+        /**
+         * Exports the primary student schedule to .xlsx file.
+         * Contains student Id, Student Name, Gender, Grade, Homeroom Teacher, (Home)Room
+         * Sessions and room number if assigned.
+         */
         [HttpGet("primary")]
         public async Task<ActionResult> ExportPrimary([FromQuery] ExportParams exportParams)
         {

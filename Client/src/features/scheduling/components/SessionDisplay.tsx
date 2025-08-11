@@ -1,6 +1,7 @@
 import { Grid, Typography, Paper } from "@mui/material";
 import { Session } from "../../../app/models/session";
 import { Career } from "../../../app/models/career";
+import { ScheduleParams } from "../../../app/models/scheduleParams";
 
 interface Props {
     title: string
@@ -10,9 +11,10 @@ interface Props {
     sessions: Session[]
     alternateCareers?: Career[]
     isAlt?: boolean
+    scheduleParams?: ScheduleParams
 }
 
-export default function SessionDisplay({title, selectedSessions, handleSelectSession, periods, sessions, alternateCareers, isAlt}: Props) {
+export default function SessionDisplay({title, selectedSessions, handleSelectSession, periods, sessions, alternateCareers, isAlt, scheduleParams}: Props) {
     return (
         <Grid container item xs={12}>
             <Grid item xs={12}>
@@ -22,13 +24,20 @@ export default function SessionDisplay({title, selectedSessions, handleSelectSes
                 <Grid key={period} container item xs={4}>
                     {sessions.sort((a, b) => a.period - b.period).filter(s => s.period === period).map(s => (
                         <Grid key={s.id} container item xs={12} sx={{ alignItems: 'flex-start' }}>
-                            <Paper elevation={8} onClick={() => handleSelectSession(s)}
+                            <Paper elevation={8} 
+                                onClick={!scheduleParams || s.students.length < scheduleParams.maxClassSize ? () => handleSelectSession(s) : undefined}
                                 sx={{ m: 1, p: 1, width: '100%', position: 'relative',
                                 bgcolor: selectedSessions.some(ss => ss.id === s.id)
                                     ? isAlt || alternateCareers?.some(ac => ac.id === s.subject.id) 
                                         ? "warning.light" : "primary.light" 
-                                    : "default",
-                                cursor: 'pointer', '&:hover': { bgcolor: 'lightgray' } }}
+                                    : !scheduleParams || s.students.length < scheduleParams.maxClassSize 
+                                        ? 'default' : "darkgray",
+                                cursor: !scheduleParams || s.students.length < scheduleParams.maxClassSize
+                                    ? 'pointer'
+                                    : 'not-allowed',
+                                '&:hover': { bgcolor: !scheduleParams || s.students.length < scheduleParams.maxClassSize
+                                    ? 'lightgray'
+                                    : 'default', } }}
                             >
                                 <Typography variant="subtitle2" sx={{ position: 'absolute', top: 1, left: 4 }}>{period}</Typography>
                                 <Grid item xs={12} sx={{ pl: 1 }}>

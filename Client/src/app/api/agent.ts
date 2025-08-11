@@ -137,6 +137,8 @@ const Event = {
     update: (careerEvent: any) => requests.putForm('events/update', createFormData(careerEvent)),
     updatePhase: (eventId: number, phaseId: number) =>
         requests.putForm('events/updatePhase', createFormData({eventId: eventId, phaseId: phaseId})),
+    saveScheduleParams: (params: any) => requests.postJson('events/scheduleParams', params),
+    getScheduleParams: (id: number) => requests.get(`events/scheduleParams/${id}`),
     delete: (id: number) => requests.deleteEvent(`events/${id}/${true}`),
     restore: (id: number) => requests.deleteEvent(`events/${id}/${false}`),
     eventPhases: () => requests.get('events/phases')

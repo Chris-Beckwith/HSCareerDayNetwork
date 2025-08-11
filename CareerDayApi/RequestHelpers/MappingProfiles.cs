@@ -17,6 +17,7 @@ namespace CareerDayApi.RequestHelpers
             CreateMap<UpdateClassroomDto, Classroom>();
             CreateMap<Student, StudentDto>();
             CreateMap<Speaker, SpeakerDto>();
+            CreateMap<ScheduleParams, GenerateScheduleParamsDto>();
         }
     }
 }
