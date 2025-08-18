@@ -26,19 +26,40 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
 
     useEffect(() => {
         if (school && !isDirty) {
-            reset(school)
+            const normalizeSchool = {
+                ...school,
+                estimatedNumOfStudents: school.estimatedNumOfStudents?.toString() ?? ''
+            }
+            reset(normalizeSchool)
         }
     }, [school, reset, isDirty])
 
     async function handleAddSchool(data: FieldValues) {
         try {
-            if (typeof data.estimatedNumOfStudents !== 'number') {
-                data.estimatedNumOfStudents = 0
+            const sanitiziedData: any = {
+                name: data.name ?? '',
+                contactEmail: data.contactEmail ?? '',
+                contactName: data.contactName ?? '',
+                contactPhone: data.contactPhone ?? '',
+                estimatedNumOfStudents: data.estimatedNumOfStudents,
+                address: {
+                    address1: data.address.address1 ?? '',
+                    address2: data.address.address2 ?? '',
+                    city: data.address.city ?? '',
+                    state: data.address.state ?? '',
+                    zip: data.address.zip ?? '',
+                    country: data.address.country ?? '',
+                }
             }
+
+            if (data.id) {
+                sanitiziedData.id = data.id
+            }
+            
             if (school) {
-                await agent.School.update(data)
+                await agent.School.update(sanitiziedData)
             } else {
-                await agent.School.create(data)
+                await agent.School.create(sanitiziedData)
             }
             dispatch(reloadSchools())
             cancelEdit()
@@ -88,6 +109,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
                                     variant="contained"
                                     type="submit"
                                     color="success"
+                                    disabled={!isDirty}
                                 >
                                     {school ? "Save" : "Add School"}
                                 </LoadingButton>

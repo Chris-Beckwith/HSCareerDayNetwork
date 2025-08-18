@@ -13,8 +13,8 @@ export default function AppDropzone({ descriptionText, ...props }: Props) {
 
     const dzStyles = {
         display: 'flex',
-        border: 'dashed 3px #eee',
-        borderColor: '#eee',
+        border: 'dashed 3px #a3a3a3',
+        borderColor: '#a3a3a3',
         borderRadius: '5px',
         paddingTop: '30px',
         alignItems: 'center',

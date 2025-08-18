@@ -1,4 +1,4 @@
-import { Button, FormControl, Grid, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
+import { Button, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import { Career } from "../../app/models/career";
 import { Controller, FieldValues, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -20,7 +20,7 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
     const { categories } = useCareers()
     const [category, setCategory] = useState('')
     const dispatch = useAppDispatch()
-    const { control, reset, handleSubmit, formState: { isDirty, isSubmitting } } = useForm({
+    const { control, reset, handleSubmit, formState: { isDirty, isSubmitting, errors } } = useForm({
         defaultValues: {
             category: ''
         },
@@ -33,7 +33,11 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
 
     useEffect(() => {
         if (selectedCareer && !isDirty) {
-            reset(selectedCareer)
+            const sanitizedCareer = {
+                ...selectedCareer,
+                courseId: selectedCareer.courseId.toString()
+            }
+            reset(sanitizedCareer)
         }
     }, [selectedCareer, reset, isDirty])
 
@@ -66,7 +70,7 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
                 <Grid container rowSpacing={2}>
                     <Grid container item spacing={2} justifyContent="center" mt={0}>
                         <Grid item xs={3}>
-                            <FormControl fullWidth>
+                            <FormControl fullWidth error={!!errors.category}>
                                 <InputLabel>Category</InputLabel>
                                 <Controller
                                     name="category"
@@ -86,6 +90,9 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
                                         </Select>
                                     )}
                                 />
+                                {errors.category && (
+                                    <FormHelperText>{String(errors.category.message)}</FormHelperText>
+                                )}
                             </FormControl>
                         </Grid>
                         {category === addNewCategory &&
@@ -101,6 +108,8 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
                                             fullWidth
                                             // Ensure TextField is empty when adding new category
                                             value={field.value || ''}
+                                            error={!!errors.newCategory}
+                                            helperText={String(errors.newCategory?.message ?? '')}
                                         />
                                     )}
                                 />
@@ -130,6 +139,7 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
                                 variant="contained"
                                 type="submit"
                                 color="success"
+                                disabled={!isDirty}
                             >
                                 {selectedCareer ? "Save" : "Add Career"}
                             </LoadingButton>

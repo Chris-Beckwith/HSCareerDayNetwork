@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CareerDayApi.Controllers
 {
     [Authorize(Roles = "Admin")]
-    public class SchoolsController(CareerDayContext context, 
+    public class SchoolsController(CareerDayContext context,
         IMapper mapper, ILogger<SchoolsController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
@@ -19,7 +19,7 @@ namespace CareerDayApi.Controllers
         private readonly ILogger<SchoolsController> _logger = logger;
 
         [HttpGet]
-        public async Task<ActionResult<PagedList<School>>> GetSchools([FromQuery]SchoolParams schoolParams)
+        public async Task<ActionResult<PagedList<School>>> GetSchools([FromQuery] SchoolParams schoolParams)
         {
             var query = _context.Schools
                 .Search(schoolParams.SearchTerm)
@@ -74,13 +74,36 @@ namespace CareerDayApi.Controllers
 
             if (school == null) return NotFound();
 
-            _context.Schools.Remove(school);
+            try
+            {
+                _context.Schools.Remove(school);
 
-            var result = await _context.SaveChangesAsync() > 0;
+                var result = await _context.SaveChangesAsync() > 0;
 
-            if (result) return Ok();
+                if (result) return Ok();
+            }
+            catch (DbUpdateException e) when (IsUniqueConstraintException(e))
+            {
+                return Conflict(new { message = GetAndLogErrorMsg(e) });
+            }
 
             return BadRequest(new ProblemDetails { Title = "Problem deleting school" });
+        }
+        
+        private static bool IsUniqueConstraintException(DbUpdateException e)
+        {
+            return e.InnerException != null && e.InnerException.Message.Contains("23503");
+        }
+
+        private string GetAndLogErrorMsg(DbUpdateException e)
+        {
+            var msg = "A unqiue contraint exception has occurred";
+            if (e.InnerException.Message.Contains("Students_Schools_SchoolId"))
+            {
+                msg = "The school has an event with students in it.  Please remove the students from event to delete the school";
+            }
+            _logger.LogError(e, "An error occurred deleting a school");
+            return msg;
         }
     }
 }

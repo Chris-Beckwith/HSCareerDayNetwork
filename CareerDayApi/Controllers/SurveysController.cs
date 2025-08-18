@@ -108,6 +108,9 @@ namespace CareerDayApi.Controllers
 
             var result = await _context.SaveChangesAsync() > 0;
 
+            var updateProgress = await UpdateSurveyProgress.UpdateSurveyProgressAsync(eventId, _context);
+            if (!updateProgress) _logger.LogWarning("(DeleteSurveysByEvent) Failed to update event survey progress. EventId: {eventId}", eventId);
+
             if (result) return Ok();
 
             return BadRequest(new ProblemDetails { Title = "Problem deleting surveys for event" });
