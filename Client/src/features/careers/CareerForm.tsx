@@ -10,6 +10,7 @@ import agent from "../../app/api/agent";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { reloadCareers } from "./careerSlice";
 import useCareers from "../../app/hooks/useCareers";
+import { normalizeNewline } from "../../app/util/util";
 
 interface Props {
     selectedCareer: Career | undefined
@@ -35,7 +36,8 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
         if (selectedCareer && !isDirty) {
             const sanitizedCareer = {
                 ...selectedCareer,
-                courseId: selectedCareer.courseId.toString()
+                courseId: selectedCareer.courseId.toString(),
+                description: normalizeNewline(selectedCareer.description)
             }
             reset(sanitizedCareer)
         }
