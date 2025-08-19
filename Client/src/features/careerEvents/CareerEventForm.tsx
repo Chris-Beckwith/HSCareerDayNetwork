@@ -16,6 +16,7 @@ import AppTextInput from "../../app/components/AppTextInput";
 import { LoadingButton } from "@mui/lab";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import useEvents from "../../app/hooks/useEvents";
+import { normalizeNewline } from "../../app/util/util";
 
 interface Props {
     selectedEvent?: CareerEvent
@@ -28,15 +29,23 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
     const { schools, schoolsLoaded } = useSchools()
     const { eventPhases } = useEvents()
     const [date, setDate] = useState<Dayjs | null>(null)
-    const { control, reset, handleSubmit, formState: { isDirty, isSubmitting, errors }, setValue } = useForm({
+    const [prevSchool, setPrevSchool] = useState<number>()
+    const { control, reset, handleSubmit, formState: { isDirty, isSubmitting, errors }, setValue, watch } = useForm({
         resolver: yupResolver<any>(eventValidationSchema)
     })
+    const eventName = watch("name")
 
     useEffect(() => {
         if (selectedEvent && !isDirty && schoolsLoaded) {
+            setPrevSchool(selectedEvent.school.id)
             setDate(dayjs(selectedEvent.eventDate))
-            reset({
+            const sanitizedEvent = {
                 ...selectedEvent,
+                school: selectedEvent.school.id,
+                description: normalizeNewline(selectedEvent.description)
+            }
+            reset({
+                ...sanitizedEvent,
                 eventDate: dayjs(selectedEvent.eventDate).toDate()
             })
         }
@@ -44,6 +53,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
 
     async function handleAddEvent(data: FieldValues) {
         data.eventDate = dayjs(data.eventDate).toISOString()
+        data.school = schools.find(s => s.id === data.school)
         try {
             if (selectedEvent) {
                 await agent.Event.update(data)
@@ -59,10 +69,17 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
     }
 
     const handleSchoolChange = (event: SelectChangeEvent<any>, field: ControllerRenderProps<any, "school">) => {
-        field.onChange(event.target.value)
         const selectedSchool = schools.find(s => s.id === event.target.value)
-        setValue('school', selectedSchool)
-        setValue('name', selectedSchool?.name)
+        if (prevSchool !== undefined && prevSchool !== event.target.value) {
+            const prevSchoolName = schools.find(s => s.id === prevSchool)?.name
+            if (eventName === prevSchoolName || eventName === "") {
+                setValue('name', selectedSchool?.name)
+            }
+        } else if (prevSchool === undefined) {
+            setValue('name', selectedSchool?.name)
+        }
+        setPrevSchool(event.target.value)
+        field.onChange(event.target.value)
     }
     
     if (!schoolsLoaded) return <LoadingComponent message="Loading..." />
@@ -84,7 +101,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
                                             <Select
                                                 {...field}
                                                 label="School"
-                                                value={field.value ? field.value.id : ''}
+                                                value={field.value || ""}
                                                 onChange={(event) => handleSchoolChange(event, field)}
                                             >
                                                 {schools?.map((school) => (
@@ -138,6 +155,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
                                         variant="contained"
                                         type="submit"
                                         color="success"
+                                        disabled={!isDirty}
                                     >
                                         {selectedEvent ? "Save Event" : "Add Event"}
                                     </LoadingButton>

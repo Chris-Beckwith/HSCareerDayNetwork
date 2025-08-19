@@ -123,7 +123,7 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
                 ) : (
                     <>
                         <TableCell>{career.courseId} - {career.name}</TableCell>
-                        {!hideDescription && <TableCell>{career.description}</TableCell>}
+                        {!hideDescription && <TableCell sx={{ whiteSpace: 'pre-line' }}>{career.description}</TableCell>}
                         {!hideDelete && <TableCell align="right">
                             <Button
                                 startIcon={<Delete />}

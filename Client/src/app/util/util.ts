@@ -14,6 +14,10 @@ export function getClassroomText(classroom: Classroom | undefined) {
         : "Not assigned"
 }
 
+export function normalizeNewline(value?: string) {
+  return value ? value.replace(/\r\n/g, "\n") : value;
+}
+
 export function downloadExcel(response: any) {
     const blob = new Blob([response.file], { type: response.contentType })
     const link = document.createElement('a')
