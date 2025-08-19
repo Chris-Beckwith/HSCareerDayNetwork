@@ -341,7 +341,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             <Grid container item xs={6} display='flex' justifyContent='center'>
                                 <Grid item xs={12}>
                                     {careerEvent.description &&
-                                        <Paper sx={{ p: 1, m: 1, backgroundColor: 'rgba(255, 255, 255, 0)' }}>
+                                        <Paper sx={{ p: 1, m: 1, whiteSpace: 'pre-line', backgroundColor: 'rgba(255, 255, 255, 0)' }}>
                                             {careerEvent.description}
                                         </Paper>
                                     }
