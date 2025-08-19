@@ -25,6 +25,7 @@ import SchedulingTool from "../scheduling/SchedulingTool";
 import { LoadingButton } from "@mui/lab";
 import { findNextEventPhaseId, findPrevEventPhaseId } from "../../app/util/util";
 import ExportTool from "../scheduling/ExportTool";
+import EventCompleted from "./components/EventCompleted";
 
 interface Props {
     careerEvent: CareerEvent
@@ -46,6 +47,8 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [exportMode, setExportMode] = useState(false)
     const [confirmPreviousPhase, setConfirmPreviousPhase] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
+    const [completeMode, setCompleteMode] = useState(false)
+    const [confirmCompleteLoading, setConfirmCompleteLoading] = useState(false)
     const [eventPhaseName, setEventPhaseName] = useState('')
     const [prevEventPhaseName, setPrevEventPhaseName] = useState('')
     const [confirmPrevMessage, setConfirmPrevMessage] = useState('')
@@ -106,6 +109,21 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             console.log(error)
         }
         setConfirmDeleteLoading(false)
+    }
+
+    async function confirmComplete() {
+        setConfirmCompleteLoading(true)
+        try {
+            const completedPhaseId = eventPhases.find(e => e.phaseName === EVENT_PHASES.COMPLETED)?.id
+            if (careerEvent && completedPhaseId) {
+                await agent.Event.updatePhase(careerEvent.id, completedPhaseId)
+                dispatch(reloadEvents())
+                setCompleteMode(false)
+            }
+        } catch (error) {
+            console.log(error)
+        }
+        setConfirmCompleteLoading(false)
     }
 
     if (!careerEvent) return <NotFound />
@@ -191,6 +209,9 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                 case EVENT_PHASES.SURVEYINPROGRESS:
                     setConfirmPrevMessage("Are you sure you want to reopen the survey?")
                     break;
+                case EVENT_PHASES.SESSIONSGENERATED:
+                    setConfirmPrevMessage("Would you like to reopen this event?")
+                    break;
             }
             setConfirmPreviousPhase(true)
         }
@@ -253,15 +274,17 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             </Button>
                         </Grid>
                     }
-                    <Grid item xs={12}>
-                        <LoadingButton onClick={progressEventPhaseAction}
-                            loading={loading}
-                            variant="contained"
-                            color="primary"
-                        >
-                            {nextEventPhaseText()}
-                        </LoadingButton>
-                    </Grid>
+                    {careerEvent.eventPhase.phaseName != EVENT_PHASES.COMPLETED &&
+                        <Grid item xs={12}>
+                            <LoadingButton onClick={progressEventPhaseAction}
+                                loading={loading}
+                                variant="contained"
+                                color="primary"
+                                >
+                                {nextEventPhaseText()}
+                            </LoadingButton>
+                        </Grid>
+                    }
                     {careerEvent.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED &&
                         <Grid item xs={12}>
                             <Button onClick={() => setExportMode(true)}
@@ -317,9 +340,11 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             </Grid>
                             <Grid container item xs={6} display='flex' justifyContent='center'>
                                 <Grid item xs={12}>
-                                    <Paper sx={{ p: 1, m: 1, backgroundColor: 'rgba(255, 255, 255, 0)' }}>
-                                        {careerEvent.description}
-                                    </Paper>
+                                    {careerEvent.description &&
+                                        <Paper sx={{ p: 1, m: 1, backgroundColor: 'rgba(255, 255, 255, 0)' }}>
+                                            {careerEvent.description}
+                                        </Paper>
+                                    }
                                 </Grid>
                             </Grid>
 
@@ -327,13 +352,13 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                                 <Grid item xs={12}>
                                     <Grid item display='flex' justifyContent='center' sx={{ mb: 2 }}>
                                         {careerEvent.qrCodeUrl &&
-                                            <Link href={surveyUrl}>
+                                            <Link target="_blank" rel="noopener noreferrer" href={surveyUrl}>
                                                 <img src={careerEvent.qrCodeUrl} alt="QRCode" style={{ height: 150, marginRight: 20 }} />
                                             </Link>
                                         }
                                     </Grid>
                                     <Grid item display='flex' justifyContent='center' alignItems='center'>
-                                        <Link href={surveyUrl}>{surveyUrl}</Link>
+                                        <Link target="_blank" rel="noopener noreferrer" href={surveyUrl}>{surveyUrl}</Link>
                                     </Grid>
                                 </Grid>
                             }
@@ -384,7 +409,11 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                             {careerEvent.isDeleted ? "Restore Event" : "Delete Event"}
                         </Button>
                     </Grid>
-                    <Grid item xs={12}></Grid>
+                    <Grid item xs={12}>
+                        {careerEvent.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED &&
+                            <Button onClick={() => setCompleteMode(true)} variant="contained">Event Completed</Button>
+                        }
+                    </Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
@@ -397,6 +426,9 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                 handleConfirm={regressEventPhaseAction} />
             <ConfirmDelete open={deleteMode} itemName={careerEvent.name} itemType="Event"
                 handleClose={cancelDelete} confirmDelete={confirmDelete} loading={confirmDeleteLoading} />
+            <EventCompleted open={completeMode} handleClose={() => setCompleteMode(false)} 
+                isCompleted={careerEvent.eventPhase.phaseName === EVENT_PHASES.COMPLETED}
+                confirmComplete={confirmComplete} loading={confirmCompleteLoading} />
             <ExportTool open={exportMode} careerEvent={careerEvent} handleClose={() => setExportMode(false)} />
         </Grid>
     )

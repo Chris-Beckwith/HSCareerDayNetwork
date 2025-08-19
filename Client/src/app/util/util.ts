@@ -86,7 +86,7 @@ export function findPrevEventPhaseId(eventPhases: EventPhase[], phaseName: strin
             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
             break;
         case EVENT_PHASES.COMPLETED:
-            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULEEXPORT)
+            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
             break;
         default:
             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)

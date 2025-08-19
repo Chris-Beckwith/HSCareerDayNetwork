@@ -68,7 +68,7 @@ function initParams() {
     return {
         pageNumber: 1,
         pageSize: 9,
-        orderBy: 'date',
+        orderBy: 'dateDesc',
         surveyComplete: "0",
         includeDeleted: false,
         eventPhases: []

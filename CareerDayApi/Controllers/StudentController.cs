@@ -98,6 +98,9 @@ namespace CareerDayApi.Controllers
 
             var result = await _context.SaveChangesAsync() > 0;
 
+            var updateProgress = await UpdateSurveyProgress.UpdateSurveyProgressAsync(studentEvent.Id, _context);
+            if (!updateProgress) _logger.LogWarning("(CreateStudent) Failed to update event survey progress. EventId: {eventId}", studentEvent.Id);
+
             if (result) return CreatedAtRoute("GetStudent", new { Id = student.Id }, student);
 
             return BadRequest(new ProblemDetails { Title = "Problem creating new student" });
@@ -127,7 +130,8 @@ namespace CareerDayApi.Controllers
             Student student = await _context.Students.FindAsync(survey.Student.Id);
 
             List<Career> primaryCareers = [];
-            if (survey.PrimaryCareers != null && survey.PrimaryCareers.Count != 0) {
+            if (survey.PrimaryCareers != null && survey.PrimaryCareers.Count != 0)
+            {
                 primaryCareers = await _context.Careers
                                             .Where(s => survey.PrimaryCareers
                                                             .Select(dto => dto.Id)
@@ -136,7 +140,8 @@ namespace CareerDayApi.Controllers
             }
 
             List<Career> alternateCareers = [];
-            if (survey.AlternateCareers != null && survey.AlternateCareers.Count != 0) {
+            if (survey.AlternateCareers != null && survey.AlternateCareers.Count != 0)
+            {
                 alternateCareers = await _context.Careers
                                             .Where(s => survey.AlternateCareers
                                                             .Select(dto => dto.Id)
@@ -144,20 +149,23 @@ namespace CareerDayApi.Controllers
                                             .ToListAsync();
             }
 
-            if (student == null) {
+            if (student == null)
+            {
                 _logger.LogError("Error submitting survey: Student not found: {student}, {studentId}",
                     survey.Student, survey.Student.Id);
-                return BadRequest(new ProblemDetails { Title = "Problem updating event: School not found"});
+                return BadRequest(new ProblemDetails { Title = "Problem updating event: School not found" });
             }
-            if (primaryCareers == null) {
+            if (primaryCareers == null)
+            {
                 _logger.LogError("Error submitting survey: Primary Careers not found: {careers}",
                     survey.PrimaryCareers);
-                return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Careers not found"});
+                return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Careers not found" });
             }
-            if (alternateCareers == null) {
+            if (alternateCareers == null)
+            {
                 _logger.LogError("Error submitting survey: Alternate Careers not found: {careers}",
                     survey.AlternateCareers);
-                return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Careers not found"});
+                return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Careers not found" });
             }
 
             student.SurveyComplete = true;
@@ -174,13 +182,17 @@ namespace CareerDayApi.Controllers
                 survey.AlternateCareers.Add(career);
             }
 
-            try {
+            try
+            {
                 _context.Surveys.Add(survey);
 
                 var result = await _context.SaveChangesAsync() > 0;
 
+                var updateProgress = await UpdateSurveyProgress.UpdateSurveyProgressAsync(survey.Student.EventId, _context);
+                if (!updateProgress) _logger.LogWarning("(SubmitSurvey) Failed to update event survey progress. EventId: {eventId}", survey.Student.EventId);
+
                 if (result) return Ok();
-            } 
+            }
             catch (DbUpdateException e) when (IsUniqueConstraintException(e))
             {
                 return Conflict(new { message = GetAndLogErrorMsg(e) });
@@ -201,6 +213,9 @@ namespace CareerDayApi.Controllers
 
             var result = await _context.SaveChangesAsync() > 0;
 
+            var updateProgress = await UpdateSurveyProgress.UpdateSurveyProgressAsync(student.EventId, _context);
+            if (!updateProgress) _logger.LogWarning("(DeleteStudent) Failed to update event survey progress. EventId: {eventId}", student.EventId);
+
             if (result) return Ok();
 
             return BadRequest(new ProblemDetails { Title = "Problem deleting student" });
@@ -217,6 +232,9 @@ namespace CareerDayApi.Controllers
             _context.Students.RemoveRange(students);
 
             var result = await _context.SaveChangesAsync() > 0;
+
+            var updateProgress = await UpdateSurveyProgress.UpdateSurveyProgressAsync(eventId, _context);
+            if (!updateProgress) _logger.LogWarning("(DeleteAllStudents) Failed to update event survey progress. EventId: {eventId}", eventId);
 
             if (result) return Ok();
 
@@ -292,11 +310,15 @@ namespace CareerDayApi.Controllers
             {
                 return Conflict(new { message = GetAndLogErrorMsg(e) });
             }
-            
+
             var msg = "Students Imported Successfully";
-            if (!string.IsNullOrEmpty(error)) {
+            if (!string.IsNullOrEmpty(error))
+            {
                 msg = error;
             }
+
+            var updateProgress = await UpdateSurveyProgress.UpdateSurveyProgressAsync(careerEvent.Id, _context);
+            if (!updateProgress) _logger.LogWarning("(ImportStudents) Failed to update event survey progress. EventId: {eventId}", careerEvent.Id);
 
             return Ok(new { message = msg });
         }
@@ -340,9 +362,9 @@ namespace CareerDayApi.Controllers
             string fileName = $"Students_{students.First().School.Name}_{DateTime.Now:MM-dd-yyyy}.xlsx";
 
             var stream = await _excelService.ExportToExcel(headers, rows, "Students");
-            
+
             Response.AddExcelHeader(fileName, _excelService.excelMimeType);
-            
+
             return File(stream, _excelService.excelMimeType, fileName);
         }
 
@@ -440,13 +462,15 @@ namespace CareerDayApi.Controllers
                     Event = careerEvent
                 };
 
-                if (!IsFullyPopulatedStudent(student)) {
+                if (!IsFullyPopulatedStudent(student))
+                {
                     warningCount++;
                 }
 
                 students.Add(student);
             }
-            if (warningCount > 0) {
+            if (warningCount > 0)
+            {
                 error = warningCount + " Student(s) found with incomplete information";
             }
 
@@ -464,7 +488,7 @@ namespace CareerDayApi.Controllers
 
         private static bool IsUniqueConstraintException(DbUpdateException e)
         {
-            return e.InnerException != null 
+            return e.InnerException != null
                 && (e.InnerException.Message.Contains("23503") || e.InnerException.Message.Contains("23505"));
         }
 
