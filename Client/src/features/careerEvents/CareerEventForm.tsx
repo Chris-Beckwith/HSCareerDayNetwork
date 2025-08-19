@@ -62,6 +62,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
         field.onChange(event.target.value)
         const selectedSchool = schools.find(s => s.id === event.target.value)
         setValue('school', selectedSchool)
+        setValue('name', selectedSchool?.name)
     }
     
     if (!schoolsLoaded) return <LoadingComponent message="Loading..." />

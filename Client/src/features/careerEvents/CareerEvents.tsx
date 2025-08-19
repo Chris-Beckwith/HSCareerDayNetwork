@@ -25,8 +25,8 @@ import { reloadStudents } from "../student/studentSlice";
 
 const sortOptions = [
     { value: 'name', label: 'Alphabetical' },
-    { value: 'date', label: 'Date - Soonest' },
-    { value: 'dateDesc', label: 'Date - Latest' },
+    { value: 'dateDesc', label: 'Date - Newest First' },
+    { value: 'date', label: 'Date - Oldest First' },
     { value: 'surveyComplete', label: 'Survey Complete - Least' },
     { value: 'surveyCompleteDesc', label: 'Survey Complete - Most' },
 ]

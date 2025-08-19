@@ -34,7 +34,11 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
 
     useEffect(() => {
         if (speaker && !watchFile && !isDirty) {
-            reset(speaker)
+            const sanitizedSpeaker = {
+                ...speaker,
+                file: null
+            }
+            reset(sanitizedSpeaker)
             setSelectedCareers(prevSelectedCareers => {
                 if (speaker.careers) {
                     const newCareers = speaker.careers.filter(career =>
@@ -110,7 +114,7 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                     <SpeakerSchool control={control} name="schoolLastSpokeAt" />
 
                     <Grid container item justifyContent="center">
-                        <Grid item xs={4} display='flex' justifyContent='center' alignItems='center'>
+                        <Grid item xs={4} display='flex' justifyContent='center' alignItems='center' sx={{ cursor: 'pointer' }}>
                             <AppDropzone control={control} name='file'
                                 descriptionText={speaker && speaker.portraitUrl ? "Edit Speaker Picture" : "Add Speaker Picture"} />
                         </Grid>
@@ -146,6 +150,7 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                                 variant="contained"
                                 type="submit"
                                 color="success"
+                                disabled={!isDirty}
                             >
                                 {speaker ? "Save" : "Add Speaker"}
                             </LoadingButton>

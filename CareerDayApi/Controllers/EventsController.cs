@@ -39,12 +39,6 @@ namespace CareerDayApi.Controllers
 
             Response.AddPaginationHeader(events.MetaData);
 
-            foreach (var e in events)
-            {
-                using var newContext = new CareerDayContext(_dbContextOptions);
-                e.SurveyCompletePercent = await CalculateSurveyProgressAsync(e.Id, newContext);
-            }
-
             return events;
         }
 
@@ -56,9 +50,6 @@ namespace CareerDayApi.Controllers
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (singleEvent == null) return NotFound();
-            
-            using var newContext = new CareerDayContext(_dbContextOptions);
-            singleEvent.SurveyCompletePercent = await CalculateSurveyProgressAsync(singleEvent.Id, newContext);
             
             var cookieOptions = new CookieOptions{IsEssential = true, Expires = DateTime.Now.AddDays(30)};
             Response.Cookies.Append("eventId", singleEvent.Id.ToString(), cookieOptions);
@@ -74,9 +65,6 @@ namespace CareerDayApi.Controllers
                 .FirstOrDefaultAsync(e => e.GUID == guid);
 
             if (singleEvent == null) return NotFound();
-
-            using var newContext = new CareerDayContext(_dbContextOptions);
-            singleEvent.SurveyCompletePercent = await CalculateSurveyProgressAsync(singleEvent.Id, newContext);
 
             return singleEvent;
         }
@@ -282,18 +270,6 @@ namespace CareerDayApi.Controllers
 
             _logger.LogError("Error deleting Event: {eventId}", singleEvent.Id);
             return BadRequest(new ProblemDetails { Title = "Problem deleting Event" });
-        }
-
-        private static async Task<int> CalculateSurveyProgressAsync(int id, CareerDayContext context)
-        {
-            var totalStudents = await context.Students.Where(s => s.EventId == id).ToListAsync();
-            var totalSubmissions = await context.Surveys.Where(s => s.Student.EventId == id).ToListAsync();
-
-            if (totalSubmissions.Count == 0 || totalStudents.Count == 0) return 0;
-
-            return (int)Math.Floor(
-                (double)totalSubmissions.Count / totalStudents.Count * 100
-            );
         }
 
         [HttpGet("phases")]

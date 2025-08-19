@@ -21,7 +21,30 @@ export default function Speakers() {
     const [selectedSpeaker, setSelectedSpeaker] = useState<Speaker | undefined>(undefined)
 
     function handleSelectSpeaker(speaker: Speaker) {
-        setSelectedSpeaker(speaker)
+        const normalizedSpeaker: Speaker = {
+            id: speaker.id ?? '',
+            firstName: speaker.firstName ?? '',
+            middleName: speaker.middleName ?? '',
+            lastName: speaker.lastName ?? '',
+            title: speaker.title ?? '',
+            company: speaker.company ?? '',
+            schoolLastSpokeAt: speaker.schoolLastSpokeAt ?? null,
+            phoneNumber: speaker.phoneNumber ?? '',
+            email: speaker.email ?? '',
+            portraitUrl: speaker.portraitUrl ?? '',
+            careers: speaker.careers ?? [],
+            careerIds: speaker.careerIds ?? [],
+            publicId: speaker.publicId ?? '',
+            address: {
+                id: speaker.address?.id ?? '',
+                address1: speaker.address?.address1 ?? '',
+                address2: speaker.address?.address2 ?? '',
+                city: speaker.address?.city ?? '',
+                state: speaker.address?.state ?? '',
+                zip: speaker.address?.zip ?? '',
+            }
+        }
+        setSelectedSpeaker(normalizedSpeaker)
         setEditMode(true)
     }
 

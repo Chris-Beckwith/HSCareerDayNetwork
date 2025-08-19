@@ -22,7 +22,24 @@ export default function Schools() {
     const [selectedSchool, setSelectedSchool] = useState<School | undefined>(undefined)
     
     function handleSelectSchool(school: School) {
-        setSelectedSchool(school)
+        const normalizedSchool: School = {
+            id: school.id ?? null,
+            name: school.name ?? '',
+            contactName: school.contactName ?? '',
+            contactEmail: school.contactEmail ?? '',
+            contactPhone: school.contactPhone ?? '',
+            estimatedNumOfStudents: school.estimatedNumOfStudents,
+            address: {
+                    id: school.address?.id ?? null,
+                    address1: school.address?.address1 ?? '',
+                    address2: school.address?.address2 ?? '',
+                    city: school.address?.city ?? '',
+                    state: school.address?.state ?? '',
+                    zip: school.address?.zip ?? '',
+                    country: school.address?.country ?? '',
+            }
+        }
+        setSelectedSchool(normalizedSchool)
         setEditMode(true)
     }
 
@@ -94,9 +111,8 @@ export default function Schools() {
                                 ) : (
                                     <>
                                         <TableCell>{school.name}</TableCell>
-                                        <TableCell>{school.address?.address1} {school.address?.address2} 
-                                            {school.address?.city} {school.address?.state} {school.address?.zip}
-                                        </TableCell>
+                                        <TableCell>{school.address?.address1} {school.address?.address2}{" "}
+                                            {school.address?.city} {school.address?.state} {school.address?.zip}</TableCell>
                                         <TableCell>{school.contactName}</TableCell>
                                         <TableCell>{school.contactPhone}</TableCell>
                                         <TableCell>{school.contactEmail}</TableCell>
