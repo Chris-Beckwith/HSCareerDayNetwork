@@ -25,9 +25,10 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
             setPlacedSessions(newPlacedSessions)
 
             const availableSessions = sessions.filter(s =>
-                s.period === placementStudent.period &&
-                !newPlacedSessions.some(pc => pc.subject.id === s.subject.id) &&
-                placementStudent.altCareers.some(alt => alt.id === s.subject.id)
+                s.period === placementStudent.period
+                && !newPlacedSessions.some(pc => pc.subject.id === s.subject.id)
+                && placementStudent.altCareers.some(alt => alt.id === s.subject.id)
+                && (scheduleParams?.maxClassSize === undefined || s.students.length < scheduleParams.maxClassSize)
             )
 
             if (availableSessions.length === 0) {
@@ -81,7 +82,7 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
                             <Typography variant="h6">Placed Careers:</Typography>
                         </Grid>
                         {placedSessions.map(s =>
-                            <Grid item xs={12} key={s.id} sx={{ pl: 1 }}>
+                            <Grid item xs={12} key={s.subject.id} sx={{ pl: 1 }}>
                                 <Typography>{s.subject.name}</Typography>
                             </Grid>
                         )}
@@ -92,9 +93,9 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
                         <Grid item xs={12}>
                             <Typography variant="h6">Alternate Choices:</Typography>
                         </Grid>
-                        {placementStudent?.altCareers.map(s =>
-                            <Grid item xs={12} key={s.id} sx={{ pl: 1 }}>
-                                <Typography>{s.name}</Typography>
+                        {placementStudent?.altCareers.map(c =>
+                            <Grid item xs={12} key={c.id} sx={{ pl: 1 }}>
+                                <Typography>{c.name}</Typography>
                             </Grid>
                         )}
                     </Grid>
@@ -109,7 +110,7 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
 
                 <Grid container spacing={1}>
                     {placementSessions.map(s =>
-                        <Grid container item key={s.id} xs={6}>
+                        <Grid container item key={s.subject.id} xs={6}>
                             <Paper elevation={8}
                                 onClick={() => handleSelectSession(s)}
                                 sx={{ 
