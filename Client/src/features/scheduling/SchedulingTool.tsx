@@ -1,4 +1,4 @@
-import { Button, Checkbox, Grid, Typography } from "@mui/material"
+import { Button, Checkbox, Grid, IconButton, Typography } from "@mui/material"
 import { CareerEvent } from "../../app/models/event"
 import { LoadingButton } from "@mui/lab"
 import { useEffect, useState } from "react"
@@ -19,6 +19,7 @@ import { reloadClassrooms } from "../classroom/classroomSlice"
 import SessionViewSkeleton from "./SessionViewSkeleton" 
 import TriStateCheckbox from "./components/TriStateCheckbox"
 import { ScheduleParams } from "../../app/models/scheduleParams"
+import { ExpandMore, ExpandLess } from "@mui/icons-material"
 
 interface Props {
     event: CareerEvent
@@ -39,6 +40,7 @@ export default function SchedulingTool({ event, back }: Props) {
     const [unplacedStudents, setUnplacedStudents] = useState<UnplacedStudent[]>([])
     const [scheduleParams, setScheduleParams] = useState<ScheduleParams>()
     const [selectCareers, setSelectCareers] = useState(false)
+    const [showLargeRooms, setShowLargeRooms] = useState(false)
     const [sameSpeakers, setSameSpeakers] = useState<Career[][]>([])
     const [sameSpeakersIndex, setSameSpeakersIndex] = useState(0)
     const { eventPhases } = useAppSelector(state => state.careerEvents)
@@ -235,11 +237,11 @@ export default function SchedulingTool({ event, back }: Props) {
                                         <Grid container item xs={12} spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
                                             <Grid item xs={2}>
                                                 <Typography variant="h6">Max Class Size</Typography>
-                                                <AppTextInput control={control} label="Max Class Size" name="maxClassSize" />
+                                                <AppTextInput type="number" inputProps={{ min: 1 }} control={control} label="Max Class Size" name="maxClassSize" />
                                             </Grid>
                                             <Grid item xs={2}>
                                                 <Typography variant="h6">Min Class Size</Typography>
-                                                <AppTextInput control={control} label="Min Class Size" name="minClassSize" />
+                                                <AppTextInput type="number" inputProps={{ min: 0 }} control={control} label="Min Class Size" name="minClassSize" />
                                             </Grid>
                                         </Grid>
 
@@ -257,8 +259,17 @@ export default function SchedulingTool({ event, back }: Props) {
                                                 <Typography variant="h6">Total Rooms: {metaData?.totalCount}</Typography>
                                             </Grid>
                                             <Grid container item xs={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                                <Typography variant="h6">Larger Rooms:</Typography>
-                                                {classrooms.filter(c => maxClassSizeValue > 0 && c.capacity > maxClassSizeValue).map(c => (
+                                                <Typography variant="h6">
+                                                    Larger Rooms:
+                                                    {classrooms.filter(c => maxClassSizeValue > 0 && c.capacity > maxClassSizeValue).length > 0 &&
+                                                        <>
+                                                            <IconButton color="primary" size="small" onClick={() => setShowLargeRooms(!showLargeRooms)}>
+                                                                {showLargeRooms ? <ExpandMore /> : <ExpandLess /> }
+                                                            </IconButton>
+                                                        </>
+                                                    }
+                                                </Typography>
+                                                {showLargeRooms && classrooms.filter(c => maxClassSizeValue > 0 && c.capacity > maxClassSizeValue).map(c => (
                                                     <Typography key={c.building + "-" + c.roomNumber} sx={{ display: 'flex', alignItems: 'center', mx: 1}}>
                                                         {c.building} - {c.roomNumber} - Size: {c.capacity}
                                                     </Typography>

@@ -31,6 +31,7 @@ namespace CareerDayApi.Controllers
                                         .Where(s => s.Student.EventId == generateScheduleParamsDto.EventId).ToListAsync();
 
             var maxClassSize = generateScheduleParamsDto.MaxClassSize;
+            var minClassSize = generateScheduleParamsDto.MinClassSize;
 
             // Dictionary to count the number of times each primary career is selected
             var primaryCareerCounts = surveys
@@ -497,6 +498,102 @@ namespace CareerDayApi.Controllers
                     }
                 }
             }
+
+            //Under populated sessions
+            var underPopulatedSessions = allSessions
+                .Where(s => s.Students.Count < minClassSize)
+                .ToList();
+
+            foreach (var upSession in underPopulatedSessions)
+            {
+                // First, try other sessions of same subject in SAME period
+                var samePeriodSessions = allSessions
+                    .Where(s => s.Subject == upSession.Subject 
+                                && s.Period == upSession.Period
+                                && s.Id != upSession.Id
+                                && s.Students.Count > minClassSize)
+                    .ToList();
+
+                foreach (var samePeriodSession in samePeriodSessions)
+                {
+                    foreach (var student in samePeriodSession.Students.ToList())
+                    {
+                        if (upSession.Students.Count >= minClassSize) break;
+
+                        if (samePeriodSession.Students.Count > minClassSize &&
+                            upSession.Students.Count < maxClassSize)
+                        {
+                            // Remove student from session
+                            samePeriodSession.Students.Remove(student);
+                            // Remove student from conflict map
+                            conflictMap[samePeriodSession.Period - 1].Remove(student);
+                            // Decrement sessionPopulation
+                            sessionPopulation[samePeriodSession]--;
+
+                            // Add student to Session
+                            upSession.Students.Add(student);
+                            // Add student to conflict map
+                            conflictMap[upSession.Period - 1].Add(student);
+                            // Increment sessionPopulation
+                            sessionPopulation[upSession]++;
+                        }
+                    }
+                }
+
+                // If still under min, try CROSS-PERIOD swap
+                if (upSession.Students.Count < minClassSize)
+                {
+                    var otherPeriodSessions = allSessions
+                        .Where(s => s.Subject == upSession.Subject
+                                    && s.Period != upSession.Period
+                                    && s.Students.Count > minClassSize)
+                        .ToList();
+
+                    foreach (var oSession in otherPeriodSessions)
+                    {
+                        foreach (var student in oSession.Students.ToList())
+                        {
+                            if (upSession.Students.Count >= minClassSize) break;
+
+                            // Look for student that has a class in upSession’s period
+                            var conflictingSession = allSessions.FirstOrDefault(s =>
+                                s.Period == upSession.Period &&
+                                s.Students.Contains(student));
+
+                            if (conflictingSession != null &&
+                                conflictingSession.Subject != upSession.Subject &&
+                                conflictingSession.Students.Count > minClassSize)
+                            {
+                                // Is there a matching subject in oSession’s period
+                                var swapTarget = allSessions.FirstOrDefault(s =>
+                                    s.Subject == conflictingSession.Subject &&
+                                    s.Period == oSession.Period &&
+                                    s.Students.Count < maxClassSize);
+
+                                if (swapTarget != null)
+                                {
+                                    // Perform the swap
+                                    conflictingSession.Students.Remove(student);
+                                    conflictMap[conflictingSession.Period - 1].Remove(student);
+                                    sessionPopulation[conflictingSession]--;
+
+                                    swapTarget.Students.Add(student);
+                                    conflictMap[swapTarget.Period - 1].Add(student);
+                                    sessionPopulation[swapTarget]++;
+
+                                    oSession.Students.Remove(student);
+                                    conflictMap[oSession.Period - 1].Remove(student);
+                                    sessionPopulation[oSession]--;
+
+                                    upSession.Students.Add(student);
+                                    conflictMap[upSession.Period - 1].Add(student);
+                                    sessionPopulation[upSession]++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             
             var result = new ScheduleResultDto
             {
@@ -510,6 +607,9 @@ namespace CareerDayApi.Controllers
         private static void AddRestrictedSession(GenerateScheduleParamsDto generateScheduleParamsDto, KeyValuePair<Career, int> count,
             List<Session> allSessions, List<List<Session>> periods)
         {
+            // If totalSession > periodCount
+                // Add session to each period
+                
             // If allowed periods > totalSessions, partially restricted ("OR" restriction)
                 // add without period
             // If allowed periods < totalSessions
@@ -521,6 +621,25 @@ namespace CareerDayApi.Controllers
             
             //TODO if a career has requested additional sessions, add here (from generateScheduleParamsDto)
             var totalSessions = Math.Ceiling((double)count.Value / generateScheduleParamsDto.MaxClassSize);
+
+            // If totalSession > PeriodCount add one to each period until less than.
+            // Add toggle for this TODO ***************
+            while (totalSessions > generateScheduleParamsDto.PeriodCount)
+            {
+                for (var periodIndex = 0; periodIndex < generateScheduleParamsDto.PeriodCount; periodIndex++)
+                {
+                    var newSession = new Session
+                    {
+                        Subject = count.Key,
+                        EventId = generateScheduleParamsDto.EventId,
+                        Period = periodIndex + 1
+                    };
+
+                    periods[periodIndex].Add(newSession);
+                    allSessions.Add(newSession);
+                    totalSessions--;
+                }
+            }
 
             // Number of restricted periods is not equal to the total periods
             if (restrictPeriods.Count(p => p == 0) < generateScheduleParamsDto.PeriodCount) {
