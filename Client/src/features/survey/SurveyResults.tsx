@@ -184,7 +184,7 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
                                     <Switch onChange={handleSortOption} color="default" />
-                                    <Typography>{sortOption ? "Sort by Value" : "Sort by Category"}</Typography>
+                                    <Typography>{sortOption ? "Sort by Category" : "Sort by Value"}</Typography>
                                     <Switch onChange={(e) => setIncludeAlternate(e.target.checked)} color="default" />
                                     <Typography>{includeAlternate ? "Exclude Alternate" : "Include Alternate"}</Typography>
                                 </Box>
