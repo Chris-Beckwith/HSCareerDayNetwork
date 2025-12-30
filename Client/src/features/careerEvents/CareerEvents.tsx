@@ -138,7 +138,7 @@ export default function CareerEvents() {
                                 updateCareerEvent={updateCareerEvent} allowUpdate={allowUpdate()} back={back} />
 
     return (
-        <Grid container columnSpacing={4}>
+        <Grid container columnSpacing={3}>
             <Grid item xs={3}>
                 <Button onClick={() => setEditMode(true)}
                     variant="contained"
