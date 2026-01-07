@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import InfoVerification from "./InfoVerification";
 import CareerSelection from "./CareerSelection";
 import ReviewAndSubmit from "./ReviewAndSubmit";
-import { FieldValues, FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { FieldValues, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { validationSchema } from "./surveyValidation";
 import EnterStudentId from "./EnterStudentId";
@@ -94,18 +94,6 @@ export default function Survey() {
         }
     })
 
-    const { control } = methods
-    const { append: appendPrimary } = useFieldArray({
-        control,
-        name: 'primaryCareers',
-        keyName: 'key'
-    } as never)
-    const { append: appendAlternate } = useFieldArray({
-        control,
-        name: 'alternateCareers',
-        keyName: 'key'
-    } as never)
-
     const updateSelectedCareer = (career: Career, isPrimary: boolean, isAdd: boolean) => {
         if (isPrimary) {
             if (isAdd) {
@@ -165,13 +153,13 @@ export default function Survey() {
                     window.scrollTo({ top: 250, behavior: 'smooth'})
                 }
             } else if (activeStep === 3) {  //Survey Submitted
-                primaryCareers.forEach(c => appendPrimary(c))
-                alternateCareers.forEach(c => appendAlternate(c))
                 const studentId = student?.id
                 const dataWithStudent = {
                     ...data,
                     student,
-                    studentId
+                    studentId,
+                    primaryCareers,
+                    alternateCareers
                 }
 
                 await agent.Student.submitSurvey(dataWithStudent)
