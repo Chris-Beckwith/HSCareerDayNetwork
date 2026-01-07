@@ -153,15 +153,15 @@ namespace CareerDayApi.Controllers
             {
                 _logger.LogError("Error submitting survey: Student not found: {student}, {studentId}",
                     survey.Student, survey.Student.Id);
-                return BadRequest(new ProblemDetails { Title = "Problem updating event: School not found" });
+                return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Student not found" });
             }
-            if (primaryCareers == null)
+            if (primaryCareers == null || primaryCareers.Count == 0)
             {
                 _logger.LogError("Error submitting survey: Primary Careers not found: {careers}",
                     survey.PrimaryCareers);
                 return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Careers not found" });
             }
-            if (alternateCareers == null)
+            if (alternateCareers == null || alternateCareers.Count == 0)
             {
                 _logger.LogError("Error submitting survey: Alternate Careers not found: {careers}",
                     survey.AlternateCareers);
