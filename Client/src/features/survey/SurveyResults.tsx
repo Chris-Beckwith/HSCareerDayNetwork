@@ -7,6 +7,8 @@ import SurveyStudentLineItem from "./SurveyStudentLineItem";
 import { downloadExcel } from "../../app/util/util";
 import agent from "../../app/api/agent";
 import { LoadingButton } from "@mui/lab";
+import { Survey } from "../../app/models/survey";
+import EditSurvey from "./EditSurvey";
 
 interface Props {
     event: CareerEvent
@@ -21,6 +23,8 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
     const [viewOption, setViewOption] = useState(false)
     const [showAlternate, setShowAlternate] = useState(false)
     const [includeAlternate, setIncludeAlternate] = useState(false)
+    const [editSurvey, setEditSurvey] = useState<Survey | null>(null)
+    const isEditing = Boolean(editSurvey)
     const [primaryCounts, setPrimaryCounts] = useState<{
         name: string; category: string; courseId: number; value: number;
     }[]>([])
@@ -47,7 +51,7 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                 value: 0
             }))
 
-            surveys.forEach(survey => {
+            surveys.forEach((survey: { primaryCareers: any[]; }) => {
                 survey.primaryCareers.forEach(selectedCareer => {
                     const careerToUpdate = updatedCounts.find(c => c.name === selectedCareer.name)
                     if (careerToUpdate) {
@@ -65,7 +69,7 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                 value: 0
             }))
 
-            surveys.forEach(survey => {
+            surveys.forEach((survey: { alternateCareers: any[]; }) => {
                 survey.alternateCareers.forEach(selectedCareer => {
                     const careerToUpdate = updatedCounts.find(c => c.name === selectedCareer.name)
                     if (careerToUpdate) {
@@ -104,64 +108,64 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
     let currentCategory = ''
 
     return (
-        <>
-            <Grid container>
+        <Grid container>
 
-                <Grid item xs={2}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
-                        <Button variant="contained" color="inherit" onClick={back}>{schoolUser ? 'View Students' : 'Back'}</Button>
-                    </Box>
-                </Grid>
-                <Grid item xs={8}>
-                    <Typography variant="h3" textAlign='center' flexGrow={1}>{event.school.name} Survey Results</Typography>
-                </Grid>
-                <Grid item xs={2}></Grid>
+            <Grid item xs={2}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
+                    <Button variant="contained" color="inherit" onClick={back}>{schoolUser ? 'View Students' : 'Back'}</Button>
+                </Box>
+            </Grid>
+            <Grid item xs={8}>
+                <Typography variant="h3" textAlign='center' flexGrow={1}>{event.school.name} Survey Results</Typography>
+            </Grid>
+            <Grid item xs={2}></Grid>
 
-                <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                    <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-start' }}></Grid>
-                    <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
-                            <Button onClick={() => {
-                                if (viewOption) setViewOption(!viewOption)
-                                }}
-                            sx={{
-                                variant: viewOption ? '' : 'outlined',
-                                    bgcolor: viewOption ? 'lightgray' : 'white',
-                                    width: '120px', borderRadius: '4px 0 0 4px',
-                                    transition: 'background-color 0.3s',
-                                    '&:hover': {
-                                        cursor: viewOption ? 'pointer' : 'default',
-                                        bgcolor: viewOption ? '' : 'white'
-                                    }
-                                }}>
-                                Categories
-                            </Button>
-                            <Button onClick={() => {
-                                if (!viewOption) setViewOption(!viewOption)
-                                }}
-                            sx={{
-                                variant: viewOption ? 'outlined' : '',
-                                bgcolor: viewOption ? 'white' : 'lightgray',
-                                width: '120px', borderRadius: '0 4px 4px 0',
+            <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-start' }}></Grid>
+                <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
+                        <Button onClick={() => {
+                            if (viewOption) setViewOption(!viewOption)
+                            }}
+                        sx={{
+                            variant: viewOption ? '' : 'outlined',
+                                bgcolor: viewOption ? 'lightgray' : 'white',
+                                width: '120px', borderRadius: '4px 0 0 4px',
                                 transition: 'background-color 0.3s',
                                 '&:hover': {
-                                    cursor: viewOption ? 'default' : 'pointer',
-                                    bgcolor: viewOption ? 'white' : ''
+                                    cursor: viewOption ? 'pointer' : 'default',
+                                    bgcolor: viewOption ? '' : 'white'
                                 }
                             }}>
-                                Students
-                            </Button>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', pr: 2 }}>
-                        <LoadingButton loading={loading} variant="contained" onClick={handleExport}>
-                            Export
-                        </LoadingButton>
-                    </Grid>
+                            Categories
+                        </Button>
+                        <Button onClick={() => {
+                            if (!viewOption) setViewOption(!viewOption)
+                            }}
+                        sx={{
+                            variant: viewOption ? 'outlined' : '',
+                            bgcolor: viewOption ? 'white' : 'lightgray',
+                            width: '120px', borderRadius: '0 4px 4px 0',
+                            transition: 'background-color 0.3s',
+                            '&:hover': {
+                                cursor: viewOption ? 'default' : 'pointer',
+                                bgcolor: viewOption ? 'white' : ''
+                            }
+                        }}>
+                            Students
+                        </Button>
+                    </Box>
                 </Grid>
+                <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', pr: 2 }}>
+                    <LoadingButton loading={loading} variant="contained" onClick={handleExport}>
+                        Export
+                    </LoadingButton>
+                </Grid>
+            </Grid>
 
-                <Grid item xs={12}>
-                    {viewOption ? (
+            <Grid item xs={12}>
+                {!isEditing && (
+                    viewOption ? (
                         <Paper sx={{ px: 2, mx: 2, py: 1, my: 2 }}>
                             <Grid container item xs={12}>
                                 <Grid container item xs={4} alignItems="center">
@@ -173,9 +177,9 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                                 </Grid>
                                 <Grid item xs={4}></Grid>
                             </Grid>
-                            {surveys.sort((a,b) => a.student.lastFirstName.localeCompare(b.student.lastFirstName)).map((item, index) => (
-                                <Box key={index}>
-                                    <SurveyStudentLineItem item={item} showAlternate={showAlternate} event={event} schoolUser={schoolUser} />
+                            {surveys.sort((a: any,b: any) => a.student.lastFirstName.localeCompare(b.student.lastFirstName)).map((item: any) => (
+                                <Box key={item.id}>
+                                    <SurveyStudentLineItem item={item} showAlternate={showAlternate} onEdit={() => setEditSurvey(item)} schoolUser={schoolUser} />
                                 </Box>
                             ))}
                         </Paper>
@@ -196,7 +200,7 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                                 primaryCounts.sort((c, d) => d.value - c.value).map((item, index) => {
                                     const altItem = includeAlternate && alternateCounts.find(c => c.name === item.name)
                                     return (
-                                        <Box key={index}>
+                                        <Box key={item.courseId}>
                                             <SurveyResultLineItem item={item} maxValue={maxValue} altItem={altItem} />
                                             {index !== primaryCounts.length - 1 &&
                                                 <Divider sx={{ mb: 0.5 }} />
@@ -210,14 +214,14 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                                     if (categoryComparison !== 0) return categoryComparison;
 
                                     return a.courseId - b.courseId;
-                                }).map((item, index) => {
+                                }).map(item => {
                                     const showCategory = item.category !== currentCategory
                                     const isFirst = currentCategory === ''
                                     if (showCategory) currentCategory = item.category
                                     const altItem = includeAlternate && alternateCounts.find(c => c.name === item.name)
 
                                     return (
-                                        <Box key={index}>
+                                        <Box key={item.courseId}>
                                             {showCategory &&
                                                 <Divider sx={{ mb: 0.5, mt: isFirst ? 0 : 1 }} textAlign="left">
                                                     <Typography variant="body2" sx={{ color: "gray" }}>
@@ -231,10 +235,14 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                                 })
                             )}
                         </Paper>
-                    )}
-                </Grid>
-
+                    )
+                )}
             </Grid>
-        </>
+
+            {editSurvey && (
+                <EditSurvey open={true} survey={editSurvey} event={event} handleClose={() => setEditSurvey(null)} />
+            )}
+
+        </Grid>
     )
 }

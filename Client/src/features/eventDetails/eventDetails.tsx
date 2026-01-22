@@ -6,7 +6,7 @@ import { Typography } from "@mui/material";
 
 
 export default function EventDetails() {
-    const { user } = useAppSelector(state => state.account)
+    const { user } = useAppSelector((state: { account: any; }) => state.account)
     const [showSurvey, setShowSurvey] = useState(true)
 
     const event = user?.event
