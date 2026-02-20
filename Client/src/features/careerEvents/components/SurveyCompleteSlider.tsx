@@ -1,4 +1,4 @@
-import { Box, FormLabel, Grid, Slider, Input } from "@mui/material";
+import { Box, FormLabel, Grid, Slider, Input, useTheme, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "../../../app/store/configureStore";
 import { setEventParams } from "../careerEventSlice";
@@ -7,16 +7,21 @@ interface Props {
     surveyComplete: string
 }
 
+/**
+ * Slider bar for filtering career events by percent of survey completion.
+ */
 export default function SurveyCompleteSlider({surveyComplete}: Props) {
     const [value, setValue] = useState(parseInt(surveyComplete))
     const dispatch = useAppDispatch()
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
     const handleSliderChange = (_event: Event, newValue: number | number[]) => {
         setValue(newValue as number);
     }
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValue(event.target.value === '' ? 0 : Number(event.target.value));
+        setValue(event.target.value === '' ? 0 : Number(event.target.value))
     }
 
     const handleBlur = () => {
@@ -34,10 +39,10 @@ export default function SurveyCompleteSlider({surveyComplete}: Props) {
 
     return (
         <Box sx={{ mb: 2, p: 2 }}>
-            <FormLabel id="input-slider">
+            <FormLabel id="input-slider" sx={{ fontSize: isMobile ? "0.85rem" : "1rem" }}>
                 Minimum Survey Completed
             </FormLabel>
-            <Grid container spacing={2} alignItems="center">
+            <Grid container spacing={2} alignItems="center" sx={{ mt: -1, ml: -1, width: '104%' }}>
                 <Grid item xs>
                     <Slider
                         value={typeof value === 'number' ? value : 0}
@@ -52,6 +57,7 @@ export default function SurveyCompleteSlider({surveyComplete}: Props) {
                         size="small"
                         onChange={handleInputChange}
                         onBlur={handleBlur}
+                        sx={{ width: '50px' }}
                         inputProps={{
                             step: 10,
                             min: 0,
