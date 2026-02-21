@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material"
+import { Box, Button, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { MouseEvent, useState } from "react"
 import { useAppDispatch } from "../../app/store/configureStore"
 import { reloadSpeakers, setPageNumber, setSpeakerParams } from "./speakerSlice"
@@ -12,6 +12,9 @@ import AppTextSearch from "../../app/components/AppTextSearch"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import SpeakerSkeleton from "./components/SpeakerSkeleton"
 
+/**
+ * Component to display the list of speakers added.
+ */
 export default function Speakers() {
     const dispatch = useAppDispatch();
     const { speakers, speakersLoaded, metaData, speakerParams } = useSpeakers()
@@ -19,6 +22,9 @@ export default function Speakers() {
     const [loading, setLoading] = useState(false)
     const [showDeletePopup, setShowDeletePopup] = useState(false)
     const [selectedSpeaker, setSelectedSpeaker] = useState<Speaker | undefined>(undefined)
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     function handleSelectSpeaker(speaker: Speaker) {
         const normalizedSpeaker: Speaker = {
@@ -83,15 +89,19 @@ export default function Speakers() {
     return (
         <>
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
-                <Typography variant="h3">Speakers</Typography>
+                <Typography variant={isTablet ? "h4" : "h3"}>Speakers</Typography>
                 <Box>
                     <AppTextSearch label="Search Speakers"
                         stateSearchTerm={speakerParams.searchTerm} setParams={setSpeakerParams} />
                 </Box>
-                <Button variant="contained" onClick={() => setEditMode(true)}>New Speaker</Button>
+                <Button variant="contained" onClick={() => setEditMode(true)}
+                    sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}
+                >
+                    New Speaker
+                </Button>
             </Box>
             <TableContainer component={Paper}>
-                <Table>
+                <Table sx={{ '& .MuiTableCell-root': { fontSize: isTablet ? '0.75rem' : '0.875rem' } }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>Photo</TableCell>
@@ -132,11 +142,9 @@ export default function Speakers() {
                                         <TableCell>{speaker.email}</TableCell>
                                         <TableCell>{speaker.phoneNumber}</TableCell>
                                         <TableCell align="right">
-                                            <Button
-                                                startIcon={<Delete />}
-                                                color='error'
-                                                onClick={(e) => handleShowDeletePopup(e, speaker)}
-                                            />
+                                            <IconButton size="small" color='error' onClick={(e) => handleShowDeletePopup(e, speaker)}>
+                                                <Delete fontSize="small" />
+                                            </IconButton>
                                         </TableCell>
                                     </>
                                 )}

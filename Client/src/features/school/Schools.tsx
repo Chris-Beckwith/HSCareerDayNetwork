@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material"
+import { Box, Button, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useAppDispatch } from "../../app/store/configureStore"
 import { reloadSchools, setPageNumber, setSchoolParams } from "./schoolSlice"
 import { MouseEvent, useState } from "react"
@@ -12,9 +12,15 @@ import AppTextSearch from "../../app/components/AppTextSearch"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import SchoolSkeleton from "./SchoolSkeleton"
 
+/**
+ * Component to display the list of schools added.
+ */
 export default function Schools() {
     const { schools, metaData, schoolParams, schoolsLoaded } = useSchools()
     const dispatch = useAppDispatch()
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     const [editMode, setEditMode] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -78,15 +84,19 @@ export default function Schools() {
     return (
         <>
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
-                <Typography variant="h3">Schools</Typography>
+                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>Schools</Typography>
                 <Box>
                     <AppTextSearch label="Search Schools"
                         stateSearchTerm={schoolParams.searchTerm} setParams={setSchoolParams} />
                 </Box>
-                <Button variant="contained" onClick={() => setEditMode(true)}>New School</Button>
+                <Button variant="contained" onClick={() => setEditMode(true)}
+                    sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem', lineHeight: isMobile ? 1.2 : 1.7 }}
+                >
+                    New School
+                </Button>
             </Box>
             <TableContainer component={Paper}>
-                <Table>
+                <Table sx={{ '& .MuiTableCell-root': { fontSize: isTablet ? '0.75rem' : '0.875rem' } }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>Name</TableCell>
@@ -95,7 +105,7 @@ export default function Schools() {
                             <TableCell>Phone Number</TableCell>
                             <TableCell>Email</TableCell>
                             <TableCell width={50}>Estimated Students</TableCell>
-                            <TableCell align="right" width={50}></TableCell>
+                            <TableCell></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -111,18 +121,16 @@ export default function Schools() {
                                 ) : (
                                     <>
                                         <TableCell>{school.name}</TableCell>
-                                        <TableCell>{school.address?.address1} {school.address?.address2}{" "}
+                                        <TableCell>{school.address?.address1} {school.address?.address2}{" "}<br />
                                             {school.address?.city} {school.address?.state} {school.address?.zip}</TableCell>
                                         <TableCell>{school.contactName}</TableCell>
                                         <TableCell>{school.contactPhone}</TableCell>
                                         <TableCell>{school.contactEmail}</TableCell>
                                         <TableCell>{school.estimatedNumOfStudents}</TableCell>
                                         <TableCell align="right">
-                                            <Button
-                                                    startIcon={<Delete/>}
-                                                    color='error'
-                                                    onClick={(e) => handleShowConfirmDelete(e, school)}
-                                            />
+                                            <IconButton color='error' size='small' onClick={(e) => handleShowConfirmDelete(e, school)}>
+                                                <Delete fontSize="small" />
+                                            </IconButton>
                                         </TableCell>
                                     </>
                                 )}

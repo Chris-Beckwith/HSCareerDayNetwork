@@ -1,4 +1,4 @@
-import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material"
+import { Box, Button, FormControl, Grid, IconButton, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { Career } from "../../app/models/career"
 import CareerCard from "./CareerCard"
 import { useEffect, useState } from "react"
@@ -21,6 +21,9 @@ interface Props {
     handleSetEventCareers?: (careers: Career[]) => void
 }
 
+/**
+ * Component to layout careers and creating career sets.
+ */
 export default function CareerList({ handleSelectCareer, hideDescription, hideDelete, eventCareers, handleSetEventCareers }: Props) {
     const dispatch = useAppDispatch()
     const { careers, categories, careerSets, careerSetsLoaded } = useCareers()
@@ -32,6 +35,8 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
     const [editCategory, setEditCategory] = useState('')
     const [updatedCategoryName, setUpdatedCategoryName] = useState('')
     const [loading, setLoading] = useState(false)
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const { control, reset } = useForm({
         defaultValues: {
             careerSets: ''
@@ -134,18 +139,20 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
     return (
         <Grid container spacing={2}>
             <Grid item display='flex' justifyContent='space-between' xs={12}>
-                <Button variant='contained'
+                <Button variant='contained' size={isMobile ? "small" : "medium"}
                     onClick={() => hideShowAllCategories(hiddenCategories.length !== categories?.length)}>
                         {hiddenCategories.length !== categories?.length ? 'Hide All' : 'Show All'}
                 </Button>
 
-                <Grid container item xs={3}>
-                    <Grid item xs={3}>
+                <Grid container item xs={8} sm={6} md={4}>
+                    <Grid item xs={1} display='flex' justifyItems='center'>
                         {selectedCareerSet && matchesSelectCareerSet() &&
-                            <Button color="error" onClick={() => setShowDeletePopup(true)}><Delete /></Button>
+                            <IconButton size="small" color="error" onClick={() => setShowDeletePopup(true)}>
+                                <Delete fontSize="small" />
+                            </IconButton>
                         }
                     </Grid>
-                    <Grid item xs={9}>
+                    <Grid item xs={11}>
                         {eventCareers &&
                             <FormControl fullWidth size="small">
                                 <InputLabel>Career Sets</InputLabel>
@@ -174,7 +181,7 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
             </Grid>
 
             {categories?.map(category => (
-                <Grid item xs={hideDescription ? 3 : 6} key={category}>
+                <Grid item xs={12} sm={hideDescription ? 6 : 12} md={hideDescription ? 4 : 6} key={category}>
                     <TableContainer component={Paper}>
                         <Box display='flex' justifyContent='space-between' sx={{ pt: 1, pl: 2 }}>
                             {editCategory && editCategory === category ? (
@@ -196,14 +203,18 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                                     </LoadingButton>
                                 </Box>
                             ) : (
-                                    <Box display='flex'>
-                                        <Typography variant="h6">{category}</Typography>
-                                        <Button onClick={() => {
-                                            setEditCategory(category)
-                                            setUpdatedCategoryName(category)
-                                        }}>
-                                            <Edit />
-                                        </Button>
+                                    <Box display='flex' alignItems='center'>
+                                        <Box display='flex' justifyContent='flex-start'>
+                                            <Typography variant="h6">{category}</Typography>
+                                        </Box>
+                                        <Box display='flex' justifyContent='flex-end'>
+                                            <IconButton color="primary" onClick={() => {
+                                                setEditCategory(category)
+                                                setUpdatedCategoryName(category)
+                                            }}>
+                                                <Edit />
+                                            </IconButton>
+                                        </Box>
                                     </Box>
                             )}
                             <Button onClick={() => hideShowCategory(category)} sx={{ pr: 2 }}>
@@ -214,8 +225,12 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                             <Table>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Course ID - Name</TableCell>
-                                        {!hideDescription && <TableCell>Description</TableCell>}
+                                        {!isMobile && 
+                                            <>
+                                                <TableCell>Course ID - Name</TableCell>
+                                                {!hideDescription && <TableCell>Description</TableCell>}
+                                            </>
+                                        }
                                         {!hideDelete && <TableCell></TableCell>}
                                     </TableRow>
                                 </TableHead>

@@ -9,6 +9,9 @@ interface Props extends UseControllerProps {
     inputProps?: React.InputHTMLAttributes<HTMLInputElement>
 }
 
+/**
+ * Text Input Component
+ */
 export default function AppTextInput(props: Props) {
     const {fieldState, field} = useController({...props, defaultValue: ''})
     return (
@@ -24,6 +27,15 @@ export default function AppTextInput(props: Props) {
             error={!!fieldState.error}
             helperText={fieldState.error?.message}
             inputProps={props.inputProps}
+            sx={{
+                '& .MuiInputBase-input': {
+                    fontSize: {
+                        xs: '0.8rem',
+                        sm: '0.9rem',
+                        md: '1rem'
+                    }
+                }
+            }}
         />
     )
 }
