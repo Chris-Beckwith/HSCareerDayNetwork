@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Typography } from "@mui/material";
+import { Box, Button, Grid, Typography, useMediaQuery, useTheme } from "@mui/material";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import CareerList from "./CareerList";
 import useCareers from "../../app/hooks/useCareers";
@@ -7,6 +7,9 @@ import { Career } from "../../app/models/career";
 import CareerForm from "./CareerForm";
 import ConfirmCareerSet from "./careerSets/ConfirmCareerSet";
 
+/**
+ * Display list of careers.
+ */
 export default function Careers() {
     const { status } = useCareers()
     const [editMode, setEditMode] = useState(false)
@@ -14,6 +17,8 @@ export default function Careers() {
     const [newCareerSetMode, setNewCareerSetMode] = useState(false)
     const [openSaveCareerSet, setOpenSaveCareerSet] = useState(false)
     const [selectedCareer, setSelectedCareer] = useState<Career | undefined>(undefined)
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
     const handleAddCareer = (career: Career) => {
         const newCareerSet = [...careerSet, career]
@@ -55,17 +60,28 @@ export default function Careers() {
     return (
         <>
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
-                <Typography variant="h3">Careers</Typography>
+                <Typography variant={isMobile ? "h4" : "h3"}>Careers</Typography>
                 {newCareerSetMode ?
                     <Grid item>
-                        <Button variant="contained" color="inherit" onClick={() => setNewCareerSetMode(false)}>Cancel</Button>
-                        <Button variant="contained" sx={{ ml: 2 }} onClick={() => setOpenSaveCareerSet(true)}>Save Career Set</Button>
+                        <Button variant="contained" color="inherit" sx={{ ml: 2 }} onClick={() => setNewCareerSetMode(false)}
+                            size={isMobile ? "small" : "medium"}
+                        >
+                            Cancel
+                        </Button>
+                        <Button variant="contained" sx={{ ml: 2 }} onClick={() => setOpenSaveCareerSet(true)}
+                            size={isMobile ? "small" : "medium"}
+                        >
+                            Save Career Set
+                        </Button>
                     </Grid>
                     :
                     <Grid item>
-                        <Button variant="contained" onClick={() => setEditMode(true)}>New Career</Button>
-                        <Button variant="contained" sx={{ ml: 2 }}
-                            onClick={handleCreateCareerSet}>Create Career Set</Button>
+                        <Button variant="contained" sx={{ ml: 2 }} onClick={() => setEditMode(true)} size={isMobile ? "small" : "medium"}>
+                            New Career
+                        </Button>
+                        <Button variant="contained" sx={{ ml: 2 }} onClick={handleCreateCareerSet} size={isMobile ? "small" : "medium"}>
+                            Create Career Set
+                        </Button>
                     </Grid>
                 }
             </Box>

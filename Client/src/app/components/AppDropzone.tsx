@@ -1,5 +1,5 @@
 import { UploadFile } from '@mui/icons-material'
-import { FormControl, FormHelperText, Typography } from '@mui/material'
+import { FormControl, FormHelperText, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useController, UseControllerProps } from 'react-hook-form'
@@ -8,8 +8,14 @@ interface Props extends UseControllerProps {
     descriptionText: string
 }
 
+/**
+ * Dropzone component for adding images
+ */
 export default function AppDropzone({ descriptionText, ...props }: Props) {
     const { fieldState, field } = useController({ ...props, defaultValue: null })
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     const dzStyles = {
         display: 'flex',
@@ -18,8 +24,8 @@ export default function AppDropzone({ descriptionText, ...props }: Props) {
         borderRadius: '5px',
         paddingTop: '30px',
         alignItems: 'center',
-        height: 200,
-        width: 350
+        height: isTablet ? isMobile ? 150 : 175 : 200,
+        width: isTablet ? isMobile ? 205 : 250 : 350,
     }
 
     const dzActive = {
@@ -38,8 +44,8 @@ export default function AppDropzone({ descriptionText, ...props }: Props) {
         <div {...getRootProps()}>
             <FormControl style={isDragActive ? {...dzStyles, ...dzActive} : dzStyles}>
                 <input {...getInputProps()} />
-                <UploadFile sx={{fontSize: '100px'}} />
-                <Typography variant='h4'>{descriptionText}</Typography>
+                <UploadFile sx={{fontSize: isTablet ? isMobile ? '50px' : '75px' : '100px'}} />
+                <Typography variant={isTablet ? isMobile ? 'h6' : 'h5' : 'h4'}>{descriptionText}</Typography>
                 <FormHelperText>{fieldState.error?.message}</FormHelperText>
             </FormControl>
         </div>

@@ -3,6 +3,8 @@ import { Career } from "../../../app/models/career";
 import agent from "../../../app/api/agent";
 import { reloadCareerSets } from "../careerSlice";
 import { useAppDispatch } from "../../../app/store/configureStore";
+import { LoadingButton } from "@mui/lab";
+import { useState } from "react";
 
 interface Props {
     open: boolean
@@ -10,8 +12,12 @@ interface Props {
     handleClose: () => void
 }
 
+/**
+ * Confirmation dialog for saving a career set.
+ */
 export default function ConfirmCareerSet({ open, handleClose, careerSet }: Props) {
     const dispatch = useAppDispatch()
+    const [loading, setLoading] = useState(false)
 
     return (
         <Dialog
@@ -20,12 +26,14 @@ export default function ConfirmCareerSet({ open, handleClose, careerSet }: Props
             PaperProps={{
                 component: 'form',
                 onSubmit: async (event: React.FormEvent<HTMLFormElement>) => {
+                    setLoading(true)
                     event.preventDefault()
                     const formData = new FormData(event.currentTarget)
                     const formJson = Object.fromEntries((formData as any).entries())
                     const name = formJson.name
                     await agent.CareerSet.create({name: name, careers: careerSet})
                     dispatch(reloadCareerSets())
+                    setLoading(false)
                     handleClose()
                 },
             }}
@@ -48,7 +56,7 @@ export default function ConfirmCareerSet({ open, handleClose, careerSet }: Props
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose}>Cancel</Button>
-                <Button type="submit">Save Career Set</Button>
+                <LoadingButton loading={loading} type="submit">Save Career Set</LoadingButton>
             </DialogActions>
         </Dialog>
     )
