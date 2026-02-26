@@ -1,4 +1,4 @@
-import { TextField } from "@mui/material";
+import { TextField, useMediaQuery, useTheme } from "@mui/material";
 import { UseControllerProps, useController } from "react-hook-form";
 
 interface Props extends UseControllerProps {
@@ -14,6 +14,8 @@ interface Props extends UseControllerProps {
  */
 export default function AppTextInput(props: Props) {
     const {fieldState, field} = useController({...props, defaultValue: ''})
+    const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
+
     return (
         <TextField
             {...props}
@@ -26,8 +28,15 @@ export default function AppTextInput(props: Props) {
             variant='outlined'
             error={!!fieldState.error}
             helperText={fieldState.error?.message}
-            inputProps={props.inputProps}
+            inputProps={{
+                sx: {
+                    height: '100%'
+                },
+                ...props.inputProps
+            }}
+            size={isMobile ? "small" : "medium"}
             sx={{
+                height: '100%',
                 '& .MuiInputBase-input': {
                     fontSize: {
                         xs: '0.8rem',

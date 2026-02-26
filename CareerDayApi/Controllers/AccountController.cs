@@ -31,6 +31,7 @@ namespace CareerDayApi.Controllers
             var loginUser = new UserDto
             {
                 Email = user.Email,
+                UserName = user.UserName,
                 Event = user.EventId.HasValue ? await GetEventDetailsAsync(user.EventId) : null,
                 Token = await _tokenService.GenerateToken(user)
             };

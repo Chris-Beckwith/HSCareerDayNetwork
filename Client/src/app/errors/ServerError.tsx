@@ -1,6 +1,9 @@
 import { Container, Divider, Paper, Typography } from "@mui/material";
 import { useLocation } from "react-router-dom";
 
+/**
+ * Component to display server errors.
+ */
 export default function ServerError() {
     const {state} = useLocation()
 

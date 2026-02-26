@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Link, Paper, Typography } from "@mui/material";
+import { Box, Grid, Link, Paper, Typography, useMediaQuery, useTheme } from "@mui/material";
 import NotFound from "../../app/errors/NotFound";
 import { CareerEvent } from "../../app/models/event";
 import LinearProgressWithLabel from "../../app/components/LinearProgressWithLabel";
@@ -22,10 +22,11 @@ import Classrooms from "../classroom/Classrooms";
 import SurveyResults from "../survey/SurveyResults";
 import ConfirmPreviousPhase from "./components/ConfirmPreviousPhase";
 import SchedulingTool from "../scheduling/SchedulingTool";
-import { LoadingButton } from "@mui/lab";
 import { findNextEventPhaseId, findPrevEventPhaseId } from "../../app/util/util";
 import ExportTool from "../scheduling/ExportTool";
 import EventCompleted from "./components/EventCompleted";
+import AppButton from "../../app/components/AppButton";
+import AppLoadingButton from "../../app/components/AppLoadingButton";
 
 interface Props {
     careerEvent: CareerEvent
@@ -33,6 +34,10 @@ interface Props {
     updateCareerEvent: (speakers?: Speaker[], careers?: Career[], saveCareerSet?: boolean) => void
 }
 
+/**
+ * Component to display details of an event.  Also, the page where you access all of the tools
+ * and change information about the event.
+ */
 export default function CareerEventDetails({ careerEvent, cancelView, updateCareerEvent }: Props) {
     const dispatch = useAppDispatch()
     const { careerEventsLoaded } = useEvents()
@@ -57,6 +62,9 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const date = new Date(careerEvent.eventDate)
     const baseUrl = import.meta.env.VITE_APP_HOST || '/';
     const surveyUrl = `${baseUrl}survey/${careerEvent.guid}`
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     useEffect(() => {
         setEventPhaseName(careerEvent.eventPhase.phaseName)
@@ -246,96 +254,113 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     }
 
     return (
-        <Grid container spacing={6}>
-            <Grid container item xs={12}>
-                <Grid container item xs={2}>
-                    <Grid item xs={12}></Grid>
-                    <Grid item xs={12}></Grid>
+        <Grid container spacing={4}>
+            <Grid container item xs={12} display='flex' justifyContent='center'>
+                <Grid item xs={12} display='flex' justifyContent='center'>
+                    <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{careerEvent.name}</Typography>
+                </Grid>
+            </Grid>
+            {careerEvent.isDeleted &&
+                <Grid item xs={12} display='flex' justifyContent='center'>
+                        <Typography variant="h5" color="error">This Event is marked as deleted</Typography>
+                </Grid>
+            }
+
+            <Grid container item xs={12} columnSpacing={2}>
+                <Grid container item xs={3} sm={3} md={2} spacing={2}>
                     <Grid item xs={12}>
-                        <Button onClick={cancelView}
+                        <AppButton onClick={cancelView}
                             variant="contained"
                             color="inherit">
                             Back
-                        </Button>
+                        </AppButton>
                     </Grid>
                     <Grid item xs={12}>
-                        <Button onClick={() => setEditMode(true)}
+                        <AppButton onClick={() => setEditMode(true)}
                             variant="contained"
                             color="secondary">
                             Edit Event
-                        </Button>
+                        </AppButton>
                     </Grid>
                     {careerEvent.eventPhase.phaseName != EVENT_PHASES.CREATED &&
                         <Grid item xs={12}>
-                            <Button onClick={handlePreviousPhaseConfirm}
+                            <AppButton onClick={handlePreviousPhaseConfirm}
                                 variant="contained"
                                 color="error">
                                 {prevEventPhaseText()}
-                            </Button>
+                            </AppButton>
                         </Grid>
                     }
                     {careerEvent.eventPhase.phaseName != EVENT_PHASES.COMPLETED &&
                         <Grid item xs={12}>
-                            <LoadingButton onClick={progressEventPhaseAction}
+                            <AppLoadingButton onClick={progressEventPhaseAction}
                                 loading={loading}
                                 variant="contained"
                                 color="primary"
                                 >
                                 {nextEventPhaseText()}
-                            </LoadingButton>
+                            </AppLoadingButton>
                         </Grid>
                     }
                     {careerEvent.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED &&
                         <Grid item xs={12}>
-                            <Button onClick={() => setExportMode(true)}
+                            <AppButton onClick={() => setExportMode(true)}
                                 variant="contained"
                                 color="warning">
                                     Export Schedules
-                            </Button>
+                            </AppButton>
                         </Grid>
                     }
                     {showSurveyResultsButton() &&
                         <Grid item xs={12}>
-                            <Button onClick={() => setSurveyMode(true)}
+                            <AppButton onClick={() => setSurveyMode(true)}
                                 variant="contained"
                                 color="success"
                             >
                                 Survey Results
-                            </Button>
+                            </AppButton>
                         </Grid>
                     }
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
                     <Grid item xs={12}></Grid>
-                    <Grid item xs={12}></Grid>
-                    <Grid item xs={12}></Grid>
+                    <Grid item xs={12}>
+                        <AppButton onClick={careerEvent.isDeleted ? restoreEvent : deleteEvent}
+                            variant="contained"
+                            color={careerEvent.isDeleted ? "success" : "error"}>
+                            {careerEvent.isDeleted ? "Restore Event" : "Delete Event"}
+                        </AppButton>
+                    </Grid>
+                    <Grid item xs={12}>
+                        {careerEvent.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED &&
+                            <AppButton onClick={() => setCompleteMode(true)} variant="contained">Event Completed</AppButton>
+                        }
+                    </Grid>
                 </Grid>
-                <Grid container item xs={8} rowSpacing={4}>
+                <Grid container item rowSpacing={4} xs={9} sm={9} md={10}>
                     {careerEventsLoaded ? (
                         <>
-                            <Grid item xs={12} display='flex' justifyContent='center'>
-                                <Typography variant="h3">{careerEvent.name}</Typography>
-                            </Grid>
-                            <Grid item xs={12} display='flex' justifyContent='center'>
-                                {careerEvent.isDeleted &&
-                                    <Typography variant="h5" color="error">This Event is marked as deleted</Typography>}
-                            </Grid>
-
                             <Grid item xs={6} display='flex' justifyContent='center'>
-                                <Typography variant="h6">School: {careerEvent.school.name}</Typography>
+                                <Typography variant="h6" align="center" fontSize={isMobile ? "1rem" : "1.25rem"}>
+                                    School: {isTablet && <br />}{careerEvent.school.name}
+                                </Typography>
                             </Grid>
                             <Grid item xs={6} display='flex' justifyContent='center'>
-                                <Typography variant="h6">
+                                <Typography variant="h6" align="center" fontSize={isMobile ? "1rem" : "1.25rem"}>
                                     Event Date: {date.toLocaleDateString()}
                                 </Typography>
                             </Grid>
 
                             <Grid container item xs={6}>
-                                <Grid item xs={12} display='flex' justifyContent='center'>
-                                    {careerEvent.school.address.address1} {careerEvent.school.address.address2}
+                                <Grid item xs={12} display='flex' flexDirection='column' justifyContent='flex-end'>
+                                    <Typography align="center">
+                                        {careerEvent.school.address.address1} {careerEvent.school.address.address2}
+                                    </Typography>
                                 </Grid>
                                 <Grid item xs={12} display='flex' justifyContent='center'>
-                                    {careerEvent.school.address.city}, {careerEvent.school.address.state} {careerEvent.school.address.zip}
+                                    <Typography align="center">
+                                        {careerEvent.school.address.city}, {careerEvent.school.address.state} {careerEvent.school.address.zip}
+                                    </Typography>
                                 </Grid>
                             </Grid>
                             <Grid container item xs={6} display='flex' justifyContent='center'>
@@ -353,20 +378,20 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                                     <Grid item display='flex' justifyContent='center' sx={{ mb: 2 }}>
                                         {careerEvent.qrCodeUrl &&
                                             <Link target="_blank" rel="noopener noreferrer" href={surveyUrl}>
-                                                <img src={careerEvent.qrCodeUrl} alt="QRCode" style={{ height: 150, marginRight: 20 }} />
+                                                <img src={careerEvent.qrCodeUrl} alt="QRCode" style={ isMobile ? { height: 125} : { height: 150 }} />
                                             </Link>
                                         }
                                     </Grid>
                                     <Grid item display='flex' justifyContent='center' alignItems='center'>
-                                        <Link target="_blank" rel="noopener noreferrer" href={surveyUrl}>{surveyUrl}</Link>
+                                        <Link align="center" target="_blank" rel="noopener noreferrer" href={surveyUrl}>{surveyUrl}</Link>
                                     </Grid>
                                 </Grid>
                             }
 
                             <Grid item xs={12} sx={{ pl: 0 }}>
                                 <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
-                                    <Typography>Event Phase: <strong>{careerEvent.eventPhase.phaseName}</strong></Typography>
-                                    <Typography sx={{ mr: 2 }}>Survey Progress</Typography>
+                                    <Typography fontSize={isMobile ? "0.85rem" : "1rem"}>Event Phase: <strong>{careerEvent.eventPhase.phaseName}</strong></Typography>
+                                    <Typography sx={{ mr: 1 }} align="right" fontSize={isMobile ? "0.85rem" : "1rem"}>Survey Progress</Typography>
                                 </Box>
                                 <LinearProgressWithLabel value={careerEvent.surveyCompletePercent} />
                             </Grid>
@@ -376,48 +401,28 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     )}
                     <Grid item xs={12} sx={{ pl: 0 }}>
                         <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 1 }}>
-                            <Button onClick={() => setCareerMode(true)}
+                            <AppButton onClick={() => setCareerMode(true)}
                                 variant="contained"
                                 color="primary">
                                 Careers
-                            </Button>
-                            <Button onClick={() => setStudentMode(true)}
+                            </AppButton>
+                            <AppButton onClick={() => setStudentMode(true)}
                                 variant="contained"
                                 color="primary">
                                 Students
-                            </Button>
-                            <Button onClick={() => setRoomMode(true)}
+                            </AppButton>
+                            <AppButton onClick={() => setRoomMode(true)}
                                 variant="contained"
                                 color="primary">
                                 Classrooms
-                            </Button>
-                            <Button onClick={() => setSpeakerMode(true)}
+                            </AppButton>
+                            <AppButton onClick={() => setSpeakerMode(true)}
                                 variant="contained"
                                 color="primary">
                                 Speakers
-                            </Button>
+                            </AppButton>
                         </Box>
                     </Grid>
-                </Grid>
-
-                <Grid container item xs={2}>
-                    <Grid item xs={12}></Grid>
-                    <Grid item xs={12}>
-                        <Button onClick={careerEvent.isDeleted ? restoreEvent : deleteEvent}
-                            variant="contained"
-                            color={careerEvent.isDeleted ? "success" : "error"}>
-                            {careerEvent.isDeleted ? "Restore Event" : "Delete Event"}
-                        </Button>
-                    </Grid>
-                    <Grid item xs={12}>
-                        {careerEvent.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED &&
-                            <Button onClick={() => setCompleteMode(true)} variant="contained">Event Completed</Button>
-                        }
-                    </Grid>
-                    <Grid item xs={12}></Grid>
-                    <Grid item xs={12}></Grid>
-                    <Grid item xs={12}></Grid>
-                    <Grid item xs={12}></Grid>
                 </Grid>
             </Grid>
             <ConfirmPreviousPhase open={confirmPreviousPhase} previousPhase={prevEventPhaseName} 

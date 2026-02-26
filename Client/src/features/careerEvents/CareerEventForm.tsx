@@ -6,17 +6,18 @@ import { CareerEvent } from "../../app/models/event";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { reloadEvents } from "./careerEventSlice";
 import { eventValidationSchema } from "./eventValidation";
-import { Button, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, Typography } from "@mui/material";
+import { FormControl, FormHelperText, Grid, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, Typography, useMediaQuery, useTheme } from "@mui/material";
 import useSchools from "../../app/hooks/useSchools";
 import dayjs, { Dayjs } from 'dayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import AppTextInput from "../../app/components/AppTextInput";
-import { LoadingButton } from "@mui/lab";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import useEvents from "../../app/hooks/useEvents";
 import { normalizeNewline } from "../../app/util/util";
+import AppLoadingButton from "../../app/components/AppLoadingButton";
+import AppButton from "../../app/components/AppButton";
 
 interface Props {
     selectedEvent?: CareerEvent
@@ -24,6 +25,9 @@ interface Props {
     saveEdit: () => void
 }
 
+/**
+ * Form component to add a new Event.
+ */
 export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }: Props) {
     const dispatch = useAppDispatch()
     const { schools, schoolsLoaded } = useSchools()
@@ -34,6 +38,9 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
         resolver: yupResolver<any>(eventValidationSchema)
     })
     const eventName = watch("name")
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     useEffect(() => {
         if (selectedEvent && !isDirty && schoolsLoaded) {
@@ -75,7 +82,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
             if (eventName === prevSchoolName || eventName === "") {
                 setValue('name', selectedSchool?.name)
             }
-        } else if (prevSchool === undefined) {
+        } else if (prevSchool === undefined && eventName === "") {
             setValue('name', selectedSchool?.name)
         }
         setPrevSchool(event.target.value)
@@ -87,12 +94,12 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
     return (
         <>
             <Paper variant="outlined" sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
-                <Typography align="center" variant="h3">{selectedEvent ? "Edit Event" : "Add New Event"}</Typography>
+                <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{selectedEvent ? "Edit Event" : "Add New Event"}</Typography>
                 <form onSubmit={handleSubmit(handleAddEvent)}>
                     <Grid container justifyContent='center' sx={{mt: 2}}>
-                        <Grid container item xs={9} spacing={2}>
+                        <Grid container item xs={12} sm={11} md={9} spacing={2}>
                             <Grid item xs={6}>
-                                <FormControl fullWidth error={!!errors.school}>
+                                <FormControl fullWidth error={!!errors.school} size={isMobile ? "small" : "medium"}>
                                     <InputLabel id="school-helper-label">School</InputLabel>
                                     <Controller
                                         name="school"
@@ -117,7 +124,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
                                 <AppTextInput control={control} label="Name" name="name"/>
                             </Grid>
                             
-                            <Grid item xs={6} justifyContent='center' display='flex' mt={3}>
+                            <Grid item xs={6} justifyContent='center' display='flex' mt={6}>
                                 <FormControl error={!!errors.eventDate}>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <Controller
@@ -129,6 +136,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
                                                     disablePast
                                                     slotProps={{
                                                         textField: {
+                                                            size: isMobile ? 'small' : 'medium',
                                                             error: !!errors.eventDate
                                                         }
                                                     }}
@@ -142,15 +150,15 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
                                 </FormControl>
                             </Grid>
                             <Grid item xs={6}>
-                                <AppTextInput control={control} label="Description" name="description" multiline rows={4}/>
+                                <AppTextInput control={control} label="Description" name="description" multiline rows={6}/>
                             </Grid>
 
                             <Grid container item justifyContent='center'>
                                 <Grid item xs={6}>
-                                    <Button onClick={cancelEdit} variant="contained" color="inherit">Cancel</Button>
+                                    <AppButton onClick={cancelEdit} variant="contained" color="inherit">Cancel</AppButton>
                                 </Grid>
                                 <Grid item xs={6} display="flex" justifyContent="flex-end">
-                                    <LoadingButton
+                                    <AppLoadingButton
                                         loading={isSubmitting}
                                         variant="contained"
                                         type="submit"
@@ -158,7 +166,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
                                         disabled={!isDirty}
                                     >
                                         {selectedEvent ? "Save Event" : "Add Event"}
-                                    </LoadingButton>
+                                    </AppLoadingButton>
                                 </Grid>
                             </Grid>
                         </Grid>

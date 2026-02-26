@@ -39,6 +39,7 @@ export default function CheckboxButtons({label, items, checked, onChange}: Props
                         checked={checkedItems.indexOf(item) !== -1}
                         onClick={() => handleChecked(item)}
                         size="small"
+                        sx={{ py: '6px' }}
                     />}
                     label={item}
                     key={item}

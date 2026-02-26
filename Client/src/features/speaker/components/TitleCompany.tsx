@@ -4,6 +4,9 @@ import AppTextInput from "../../../app/components/AppTextInput";
 
 interface Props extends UseControllerProps { }
 
+/**
+ * Component for title and company inputs.
+ */
 export default function TitleCompany({ control }: Props) {
     return (
         <Grid container item columnSpacing={2} justifyContent="center">

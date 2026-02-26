@@ -1,6 +1,9 @@
 import { AppBar, Box, Toolbar, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useEffect } from "react";
 
+/**
+ * Header component to display for the survey.
+ */
 export default function SurveyHeader() {
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))

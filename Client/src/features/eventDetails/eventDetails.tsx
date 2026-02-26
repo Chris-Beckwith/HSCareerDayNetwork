@@ -4,7 +4,9 @@ import Students from "../student/Students";
 import { useAppSelector } from "../../app/store/configureStore";
 import { Typography } from "@mui/material";
 
-
+/**
+ * Component to display only the event details that school administrator users are allowed to view.
+ */
 export default function EventDetails() {
     const { user } = useAppSelector((state: { account: any; }) => state.account)
     const [showSurvey, setShowSurvey] = useState(true)
