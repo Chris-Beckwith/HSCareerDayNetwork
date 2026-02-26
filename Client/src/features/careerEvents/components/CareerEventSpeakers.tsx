@@ -89,7 +89,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
             <Typography variant={isMobile ? "h5" : "h4"} display='flex' justifyContent='center' sx={{mb: 4}}>{careerEventName}</Typography>
 
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 2 }}>
-                <Typography variant={isMobile ? "h6" : "h5"}>Speakers</Typography>
+                <Typography variant={isMobile ? "h6" : "h5"} align="center">Event Speakers</Typography>
 
                 <Box>
                     <TextField
@@ -156,7 +156,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
             />
 
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 2 }}>
-                <Typography variant={isMobile ? "h6" : "h5"}>Event Speakers</Typography>
+                <Typography variant={isMobile ? "h6" : "h5"}>Speakers</Typography>
                 
                 <Box>
                     <TextField
@@ -207,10 +207,6 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                     </TableBody>
                 </Table>
             </TableContainer>
-            
-            <Box display='flex' justifyContent="flex-end" sx={{ pt: 1 }}>
-                <AppButton variant="contained" onClick={() => updateCareerEvent(eventSpeakers)}>Update Speakers</AppButton>
-            </Box>
 
             <TablePagination
                 rowsPerPageOptions={[5, 10, 25, 50]}
@@ -221,6 +217,10 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                 onPageChange={(_event, page) => handleChangePage(page)}
                 onRowsPerPageChange={handleChangeRowsPerPage}
             />
+            
+            <Box display='flex' justifyContent="flex-end" sx={{ pt: 1, mb: 2 }}>
+                <AppButton variant="contained" onClick={() => updateCareerEvent(eventSpeakers)}>Update Speakers</AppButton>
+            </Box>
         </>
     )
 }

@@ -49,7 +49,6 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
     }
 
     const handlePathTransform = (path: string) => {
-        console.log(path)
         switch(path) {
             case '/schoolAdmins': return 'School Admins'
             case '/register' : return 'Register'
