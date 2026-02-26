@@ -18,7 +18,7 @@ export default function RadioButtonGroup({options, onChange, selectedValue}: Pro
         <FormControl>
             <RadioGroup onChange={onChange} value={selectedValue}>
                 {options.map(({ value, label }) => (
-                    <FormControlLabel value={value} control={<Radio size="small" />} label={label} key={value} 
+                    <FormControlLabel value={value} control={<Radio size="small" sx={{ py: '6px' }} />} label={label} key={value}
                         sx={{ '& .MuiFormControlLabel-label': { fontSize: isTablet ? isMobile ? '.80rem' : '.85rem' : '1rem' }, mx: '2px' }}
                     />
                 ))}

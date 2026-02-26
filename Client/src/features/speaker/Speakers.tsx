@@ -153,7 +153,7 @@ export default function Speakers() {
                     </TableBody>
                 </Table>
             </TableContainer>
-            <Box sx={{ mt: 2 }}>
+            <Box sx={{ my: 2 }}>
                 {metaData &&
                     <AppPagination
                         metaData={metaData}

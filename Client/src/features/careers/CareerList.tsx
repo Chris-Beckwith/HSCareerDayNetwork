@@ -204,17 +204,13 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                                 </Box>
                             ) : (
                                     <Box display='flex' alignItems='center'>
-                                        <Box display='flex' justifyContent='flex-start'>
-                                            <Typography variant="h6">{category}</Typography>
-                                        </Box>
-                                        <Box display='flex' justifyContent='flex-end'>
-                                            <IconButton color="primary" onClick={() => {
-                                                setEditCategory(category)
-                                                setUpdatedCategoryName(category)
-                                            }}>
-                                                <Edit />
-                                            </IconButton>
-                                        </Box>
+                                        <Typography variant="h6">{category}</Typography>
+                                        <IconButton color="primary" onClick={() => {
+                                            setEditCategory(category)
+                                            setUpdatedCategoryName(category)
+                                        }}>
+                                            <Edit />
+                                        </IconButton>
                                     </Box>
                             )}
                             <Button onClick={() => hideShowCategory(category)} sx={{ pr: 2 }}>

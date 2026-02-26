@@ -1,6 +1,6 @@
 import { Skeleton, TableCell } from "@mui/material";
 
-export default function ClassroomSkeleton() {
+export default function SchoolUserSkeleton() {
     return (
         <>
             <TableCell>

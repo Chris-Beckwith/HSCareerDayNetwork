@@ -48,6 +48,13 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
         setAnchorEl(null);
     }
 
+    const handlePathTransform = (path: string) => {
+        switch(path) {
+            case '/schoolAdmins': return 'School Admins'
+            case '/register' : return 'Register'
+        }
+    }
+
     const navStyles = {
         color: 'inherit',
         textDecoration: 'none',
@@ -58,7 +65,7 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
     }
 
     return (
-        <AppBar position='static' sx={{ mb: 4, left: 0, right: 0 }}>
+        <AppBar position='static' sx={{ mb: 3, left: 0, right: 0 }}>
             <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box display='flex' alignItems='center'>
                     <img src="/images/NHSCDN-logo.png" alt="logo" 
@@ -67,13 +74,13 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
 
                 {user?.roles?.includes("Admin") &&
                     (isMobile ? (
-                        <>
+                        <Box sx={{ mr: 6 }}>
                             <Button
                                 onClick={handleClick}
                                 sx={{typography: 'h6', minWidth: 0, color: 'text.secondary', '&:hover': { backgroundColor: '#757575' } }}
                             >
-                                <MenuIcon sx={{ mr: 1 }}/>
-                                {currentLink?.title}
+                                <MenuIcon sx={{ mr: .5 }}/>
+                                {currentLink?.title || handlePathTransform(location.pathname)}
                             </Button>
                             <Menu anchorEl={anchorEl} open={open} onClose={handleClose} TransitionComponent={Fade}>
                                 {midLinks.map(({ title, path }) => (
@@ -88,7 +95,7 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
                                         </MenuItem>
                                 ))}
                             </Menu>
-                        </>
+                        </Box>
                     ) : (
                         <List sx={{ display: 'flex' }}>
                             {midLinks.map(({ title, path }) => (
@@ -99,8 +106,8 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
                         </List>
                     ))}
                 
-                <Box sx={{ position: 'absolute', top: isMobile ? 20 : 0, right: isMobile ? 50 : 24 }}>
-                    <IconButton sx={{  }} onClick={handleThemeChange}>
+                <Box sx={{ position: 'absolute', top: isMobile ? 20 : 0, right: isMobile ? (user ? 50 : 80) : 24 }}>
+                    <IconButton onClick={handleThemeChange}>
                         {darkMode ? <DarkMode /> : <LightMode />}
                     </IconButton>
                 </Box>

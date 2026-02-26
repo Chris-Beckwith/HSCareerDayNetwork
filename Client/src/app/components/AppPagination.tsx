@@ -1,4 +1,4 @@
-import { Box, Typography, Pagination, Select, MenuItem } from "@mui/material";
+import { Box, Typography, Pagination, Select, MenuItem, useTheme, useMediaQuery } from "@mui/material";
 import { MetaData } from "../models/pagination";
 import { useState } from "react";
 
@@ -12,6 +12,9 @@ export default function AppPagination({metaData, onPageChange, onPageSizeChange}
     const {currentPage, totalCount, totalPages, pageSize} = metaData
     const [pageNumber, setPageNumber] = useState(currentPage)
     const [rowsPerPage, setRowsPerPage] = useState(metaData.pageSize)
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     function handlePageChange(page: number) {
         setPageNumber(page)
@@ -25,8 +28,8 @@ export default function AppPagination({metaData, onPageChange, onPageSizeChange}
     }
 
     return (
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Typography>
+        <Box display={totalCount === 0 ? 'none' : 'flex'} justifyContent='space-between' alignItems='center'>
+            <Typography fontSize={isTablet ? isMobile ? '0.8rem' : '0.9rem' : '1rem'}>
                 Displaying {(currentPage-1)*pageSize+1}-
                 {currentPage*pageSize > totalCount 
                     ? totalCount 
@@ -45,7 +48,7 @@ export default function AppPagination({metaData, onPageChange, onPageSizeChange}
             }
             <Pagination
                 color="secondary"
-                size="large"
+                size={isMobile ? "small" : "medium"}
                 count={totalPages}
                 page={pageNumber}
                 onChange={(_e, page) => handlePageChange(page) }

@@ -146,9 +146,10 @@ export default function CareerEvents() {
 
     return (
         <Grid container columnSpacing={4}>
-            <Grid item xs={ isTablet ? isMobile ? 5 : 4 : 3}>
+            <Grid item xs={5} sm={4} md={3}>
                 <Button onClick={() => setEditMode(true)}
                     variant="contained"
+                    size={isMobile ? "small" : "medium"}
                     color="primary">New Event</Button>
                 <Paper sx={{ my: 2 }}>
                     <AppTextSearch label="Search Events" 
@@ -177,11 +178,11 @@ export default function CareerEvents() {
                 <Paper sx={{ mb: 2, p: 2 }}>
                     <IncludeDeletedCheckbox isChecked={eventParams.includeDeleted} />
                 </Paper>
-                <Button variant="contained" color="error" onClick={() => dispatch(resetEventParams())}>
+                <Button variant="contained" color="error" size={isMobile ? "small" : "medium"} onClick={() => dispatch(resetEventParams())}>
                     Reset Search
                 </Button>
             </Grid>
-            <Grid item xs={ isTablet ? isMobile ? 7 : 8 : 9}>
+            <Grid item xs={7} sm={8} md={9}>
                 <Grid container spacing={2}>
                     {careerEvents?.map(event => {
                         if (!event) return null
@@ -197,7 +198,7 @@ export default function CareerEvents() {
                     })}
                 </Grid>
             </Grid>
-            <Grid item xs={ isTablet ? isNarrow ? 1 : 4 : 3} />
+            <Grid item xs={1} sm={4} md={3} />
             <Grid item xs={ isTablet ? isNarrow ? 11 : 8 : 9} sx={{ mb: 2 }}>
                 {metaData &&
                     <AppPagination
