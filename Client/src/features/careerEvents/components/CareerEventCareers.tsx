@@ -1,9 +1,10 @@
-import { Box, Button, Paper, Switch, Tooltip, Typography } from "@mui/material"
+import { Box, Paper, Switch, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { Career } from "../../../app/models/career"
 import { useEffect, useState } from "react"
 import CareerList from "../../careers/CareerList"
 import { Speaker } from "../../../app/models/speaker"
 import ConfirmCareerSet from "../../careers/careerSets/ConfirmCareerSet"
+import AppButton from "../../../app/components/AppButton"
 
 interface Props {
     careerEventName: string
@@ -13,10 +14,14 @@ interface Props {
     back: () => void
 }
 
+/**
+ * Component to show and change careers choices for an event.
+ */
 export default function CareerEventCareers({ careerEventName, careerEventCareers, allowUpdate, updateCareerEvent, back }: Props) {
     const [eventCareers, setEventCareers] = useState<Career[]>([])
     const [saveCareerSet, setSaveCareerSet] = useState(false)
     const [openSaveCareerSet, setOpenSaveCareerSet] = useState(false)
+    const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
 
     useEffect(() => {
         setEventCareers(careerEventCareers)
@@ -46,6 +51,7 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
             setOpenSaveCareerSet(true)
         } else {
             updateCareerEvent(undefined, eventCareers)
+            back()
         }
     }
 
@@ -62,29 +68,30 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
 
     return (
         <>
-            <Typography variant="h3" display='flex' justifyContent='center'>{careerEventName}</Typography>
+            <Typography variant={isMobile ? "h4" : "h3"} display='flex' justifyContent='center'>{careerEventName}</Typography>
             
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mt: 2 }}>
                 <Box>
-                    <Button variant="contained" color="inherit" onClick={back} sx={{mr: 2}}>Back</Button>
+                    <AppButton variant="contained" color="inherit" onClick={back} sx={{mr: 2}}>Back</AppButton>
                     <Tooltip title={isSameCareerSet() ? !allowUpdate ? "Survey already open, please do not change careers"
                                 : "List of careers is not different" 
                                 : !allowUpdate ? "Survey already open, please do not change careers" : ""} arrow>
                         <span>
-                            <Button variant="contained" disabled={isSameCareerSet() === true || !allowUpdate}
+                            <AppButton variant="contained" 
+                                disabled={isSameCareerSet() === true || !allowUpdate}
                                 onClick={handleUpdateCareerSet}>
                                 Update Careers
-                            </Button>
+                            </AppButton>
                         </span>
                     </Tooltip>
                 </Box>
-                <Paper sx={{p: 0.7, bgcolor: 'primary.light'}}>
-                    <Typography variant="body1">Selected Careers will be highlighted</Typography>
+                <Paper sx={{p: isMobile ? 0.4 : 0.7, bgcolor: 'primary.light'}}>
+                    <Typography variant="body1" align="center" >Selected Careers will be highlighted</Typography>
                 </Paper>
             </Box>
-            <Box display='flex' justifyContent='flex-end' sx={{ mt: 0.5, mr: -1 }}>
+            <Box display='flex' justifyContent='flex-end' sx={{ mr: -1, my: isMobile ? 1 : 0 }}>
                 <Typography variant="body1" display='flex' alignItems='center'>Save Career Set</Typography>
-                <Switch onChange={handleSaveCareerSet} />
+                <Switch onChange={handleSaveCareerSet} size={isMobile ? "small" : "medium"} />
             </Box>
 
             <CareerList handleSelectCareer={handleSelectCareer} eventCareers={eventCareers} handleSetEventCareers={setEventCareers}

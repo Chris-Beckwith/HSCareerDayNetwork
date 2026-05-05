@@ -16,3 +16,7 @@ export const EVENT_PANEL_BUTTON = {
     VIEW: 'View',
     EDIT: 'Edit'
 }
+
+export const DEFAULT_FONT_SIZE = {
+    xs: '.8rem', sm: '.9rem', md: '1rem'
+}

@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Grid, Paper, Divider, Switch } from "@mui/material";
+import { Box, Typography, Grid, Paper, Divider, Switch, useTheme, useMediaQuery } from "@mui/material";
 import useSurveys from "../../app/hooks/useSurveys";
 import { CareerEvent } from "../../app/models/event";
 import { useEffect, useState } from "react";
@@ -6,9 +6,10 @@ import SurveyResultLineItem from "./SurveyResultLineItem";
 import SurveyStudentLineItem from "./SurveyStudentLineItem";
 import { downloadExcel } from "../../app/util/util";
 import agent from "../../app/api/agent";
-import { LoadingButton } from "@mui/lab";
 import { Survey } from "../../app/models/survey";
 import EditSurvey from "./EditSurvey";
+import AppButton from "../../app/components/AppButton";
+import AppLoadingButton from "../../app/components/AppLoadingButton";
 
 interface Props {
     event: CareerEvent
@@ -16,6 +17,9 @@ interface Props {
     schoolUser?: boolean
 }
 
+/**
+ * Component to display the survey results as a graph of totals and individual.
+ */
 export default function SurveyResults({ event, back, schoolUser }: Props) {
     const { surveys } = useSurveys(event.id)
     const [loading, setLoading] = useState(false)
@@ -25,6 +29,9 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
     const [includeAlternate, setIncludeAlternate] = useState(false)
     const [editSurvey, setEditSurvey] = useState<Survey | null>(null)
     const isEditing = Boolean(editSurvey)
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
     const [primaryCounts, setPrimaryCounts] = useState<{
         name: string; category: string; courseId: number; value: number;
     }[]>([])
@@ -112,19 +119,19 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
 
             <Grid item xs={2}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
-                    <Button variant="contained" color="inherit" onClick={back}>{schoolUser ? 'View Students' : 'Back'}</Button>
+                    <AppButton variant="contained" color="inherit" onClick={back}>{schoolUser ? 'View Students' : 'Back'}</AppButton>
                 </Box>
             </Grid>
             <Grid item xs={8}>
-                <Typography variant="h3" textAlign='center' flexGrow={1}>{event.school.name} Survey Results</Typography>
+                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} textAlign='center' flexGrow={1}>{event.school.name} Survey Results</Typography>
             </Grid>
             <Grid item xs={2}></Grid>
 
             <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-start' }}></Grid>
-                <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Grid item xs={3} sm={4} sx={{ display: 'flex', justifyContent: 'flex-start' }}></Grid>
+                <Grid item xs={6} sm={4} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
-                        <Button onClick={() => {
+                        <AppButton onClick={() => {
                             if (viewOption) setViewOption(!viewOption)
                             }}
                         sx={{
@@ -138,8 +145,8 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                                 }
                             }}>
                             Categories
-                        </Button>
-                        <Button onClick={() => {
+                        </AppButton>
+                        <AppButton onClick={() => {
                             if (!viewOption) setViewOption(!viewOption)
                             }}
                         sx={{
@@ -153,29 +160,29 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                             }
                         }}>
                             Students
-                        </Button>
+                        </AppButton>
                     </Box>
                 </Grid>
-                <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', pr: 2 }}>
-                    <LoadingButton loading={loading} variant="contained" onClick={handleExport}>
+                <Grid item xs={3} sm={4} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', pr: 2 }}>
+                    <AppLoadingButton loading={loading} variant="contained" onClick={handleExport}>
                         Export
-                    </LoadingButton>
+                    </AppLoadingButton>
                 </Grid>
             </Grid>
 
             <Grid item xs={12}>
                 {!isEditing && (
                     viewOption ? (
-                        <Paper sx={{ px: 2, mx: 2, py: 1, my: 2 }}>
+                        <Paper sx={{ px: { xs: 0.5, md: 2 }, mx: { xs: 0, md: 2 }, py: 1, my: 2 }}>
                             <Grid container item xs={12}>
-                                <Grid container item xs={4} alignItems="center">
-                                    <Switch onChange={(e) => setShowAlternate(e.target.checked)} color="default" />
-                                    <Typography>{showAlternate ? "Show Primary" : "Show Alternate"}</Typography>
+                                <Grid container item xs={5} sm={4} alignItems="center">
+                                    <Switch onChange={(e) => setShowAlternate(e.target.checked)} color="default" size={isMobile ? "small" : "medium"} />
+                                    <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>{showAlternate ? "Show Primary" : "Show Alternate"}</Typography>
                                 </Grid>
-                                <Grid container item xs={4} justifyContent="center">
+                                <Grid container item xs={5} sm={4} justifyContent="center">
                                     <Typography variant="h6">{showAlternate ? "Alternate Choices" : "Primary Choices"}</Typography>
                                 </Grid>
-                                <Grid item xs={4}></Grid>
+                                <Grid item xs={2} sm={4}></Grid>
                             </Grid>
                             {surveys.sort((a: any,b: any) => a.student.lastFirstName.localeCompare(b.student.lastFirstName)).map((item: any) => (
                                 <Box key={item.id}>
@@ -184,16 +191,18 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                             ))}
                         </Paper>
                     ) : (
-                        <Paper sx={{ px: 2, mx: 2, py: 0, my: 1 }}>
+                        <Paper sx={{ px: { xs: 0.5, md: 2 }, mx: { xs: 0, md: 2 }, py: 0, my: 1 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
-                                    <Switch onChange={handleSortOption} color="default" />
-                                    <Typography>{sortOption ? "Sort by Category" : "Sort by Value"}</Typography>
-                                    <Switch onChange={(e) => setIncludeAlternate(e.target.checked)} color="default" />
-                                    <Typography>{includeAlternate ? "Exclude Alternate" : "Include Alternate"}</Typography>
+                                    <Switch onChange={handleSortOption} color="default" size={isMobile ? "small" : "medium"} />
+                                    <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>{sortOption ? "Sort by Category" : "Sort by Value"}</Typography>
+                                    <Switch onChange={(e) => setIncludeAlternate(e.target.checked)} color="default" size={isMobile ? "small" : "medium"} />
+                                    <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>{includeAlternate ? "Exclude Alternate" : "Include Alternate"}</Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                    Total Surveys: {surveys.length} || Complete: {event.surveyCompletePercent}%
+                                    <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>
+                                        Total Surveys: {surveys.length} || Complete: {event.surveyCompletePercent}%
+                                    </Typography>
                                 </Box>
                             </Box>
                             {sortOption ? (

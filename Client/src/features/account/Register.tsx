@@ -4,9 +4,8 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { FormControl, FormHelperText, InputLabel, MenuItem, Paper, Select } from '@mui/material';
+import { FormControl, FormHelperText, InputLabel, MenuItem, Paper, Select, useMediaQuery, useTheme } from '@mui/material';
 import { FieldValues, useForm } from 'react-hook-form';
-import { LoadingButton } from '@mui/lab';
 import agent from '../../app/api/agent';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +14,11 @@ import LoadingComponent from '../../app/components/LoadingComponent';
 import { useState } from 'react';
 import { reloadUsers } from './userSlice';
 import { useAppDispatch } from '../../app/store/configureStore';
+import AppLoadingButton from '../../app/components/AppLoadingButton';
 
+/**
+ * Component to register school adminstrator users.
+ */
 export default function Register() {
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
@@ -24,6 +27,7 @@ export default function Register() {
     const { register, handleSubmit, setError, watch, formState: { isSubmitting, errors, isValid } } = useForm({
         mode: 'onTouched'
     })
+    const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
 
     function handleApiErrors(errors: any) {
         if (errors) {
@@ -58,7 +62,7 @@ export default function Register() {
             <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
                 <LockOutlinedIcon />
             </Avatar>
-            <Typography component="h1" variant="h5">
+            <Typography component="h1" variant={isMobile ? "h6" : "h5"}>
                 Register School Administrator
             </Typography>
             <Box component="form"
@@ -80,6 +84,7 @@ export default function Register() {
                     })}
                     error={!!errors.email}
                     helperText={errors?.email?.message as string}
+                    size={isMobile ? 'small' : 'medium'}
                 />
                 <TextField
                     margin="normal"
@@ -89,6 +94,7 @@ export default function Register() {
                     {...register('username', {required: 'Username is required'})}
                     error={!!errors.username}
                     helperText={errors?.username?.message as string}
+                    size={isMobile ? 'small' : 'medium'}
                 />
                 <TextField
                     margin="normal"
@@ -105,6 +111,7 @@ export default function Register() {
                     })}
                     error={!!errors.password}
                     helperText={errors?.password?.message as string}
+                    size={isMobile ? 'small' : 'medium'}
                 />
                 <TextField
                     margin="normal"
@@ -119,8 +126,10 @@ export default function Register() {
                     })}
                     error={!!errors.confirmPassword}
                     helperText={errors?.confirmPassword?.message as string}
+                    size={isMobile ? 'small' : 'medium'}
                 />
-                <FormControl fullWidth sx={{ mt: 2 }} error={!!errors.selectedEvent}>
+                <FormControl fullWidth sx={{ mt: 2 }} error={!!errors.selectedEvent} 
+                    size={isMobile ? 'small' : 'medium'}>
                     <InputLabel>Career Day Event</InputLabel>
                     <Select 
                         label="Career Day Event"
@@ -142,7 +151,7 @@ export default function Register() {
                     </Select>
                     <FormHelperText>{errors?.selectedEvent?.message as string}</FormHelperText>
                 </FormControl>
-                <LoadingButton
+                <AppLoadingButton
                     loading={isSubmitting}
                     disabled={!isValid}
                     type="submit"
@@ -151,7 +160,7 @@ export default function Register() {
                     sx={{ mt: 3, mb: 2 }}
                 >
                     Register
-                </LoadingButton>
+                </AppLoadingButton>
             </Box>
         </Container>
     );

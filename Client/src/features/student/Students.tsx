@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Paper, Typography } from "@mui/material"
+import { Box, Grid, IconButton, Paper, Typography, useMediaQuery, useTheme } from "@mui/material"
 import useStudents from "../../app/hooks/useStudents"
 import AppTextSearch from "../../app/components/AppTextSearch"
 import { reloadStudents, resetStudentParams, setPageMetaData, setStudentParams } from "./studentSlice"
@@ -11,10 +11,12 @@ import ImportStudents from "./ImportStudents"
 import agent from "../../app/api/agent"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import { Student, StudentParams } from "../../app/models/student"
-import { Delete, Edit } from "@mui/icons-material"
+import { Delete, Edit, Sync } from "@mui/icons-material"
 import StudentForm from "./StudentForm"
 import { CareerEvent } from "../../app/models/event"
 import { downloadExcel } from "../../app/util/util"
+import AppButton from "../../app/components/AppButton"
+import IncompleteStudentsDialog from "./IncompleteStudentsDialog"
 
 interface Props {
     event: CareerEvent
@@ -41,6 +43,9 @@ const surveyOptions = [
     { value: false, label: 'False'},
 ]
 
+/**
+ * Component to display, search, sort, filter, add or remove students from an event.
+ */
 export default function Students({ event, back, schoolUser }: Props) {
     const { students, studentsLoaded, metaData, studentParams } = useStudents(event.id)
     const dispatch = useAppDispatch()
@@ -49,9 +54,14 @@ export default function Students({ event, back, schoolUser }: Props) {
     const [openDelete, setOpenDelete] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [responseMsg, setResponseMsg] = useState('')
+    const [viewIncompleteStudents, setViewIncompleteStudents] = useState(false)
+    const [incompleteStudents, setIncompleteStudents] = useState<Student[]>([])
     const [editStudent, setEditStudent] = useState<Student | undefined>(undefined)
     const [deleteStudent, setDeleteStudent] = useState<Student | undefined>(undefined)
     const [addStudent, setAddStudent] = useState(false)
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: metaData?.pageSize || 20,
@@ -84,17 +94,21 @@ export default function Students({ event, back, schoolUser }: Props) {
         { field: 'surveyComplete', headerName: 'Survey Completed' },
         { field: 'edit', headerName: 'Edit',
             renderCell: (params) => {
-                return <Button onClick={() => setEditStudent(params.row)}><Edit /></Button>
+                return <IconButton onClick={() => setEditStudent(params.row)} size="small" color="primary">
+                    <Edit fontSize="small"/>
+                </IconButton>
             },
             sortable: false,
-            width: 85
+            width: 60
         },
         { field: 'delete', headerName: 'Delete',
             renderCell: (params) => {
-                return <Button onClick={() => setDeleteStudent(params.row)}><Delete /></Button>
+                return <IconButton onClick={() => setDeleteStudent(params.row)} size="small" color="error">
+                    <Delete fontSize="small"/>
+                </IconButton>
             },
             sortable: false,
-            width: 85
+            width: 60
         }
     ]
 
@@ -112,6 +126,10 @@ export default function Students({ event, back, schoolUser }: Props) {
         dispatch(reloadStudents())
         setConfirmDeleteLoading(false)
         setDeleteStudent(undefined)
+    }
+
+    const syncStudents = async () => {
+        dispatch(reloadStudents())
     }
 
     function getAxiosParams(studentParams: StudentParams) {
@@ -145,14 +163,14 @@ export default function Students({ event, back, schoolUser }: Props) {
 
     return (
         <Grid container columnSpacing={2}>
-            <Grid item xs={2}>
-                <Button variant="contained" color="inherit" onClick={back}>{schoolUser ? 'Survey Results' : 'Back'}</Button>
+            <Grid item xs={3} sm={2}>
+                <AppButton variant="contained" color="inherit" onClick={back}>{schoolUser ? 'Survey Results' : 'Back'}</AppButton>
                 <Paper sx={{ my: 2 }}>
                     <AppTextSearch label="Search Students" 
                         stateSearchTerm={studentParams.searchTerm} setParams={setStudentParams} />
                 </Paper>
-                <Paper sx={{ mb: 2, p: 2 }}>
-                    <Grid item sx={{color: 'rgba(0,0,0,0.6)'}}>Gender</Grid>
+                <Paper sx={{ mb: 2, p: 1 }}>
+                    <Grid item sx={{ color: 'rgba(0,0,0,0.6)', fontSize: isMobile ? '0.9rem' : '1rem', pl: 1 }} >Gender</Grid>
                     <RadioButtonGroup
                         selectedValue={studentParams.gender}
                         options={genderOptions}
@@ -167,27 +185,37 @@ export default function Students({ event, back, schoolUser }: Props) {
                         onChange={(items: string[]) => dispatch(setStudentParams({ grades: items }))}
                     />
                 </Paper>
-                <Paper sx={{ mb: 2, p: 2 }}>
-                    <Grid item sx={{color: 'rgba(0,0,0,0.6)'}}>Survey Complete</Grid>
+                <Paper sx={{ mb: 2, p: 1}}>
+                    <Grid item sx={{ color: 'rgba(0,0,0,0.6)', fontSize: isMobile ? '0.9rem' : '1rem', pl: 1 }}>Survey Complete</Grid>
                     <RadioButtonGroup
                         selectedValue={studentParams.surveyComplete ? studentParams.surveyComplete.toString() : ''}
                         options={surveyOptions}
                         onChange={(e) => dispatch(setStudentParams({ surveyComplete: e.target.value }))}
                     />
                 </Paper>
-                <Button variant="contained" color="error" onClick={() => dispatch(resetStudentParams())}>
+                <AppButton variant="contained" color="error" onClick={() => dispatch(resetStudentParams())}>
                     Reset Search
-                </Button>
+                </AppButton>
             </Grid>
 
-            <Grid item xs={10}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2}}>
-                    <Typography variant="h4">{event.name}</Typography>
-                    <Typography variant="h5" sx={{ alignItems: 'center', color: 'primary.main' }}>{responseMsg}</Typography>
-                    <Button variant="contained" onClick={handleExportStudents}>Export Student List</Button>
+            <Grid item xs={9} sm={10}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant={isTablet ? isMobile ? "h6" : "h5" : "h4"} sx={{ display: 'flex', alignContent: 'center' }}>
+                        {event.name}
+                        <IconButton sx={{ ml: 0.5 }} onClick={syncStudents}><Sync color="primary" /></IconButton>
+                    </Typography>
+                    <AppButton variant="contained" onClick={handleExportStudents}>Export Student List</AppButton>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                    <Typography align="center" variant={isMobile ? "h6" : "h5"} sx={{ color: 'primary.main' }}>{responseMsg}</Typography>
+                    {incompleteStudents.length > 0 && 
+                        <Box sx={{ textAlign: 'center' }}>
+                            <AppButton variant="outlined" size="small" onClick={() => setViewIncompleteStudents(true)}>view</AppButton>
+                        </Box>
+                    }
                 </Box>
 
-                <Paper sx={{ width: '100%', mb: 2 }}>
+                <Paper sx={{ width: '100%', height: "68vh", mb: 2 }}>
                     <DataGrid
                         rows={rows}
                         columns={columns}
@@ -198,31 +226,40 @@ export default function Students({ event, back, schoolUser }: Props) {
                         onPaginationModelChange={handlePaginationModelChange}
                         pageSizeOptions={[10, 20, 50, 100]}
                         loading={!studentsLoaded}
+                        density="compact"
+                        sx={{
+                            '& .MuiDataGrid-cell': {
+                                fontSize: isMobile ? '.8rem' : '.9rem'
+                            }
+                        }}
                     />
                 </Paper>
                 
                 {!schoolUser &&
                     <Grid item display='flex' justifyContent='space-between' sx={{ my: 2 }}>
-                        <Button variant="contained" 
+                        <AppButton variant="contained" 
                             onClick={() => setOpenImport(true)}>
                                 Import Students
-                        </Button>
-                        <Button variant="contained" color="success" onClick={() => setAddStudent(true)}>Add Student</Button>
-                        <Button variant="contained" color="error" 
+                        </AppButton>
+                        <AppButton variant="contained" color="success" onClick={() => setAddStudent(true)}>Add Student</AppButton>
+                        <AppButton variant="contained" color="error" 
                             onClick={() => setOpenDelete(true)}>
                             Delete All Students
-                        </Button>
+                        </AppButton>
                     </Grid>
                 }
             </Grid>
 
-            <ImportStudents open={openImport} eventId={event.id} setResponse={setResponseMsg} handleClose={() => setOpenImport(false)} />
+            <ImportStudents open={openImport} eventId={event.id} setResponse={setResponseMsg} 
+                setIncompleteStudents={setIncompleteStudents} handleClose={() => setOpenImport(false)} />
             <ConfirmDelete open={openDelete} itemName="All Students" itemType={""}
                 customText="Are you sure you want to delete all students for this event?"
                 handleClose={() => setOpenDelete(false)}
                 confirmDelete={deleteAllStudents} loading={confirmDeleteLoading} />
             <ConfirmDelete open={deleteStudent !== undefined} itemType="Student" itemName={deleteStudent?.lastFirstName || ''}
                         handleClose={() => setDeleteStudent(undefined)} confirmDelete={handleDeleteStudent} loading={confirmDeleteLoading} />
+            <IncompleteStudentsDialog open={viewIncompleteStudents} handleClose={() => setViewIncompleteStudents(false)} 
+                incompleteStudents={incompleteStudents}/>
         </Grid>
     )
 }

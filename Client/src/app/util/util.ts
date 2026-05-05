@@ -1,17 +1,9 @@
-import { Classroom } from "../models/classroom";
 import { EventPhase } from "../models/event";
 import { EVENT_PHASES } from "./constants";
 
 export function getCookie(key: string) {
     const b = document.cookie.match("(^|;)\\s*" + key + "\\s*=\\s*([^;]+)");
     return b ? b.pop() : "";
-}
-
-export function getClassroomText(classroom: Classroom | undefined) {
-    return classroom 
-        ? classroom.building + classroom.roomNumber 
-            + " - Capacity: " + classroom.capacity
-        : "Not assigned"
 }
 
 export function normalizeNewline(value?: string) {

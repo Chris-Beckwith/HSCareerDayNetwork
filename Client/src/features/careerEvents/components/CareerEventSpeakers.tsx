@@ -1,8 +1,9 @@
-import { Box, Typography, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Button, TextField, TablePagination } from "@mui/material";
+import { Box, Typography, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, TextField, TablePagination, useMediaQuery, useTheme } from "@mui/material";
 import { Speaker } from "../../../app/models/speaker";
 import { SetStateAction, useEffect, useState } from "react";
 import useSpeakers from "../../../app/hooks/useSpeakers";
 import { Career } from "../../../app/models/career";
+import AppButton from "../../../app/components/AppButton";
 
 interface Props {
     careerEventName: string
@@ -11,6 +12,9 @@ interface Props {
     back: () => void
 }
 
+/**
+ * Component to show and change speakers assigned to an event.
+ */
 export default function CareerEventSpeakers({careerEventName, careerEventSpeakers, updateCareerEvent, back}: Props) {
     const { speakers } = useSpeakers()
     const [availableSpeakers, setAvailableSpeakers] = useState<Speaker[]>([])
@@ -18,7 +22,8 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
     const [searchQuery, setSearchQuery] = useState('');
     const [searchEventQuery, setSearchEventQuery] = useState('')
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(25);
+    const [rowsPerPage, setRowsPerPage] = useState(25)
+    const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
 
     useEffect(() => {
         if (eventSpeakers.length == 0)
@@ -81,10 +86,10 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
 
     return (
         <>
-            <Typography variant="h3" display='flex' justifyContent='center' sx={{mb: 4}}>{careerEventName}</Typography>
+            <Typography variant={isMobile ? "h5" : "h4"} display='flex' justifyContent='center' sx={{mb: 4}}>{careerEventName}</Typography>
 
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 2 }}>
-                <Typography variant="h5">Event Speakers</Typography>
+                <Typography variant={isMobile ? "h6" : "h5"} align="center">Event Speakers</Typography>
 
                 <Box>
                     <TextField
@@ -98,12 +103,11 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                 </Box>
 
                 <Box>
-                    <Button variant="contained" color="inherit" onClick={back} sx={{mr: 2}}>Back</Button>
-                    <Button variant="contained" onClick={() => updateCareerEvent(eventSpeakers)}>Update Speakers</Button>
+                    <AppButton variant="contained" color="inherit" onClick={back}>Back</AppButton>
                 </Box>
             </Box>
             <TableContainer component={Paper}>
-                <Table>
+                <Table sx={{ '& .MuiTableCell-root': { fontSize: isMobile ? '0.75rem' : '0.875rem' } }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>Photo</TableCell>
@@ -152,7 +156,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
             />
 
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 2 }}>
-                <Typography variant="h5">Add Event Speakers</Typography>
+                <Typography variant={isMobile ? "h6" : "h5"}>Speakers</Typography>
                 
                 <Box>
                     <TextField
@@ -166,7 +170,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                 </Box>
             </Box>
             <TableContainer component={Paper}>
-                <Table>
+                <Table sx={{ '& .MuiTableCell-root': { fontSize: isMobile ? '0.75rem' : '0.875rem' } }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>Photo</TableCell>
@@ -203,6 +207,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                     </TableBody>
                 </Table>
             </TableContainer>
+
             <TablePagination
                 rowsPerPageOptions={[5, 10, 25, 50]}
                 component="div"
@@ -212,6 +217,15 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                 onPageChange={(_event, page) => handleChangePage(page)}
                 onRowsPerPageChange={handleChangeRowsPerPage}
             />
+            
+            <Box display='flex' justifyContent="flex-end" sx={{ pt: 1, mb: 2 }}>
+                <AppButton variant="contained" onClick={() => {
+                        updateCareerEvent(eventSpeakers)
+                        back()
+                    }}>
+                    Update Speakers
+                </AppButton>
+            </Box>
         </>
     )
 }

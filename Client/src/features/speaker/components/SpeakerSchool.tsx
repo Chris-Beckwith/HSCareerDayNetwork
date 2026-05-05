@@ -1,17 +1,22 @@
-import { FormControl, Grid, InputLabel, MenuItem, Select, Skeleton, Typography } from "@mui/material";
+import { FormControl, Grid, InputLabel, MenuItem, Select, Skeleton, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { Controller, UseControllerProps } from "react-hook-form";
 import useSchools from "../../../app/hooks/useSchools";
 
 interface Props extends UseControllerProps { }
 
+/**
+ * Component for setting school speaker last spoke at.
+ */
 export default function SpeakerSchool({ control }: Props) {
     const { schools, schoolsLoaded } = useSchools()
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
     return (
         <>
             {!schoolsLoaded ? (
                 <Grid container item columnSpacing={2} justifyContent="center">
-                    <Grid item xs={8}>
+                    <Grid item xs={12} sm={10} md={8}>
                         <Grid container item spacing={2} alignItems="center">
                             <Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                                 <Skeleton animation="wave"></Skeleton>
@@ -25,7 +30,7 @@ export default function SpeakerSchool({ control }: Props) {
                 </Grid>
             ) : (
                 <Grid container item columnSpacing={2} justifyContent="center">
-                    <Grid item xs={8}>
+                    <Grid item xs={12} sm={10} md={8}>
 
                         <Grid container item spacing={2} alignItems="center">
                             <Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -33,7 +38,7 @@ export default function SpeakerSchool({ control }: Props) {
                             </Grid>
 
                             <Grid item xs={6}>
-                                <FormControl fullWidth>
+                                <FormControl fullWidth size={isMobile ? "small" : "medium"}>
                                     <InputLabel>School</InputLabel>
                                     <Controller
                                         name="schoolLastSpokeAt"

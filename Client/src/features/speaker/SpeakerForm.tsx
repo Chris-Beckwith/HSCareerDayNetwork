@@ -1,4 +1,4 @@
-import { Button, Grid, Paper, Typography } from "@mui/material";
+import { Button, Grid, Paper, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { FieldValues, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { speakerValidationSchema } from "./speakerValidation";
@@ -23,6 +23,9 @@ interface Props {
     cancelEdit: () => void
 }
 
+/**
+ * Form component to add or edit speakers.
+ */
 export default function SpeakerForm({ speaker, cancelEdit }: Props) {
     const [selectedCareers, setSelectedCareers] = useState<number[]>([])
     const { careers, categories, status } = useCareers()
@@ -31,6 +34,10 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
         resolver: yupResolver<any>(speakerValidationSchema)
     })
     const watchFile = watch('file', null)
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
+
 
     useEffect(() => {
         if (speaker && !watchFile && !isDirty) {
@@ -105,27 +112,27 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
 
     return (
         <Paper variant="outlined" sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
-            <Typography align="center" variant="h3" >{speaker ? "Edit Speaker" : "Add New Speaker"}</Typography>
+            <Typography align="center" variant={isTablet ? "h4" : "h3"}>{speaker ? "Edit Speaker" : "Add New Speaker"}</Typography>
             <form onSubmit={handleSubmit(handleAddSpeaker)}>
-                <Grid container rowSpacing={2} sx={{ m: 4 }}>
+                <Grid container rowSpacing={2} sx={{ my: 4 }}>
                     <Name control={control} name="name" />
                     <TitleCompany control={control} name="titleCompany" />
                     <PhoneEmail control={control} name="phoneEmail" />
                     <SpeakerSchool control={control} name="schoolLastSpokeAt" />
 
                     <Grid container item justifyContent="center">
-                        <Grid item xs={4} display='flex' justifyContent='center' alignItems='center' sx={{ cursor: 'pointer' }}>
+                        <Grid item xs={6} sm={5} md={4} display='flex' justifyContent='center' alignItems='center' sx={{ cursor: 'pointer' }}>
                             <AppDropzone control={control} name='file'
                                 descriptionText={speaker && speaker.portraitUrl ? "Edit Speaker Picture" : "Add Speaker Picture"} />
                         </Grid>
-                        <Grid item xs={4} display='flex' justifyContent='center' alignItems='center'>
+                        <Grid item xs={6} sm={5} md={4} display='flex' justifyContent='center' alignItems='center'>
                             {watchFile ? (
-                                <img src={watchFile?.preview} alt="preview" style={{ maxHeight: 200 }} />
+                                <img src={watchFile?.preview} alt="preview" style={{ maxHeight: isTablet ? isMobile ? 150 : 175 : 200 }} />
                             ) : (
                                 speaker?.portraitUrl &&
                                 <img src={speaker?.portraitUrl}
                                     alt={speaker?.lastName}
-                                    style={{ maxHeight: 200 }} />
+                                    style={{ maxHeight: isTablet ? isMobile ? 150 : 175 : 200 }} />
                             )}
                         </Grid>
                     </Grid>
@@ -141,10 +148,10 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                     <AddressInputs control={control} name="address" />
 
                     <Grid container item justifyContent='center'>
-                        <Grid item xs={4}>
+                        <Grid item xs={6} sm={5} md={4}>
                             <Button onClick={cancelEdit} variant="contained" color="inherit">Cancel</Button>
                         </Grid>
-                        <Grid item xs={4} display="flex" justifyContent="flex-end">
+                        <Grid item xs={6} sm={5} md={4} display="flex" justifyContent="flex-end">
                             <LoadingButton
                                 loading={isSubmitting}
                                 variant="contained"

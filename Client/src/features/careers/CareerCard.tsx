@@ -1,4 +1,4 @@
-import { Button, TableCell, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, IconButton, TableCell, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { Career } from "../../app/models/career"
 import { Delete } from "@mui/icons-material"
 import { MouseEvent, useState } from "react"
@@ -18,6 +18,9 @@ interface Props {
     survey?: boolean
 }
 
+/**
+ * Component to display the career name, description and delete button
+ */
 export default function CareerCard({ career, handleSelectCareer, hideDescription, hideDelete, 
         highlightRow, highlightAlternate, onPrimaryCareers, survey }: Props) {
     const [loading, setLoading] = useState(false)
@@ -110,26 +113,33 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
             >
                 {isMobile ? (
                     <TableCell sx={{ display: 'flex', flexDirection: 'column', p: '8px' }}>
-                        <Typography variant="body1" component="div" sx={{ fontWeight: 'bold' }}>
-                            {career.courseId} - {career.name}
-                        </Typography>
+                        <Box display='flex' justifyContent='space-between'>
+                            <Box>
+                                <Typography variant="body1" component="div" sx={{ fontWeight: 'bold' }}>
+                                    {career.courseId} - {career.name}
+                                </Typography>
 
-                        {!hideDescription && (
-                            <Typography variant="body2" component="div" sx={{ color: 'text.secondary' }}>
-                                {career.description}
-                            </Typography>
-                        )}
+                                {!hideDescription && (
+                                    <Typography variant="body2" component="div" sx={{ color: 'text.secondary' }}>
+                                        {career.description}
+                                    </Typography>
+                                )}
+                            </Box>
+                            {!hideDelete && 
+                                <IconButton size="small" color='error' onClick={(e) => handleShowConfirmDelete(e, career)}>
+                                    <Delete fontSize="small" />
+                                </IconButton>
+                            }
+                        </Box>
                     </TableCell>
                 ) : (
                     <>
                         <TableCell>{career.courseId} - {career.name}</TableCell>
                         {!hideDescription && <TableCell sx={{ whiteSpace: 'pre-line' }}>{career.description}</TableCell>}
                         {!hideDelete && <TableCell align="right">
-                            <Button
-                                startIcon={<Delete />}
-                                color='error'
-                                onClick={(e) => handleShowConfirmDelete(e, career)}
-                            />
+                            <IconButton size="small" color='error' onClick={(e) => handleShowConfirmDelete(e, career)}>
+                                <Delete fontSize="small" />
+                            </IconButton>
                         </TableCell>}
                     </>
                 )}

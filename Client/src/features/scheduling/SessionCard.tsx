@@ -1,13 +1,15 @@
-import { Button, Card, CardActions, CardContent, CardHeader, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Card, CardActions, CardContent, CardHeader, Tooltip, Typography } from "@mui/material";
 import { Session } from "../../app/models/session";
 import { useState } from "react";
 import SessionStudentView from "./SessionStudentView";
 import { Classroom } from "../../app/models/classroom";
 import EditClassroom from "./EditClassroom";
-import { getClassroomText } from "../../app/util/util";
+import { getClassroomText } from "../../app/util/displayUtil";
 import { Speaker } from "../../app/models/speaker";
 import EditSpeakers from "./EditSpeakers";
 import { Student } from "../../app/models/student";
+import AppButton from "../../app/components/AppButton";
+import { DEFAULT_FONT_SIZE } from "../../app/util/constants";
 
 interface Props {
     session: Session
@@ -31,7 +33,7 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                 <CardHeader 
                     title={
                         <Tooltip title={session.subject.name}>
-                            <span>{session.subject.name}</span>
+                            <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.10rem', md: '1.25rem' } }}>{session.subject.name}</Typography>
                         </Tooltip>
                     }
                     titleTypographyProps={{
@@ -53,27 +55,45 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                     }}
                 />
                 <CardContent sx={{ py: 1 }}>
-                    <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', alignContent: 'center' }}>
+                    <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', alignContent: 'center', pb: .5,
+                            fontSize: DEFAULT_FONT_SIZE, fontWeight: 'light' }}
+                    >
                         Number of Students: 
-                        <Button 
+                        <AppButton
                             variant="outlined"
                             onClick={() => setShowStudents(true)}
                             sx={{ p: 0, ml: 1, lineHeight: '1.5', minWidth: '32px'}}
                         >
                                 {session.students.length}
-                        </Button>
+                        </AppButton>
                     </Typography>
-                    <Typography variant="body1">Classroom: {getClassroomText(session.classroom)}</Typography>
-                    <Typography variant="body1">
-                        Speakers: {session.speakers.map(s =>
-                            s.firstName + " " + s.middleName + " " + s.lastName).join(", ")}
-                    </Typography>
+                    <Box sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            fontSize: DEFAULT_FONT_SIZE,
+                            pb: 0.5,
+                        }}>
+                        <Typography sx={{ fontWeight: 'light', mr: 0.5, fontSize: DEFAULT_FONT_SIZE }}>Location:</Typography>
+                        <Typography sx={{ flex: '1 1 auto', minWidth: 0 }}>{getClassroomText(session.classroom)}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 0.5 }}>
+                        <Typography sx={{ fontWeight: 'light', fontSize: DEFAULT_FONT_SIZE }}>
+                            Speakers:
+                        </Typography>
+                        <Box>
+                            {session.speakers.map((s, i) =>
+                                <Typography key={i} sx={{ fontSize: DEFAULT_FONT_SIZE }}>
+                                    {s.firstName} {s.middleName} {s.lastName}{i < session.speakers.length - 1 && ","}
+                                </Typography>
+                                )}
+                        </Box>
+                    </Box>
                 </CardContent>
-                <CardActions sx={{ py: 0, px: 1 }}>
-                    <Button onClick={() => setShowRooms(true)}>
+                <CardActions sx={{ py: 0, px: 1, display: 'flex', justifyContent: 'space-evenly' }}>
+                    <Button size="small" onClick={() => setShowRooms(true)}>
                         Assign Room
                     </Button>
-                    <Button onClick={() => setShowSpeakers(true)}>
+                    <Button size="small" onClick={() => setShowSpeakers(true)}>
                         Assign Speakers
                     </Button>
                 </CardActions>
