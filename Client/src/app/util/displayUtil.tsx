@@ -1,4 +1,4 @@
-import { Home, Business, Apartment, MeetingRoom, DoorFront, Room, Tag, LocationCity } from "@mui/icons-material";
+import { Business, Room } from "@mui/icons-material";
 import { Classroom } from "../models/classroom";
 import { Box } from "@mui/material";
 import { DEFAULT_FONT_SIZE } from "./constants";
