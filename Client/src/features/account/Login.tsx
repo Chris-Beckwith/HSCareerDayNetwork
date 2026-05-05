@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from '../../app/store/configureStore';
 import { signInUser } from './accountSlice';
 import { useEffect } from 'react';
 import AppLoadingButton from '../../app/components/AppLoadingButton';
+import { DEFAULT_FONT_SIZE } from '../../app/util/constants';
 
 /**
  * Login component
@@ -64,11 +65,7 @@ export default function Login() {
                     helperText={errors?.username?.message as string}
                     sx={{
                         '& .MuiInputBase-input': {
-                            fontSize: {
-                                xs: '0.8rem',
-                                sm: '0.9rem',
-                                md: '1rem'
-                            }
+                            fontSize: DEFAULT_FONT_SIZE
                         }
                     }}
                 />
@@ -83,11 +80,7 @@ export default function Login() {
                     helperText={errors?.password?.message as string}
                     sx={{
                         '& .MuiInputBase-input': {
-                            fontSize: {
-                                xs: '0.8rem',
-                                sm: '0.9rem',
-                                md: '1rem'
-                            }
+                            fontSize: DEFAULT_FONT_SIZE
                         }
                     }}
                 />

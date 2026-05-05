@@ -1,5 +1,6 @@
 import { TextField, useMediaQuery, useTheme } from "@mui/material";
 import { UseControllerProps, useController } from "react-hook-form";
+import { DEFAULT_FONT_SIZE } from "../util/constants";
 
 interface Props extends UseControllerProps {
     label: string
@@ -38,11 +39,7 @@ export default function AppTextInput(props: Props) {
             sx={{
                 height: '100%',
                 '& .MuiInputBase-input': {
-                    fontSize: {
-                        xs: '0.8rem',
-                        sm: '0.9rem',
-                        md: '1rem'
-                    }
+                    fontSize: DEFAULT_FONT_SIZE
                 }
             }}
         />
