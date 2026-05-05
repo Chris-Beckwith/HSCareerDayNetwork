@@ -4,15 +4,17 @@ import agent from "../../app/api/agent";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { reloadStudents } from "./studentSlice";
 import { LoadingButton } from "@mui/lab";
+import { Student } from "../../app/models/student";
 
 interface Props {
     open: boolean
     eventId: number
     setResponse: (response: string) => void
+    setIncompleteStudents: (students: Student[]) => void
     handleClose: () => void
 }
 
-export default function ImportStudents({ open, eventId, setResponse, handleClose }: Props) {
+export default function ImportStudents({ open, eventId, setResponse, setIncompleteStudents, handleClose }: Props) {
     const [file, setFile] = useState<File | null>(null)
     const [errorMsg, setErrorMsg] = useState(null)
     const [loading, setLoading] = useState(false)
@@ -35,6 +37,9 @@ export default function ImportStudents({ open, eventId, setResponse, handleClose
                 await agent.Student.import(file, eventId)
                     .then(response => {
                         setResponse(response.message)
+                        if (response.incompleteStudents) {
+                            setIncompleteStudents(response.incompleteStudents)
+                        }
                     })
                 dispatch(reloadStudents())
                 handleClose()

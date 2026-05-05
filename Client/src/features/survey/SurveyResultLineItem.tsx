@@ -1,4 +1,5 @@
 import { Grid, LinearProgress, Typography } from "@mui/material";
+import { DEFAULT_FONT_SIZE } from "../../app/util/constants";
 
 interface Props {
     item: any
@@ -6,14 +7,17 @@ interface Props {
     altItem: any
 }
 
+/**
+ * Component to display a career line with a total number and line with length relative to the highest selected career.
+ */
 export default function SurveyResultLineItem({ item, maxValue, altItem }: Props) {
     return (
         <Grid container spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
             <Grid item xs={4}>
-                <Typography variant="body1">{item.name}</Typography>
+                <Typography variant="body1" sx={{ fontSize: DEFAULT_FONT_SIZE }}>{item.name}</Typography>
             </Grid>
             <Grid item xs={1}>
-                <Typography variant="body1">{item.value}</Typography>
+                <Typography variant="body1" sx={{ fontSize: DEFAULT_FONT_SIZE }}>{item.value}</Typography>
             </Grid>
             <Grid item xs={7}>
                 <LinearProgress

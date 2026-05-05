@@ -260,7 +260,7 @@ namespace CareerDayApi.Controllers
             await importStudentsDto.File.CopyToAsync(stream);
             var data = stream.ToArray();
 
-            var (isValid, error, students) = await ParseStudentExcelAsync(data, careerEvent);
+            var (isValid, error, incompleteStudents, students) = await ParseStudentExcelAsync(data, careerEvent);
 
             if (!isValid) return BadRequest(new ProblemDetails { Title = error });
 
@@ -320,7 +320,7 @@ namespace CareerDayApi.Controllers
             var updateProgress = await UpdateSurveyProgress.UpdateSurveyProgressAsync(careerEvent.Id, _context);
             if (!updateProgress) _logger.LogWarning("(ImportStudents) Failed to update event survey progress. EventId: {eventId}", careerEvent.Id);
 
-            return Ok(new { message = msg });
+            return Ok(new { message = msg, incompleteStudents });
         }
 
         [HttpGet("export")]
@@ -413,9 +413,10 @@ namespace CareerDayApi.Controllers
             return File(stream, _excelService.excelMimeType, fileName);
         }
 
-        private async Task<(bool isValid, string error, List<Student>)> ParseStudentExcelAsync(byte[] fileData, Event careerEvent)
+        private async Task<(bool isValid, string error, List<Student>, List<Student>)> ParseStudentExcelAsync(byte[] fileData, Event careerEvent)
         {
             var students = new List<Student>();
+            var incompleteStudents = new List<Student>();
             var error = string.Empty;
             var warningCount = 0;
 
@@ -436,7 +437,7 @@ namespace CareerDayApi.Controllers
                 // || !worksheet.Cells[1, 10].Text.ToLower().Equals("course name")
                 || !worksheet.Cells[1, 11].Text.ToLower().Contains("room"))
             {
-                return (false, "Invalid column headers", null);
+                return (false, "Invalid column headers", null, null);
             }
 
             var school = await _context.Schools.FindAsync(careerEvent.School.Id);
@@ -464,6 +465,7 @@ namespace CareerDayApi.Controllers
 
                 if (!IsFullyPopulatedStudent(student))
                 {
+                    incompleteStudents.Add(student);
                     warningCount++;
                 }
 
@@ -474,7 +476,7 @@ namespace CareerDayApi.Controllers
                 error = warningCount + " Student(s) found with incomplete information";
             }
 
-            return (true, error, students);
+            return (true, error, incompleteStudents, students);
         }
 
         private async Task<bool> IsDuplicateStudentAsync(string studentNumber, Event careerEvent, List<Student> batch)

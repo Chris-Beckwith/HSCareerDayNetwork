@@ -11,11 +11,12 @@ import ImportStudents from "./ImportStudents"
 import agent from "../../app/api/agent"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import { Student, StudentParams } from "../../app/models/student"
-import { Delete, Edit } from "@mui/icons-material"
+import { Delete, Edit, Sync } from "@mui/icons-material"
 import StudentForm from "./StudentForm"
 import { CareerEvent } from "../../app/models/event"
 import { downloadExcel } from "../../app/util/util"
 import AppButton from "../../app/components/AppButton"
+import IncompleteStudentsDialog from "./IncompleteStudentsDialog"
 
 interface Props {
     event: CareerEvent
@@ -53,6 +54,8 @@ export default function Students({ event, back, schoolUser }: Props) {
     const [openDelete, setOpenDelete] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [responseMsg, setResponseMsg] = useState('')
+    const [viewIncompleteStudents, setViewIncompleteStudents] = useState(false)
+    const [incompleteStudents, setIncompleteStudents] = useState<Student[]>([])
     const [editStudent, setEditStudent] = useState<Student | undefined>(undefined)
     const [deleteStudent, setDeleteStudent] = useState<Student | undefined>(undefined)
     const [addStudent, setAddStudent] = useState(false)
@@ -125,6 +128,10 @@ export default function Students({ event, back, schoolUser }: Props) {
         setDeleteStudent(undefined)
     }
 
+    const syncStudents = async () => {
+        dispatch(reloadStudents())
+    }
+
     function getAxiosParams(studentParams: StudentParams) {
         const params = new URLSearchParams()
         params.append('eventId', event.id.toString())
@@ -193,9 +200,19 @@ export default function Students({ event, back, schoolUser }: Props) {
 
             <Grid item xs={9} sm={10}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant={isTablet ? isMobile ? "h6" : "h5" : "h4"}>{event.name}</Typography>
-                    <Typography variant={isMobile ? "h6" : "h5"} sx={{ alignItems: 'center', color: 'primary.main' }}>{responseMsg}</Typography>
+                    <Typography variant={isTablet ? isMobile ? "h6" : "h5" : "h4"} sx={{ display: 'flex', alignContent: 'center' }}>
+                        {event.name}
+                        <IconButton sx={{ ml: 0.5 }} onClick={syncStudents}><Sync color="primary" /></IconButton>
+                    </Typography>
                     <AppButton variant="contained" onClick={handleExportStudents}>Export Student List</AppButton>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                    <Typography align="center" variant={isMobile ? "h6" : "h5"} sx={{ color: 'primary.main' }}>{responseMsg}</Typography>
+                    {incompleteStudents.length > 0 && 
+                        <Box sx={{ textAlign: 'center' }}>
+                            <AppButton variant="outlined" size="small" onClick={() => setViewIncompleteStudents(true)}>view</AppButton>
+                        </Box>
+                    }
                 </Box>
 
                 <Paper sx={{ width: '100%', height: "68vh", mb: 2 }}>
@@ -233,13 +250,16 @@ export default function Students({ event, back, schoolUser }: Props) {
                 }
             </Grid>
 
-            <ImportStudents open={openImport} eventId={event.id} setResponse={setResponseMsg} handleClose={() => setOpenImport(false)} />
+            <ImportStudents open={openImport} eventId={event.id} setResponse={setResponseMsg} 
+                setIncompleteStudents={setIncompleteStudents} handleClose={() => setOpenImport(false)} />
             <ConfirmDelete open={openDelete} itemName="All Students" itemType={""}
                 customText="Are you sure you want to delete all students for this event?"
                 handleClose={() => setOpenDelete(false)}
                 confirmDelete={deleteAllStudents} loading={confirmDeleteLoading} />
             <ConfirmDelete open={deleteStudent !== undefined} itemType="Student" itemName={deleteStudent?.lastFirstName || ''}
                         handleClose={() => setDeleteStudent(undefined)} confirmDelete={handleDeleteStudent} loading={confirmDeleteLoading} />
+            <IncompleteStudentsDialog open={viewIncompleteStudents} handleClose={() => setViewIncompleteStudents(false)} 
+                incompleteStudents={incompleteStudents}/>
         </Grid>
     )
 }

@@ -51,6 +51,7 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
             setOpenSaveCareerSet(true)
         } else {
             updateCareerEvent(undefined, eventCareers)
+            back()
         }
     }
 
@@ -76,7 +77,8 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
                                 : "List of careers is not different" 
                                 : !allowUpdate ? "Survey already open, please do not change careers" : ""} arrow>
                         <span>
-                            <AppButton variant="contained" disabled={isSameCareerSet() === true || !allowUpdate}
+                            <AppButton variant="contained" 
+                                disabled={isSameCareerSet() === true || !allowUpdate}
                                 onClick={handleUpdateCareerSet}>
                                 Update Careers
                             </AppButton>
