@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useAppDispatch } from "../store/configureStore"
 import { debounce, TextField, useMediaQuery, useTheme } from "@mui/material"
+import { DEFAULT_FONT_SIZE } from "../util/constants"
 
 interface Props<T> {
     label: string
@@ -42,6 +43,12 @@ export default function AppTextSearch({ label, stateSearchTerm, setParams }: Pro
             fullWidth
             value={searchTerm || ''}
             size={isTablet ? "small" : "medium"}
+            sx={{
+                height: '100%',
+                '& .MuiInputBase-input': {
+                    fontSize: DEFAULT_FONT_SIZE
+                }
+            }}
             onChange={(event: any) => {
                 setSearchTerm(event.target.value)
                 debouncedSearch(event)
