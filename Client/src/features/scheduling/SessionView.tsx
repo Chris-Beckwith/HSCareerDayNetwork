@@ -13,6 +13,7 @@ import SwapDialog from "./SwapDialog"
 import useSurveys from "../../app/hooks/useSurveys"
 import { Survey } from "../../app/models/survey"
 import { ScheduleParams } from "../../app/models/scheduleParams"
+import { DEFAULT_FONT_SIZE } from "../../app/util/constants"
 
 export interface UnplacedStudent {
     student: Student
@@ -125,7 +126,7 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
                 <Grid container item xs={12} spacing={2} sx={{ minWidth: '860px' }}>
                     {periods.map(p => (
                         <Grid key={p} item xs={Math.floor(12/periods.length)}>
-                            <Typography variant="body1" fontSize={isTablet ? isMobile ? ".8rem" : ".9rem" : "1rem"}>
+                            <Typography variant="body1" fontSize={DEFAULT_FONT_SIZE}>
                                 Session {p} {isTablet && <br />} (Classes: {sessions.filter(s => s.period === p).length} - Students: {sessions.filter(s => s.period === p).reduce((total, s) => total + s.students.length, 0)})
                             </Typography>
                             <Grid item>

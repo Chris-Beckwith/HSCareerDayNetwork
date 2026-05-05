@@ -9,6 +9,7 @@ import { Speaker } from "../../app/models/speaker";
 import EditSpeakers from "./EditSpeakers";
 import { Student } from "../../app/models/student";
 import AppButton from "../../app/components/AppButton";
+import { DEFAULT_FONT_SIZE } from "../../app/util/constants";
 
 interface Props {
     session: Session
@@ -25,8 +26,6 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
     const [showStudents, setShowStudents] = useState(false)
     const [showRooms, setShowRooms] = useState(false)
     const [showSpeakers, setShowSpeakers] = useState(false)
-
-    const fontSize = { xs: '.8rem', sm: '.9rem', md: '1rem'}
 
     return (
         <>
@@ -57,7 +56,7 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                 />
                 <CardContent sx={{ py: 1 }}>
                     <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', alignContent: 'center', pb: .5,
-                            fontSize: fontSize, fontWeight: 'light' }}
+                            fontSize: DEFAULT_FONT_SIZE, fontWeight: 'light' }}
                     >
                         Number of Students: 
                         <AppButton
@@ -71,19 +70,19 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                     <Box sx={{
                             display: 'flex',
                             flexWrap: 'wrap',
-                            fontSize: fontSize,
+                            fontSize: DEFAULT_FONT_SIZE,
                             pb: 0.5,
                         }}>
-                        <Typography sx={{ fontWeight: 'light', mr: 0.5, fontSize: fontSize }}>Location:</Typography>
+                        <Typography sx={{ fontWeight: 'light', mr: 0.5, fontSize: DEFAULT_FONT_SIZE }}>Location:</Typography>
                         <Typography sx={{ flex: '1 1 auto', minWidth: 0 }}>{getClassroomText(session.classroom)}</Typography>
                     </Box>
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 0.5 }}>
-                        <Typography sx={{ fontWeight: 'light', fontSize: fontSize }}>
+                        <Typography sx={{ fontWeight: 'light', fontSize: DEFAULT_FONT_SIZE }}>
                             Speakers:
                         </Typography>
                         <Box>
                             {session.speakers.map((s, i) =>
-                                <Typography key={i} sx={{ fontSize: fontSize }}>
+                                <Typography key={i} sx={{ fontSize: DEFAULT_FONT_SIZE }}>
                                     {s.firstName} {s.middleName} {s.lastName}{i < session.speakers.length - 1 && ","}
                                 </Typography>
                                 )}

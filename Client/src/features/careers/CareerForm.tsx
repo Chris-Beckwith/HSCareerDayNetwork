@@ -11,6 +11,7 @@ import { useAppDispatch } from "../../app/store/configureStore";
 import { reloadCareers } from "./careerSlice";
 import useCareers from "../../app/hooks/useCareers";
 import { normalizeNewline } from "../../app/util/util";
+import { DEFAULT_FONT_SIZE } from "../../app/util/constants";
 
 interface Props {
     selectedCareer: Career | undefined
@@ -89,11 +90,7 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
                                             onChange={(event) => handleCategoryChange(event, field.onChange)}
                                             sx={{
                                                 '& .MuiInputBase-input': {
-                                                    fontSize: {
-                                                        xs: '0.8rem',
-                                                        sm: '0.9rem',
-                                                        md: '1rem'
-                                                    }
+                                                    fontSize: DEFAULT_FONT_SIZE
                                                 }
                                             }}
                                         >                                
@@ -125,11 +122,7 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
                                             fullWidth
                                             sx={{
                                                 '& .MuiInputBase-input': {
-                                                    fontSize: {
-                                                        xs: '0.8rem',
-                                                        sm: '0.9rem',
-                                                        md: '1rem'
-                                                    }
+                                                    fontSize: DEFAULT_FONT_SIZE
                                                 }
                                             }}
                                             // Ensure TextField is empty when adding new category

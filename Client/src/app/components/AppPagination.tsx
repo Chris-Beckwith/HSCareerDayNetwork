@@ -1,6 +1,7 @@
 import { Box, Typography, Pagination, Select, MenuItem, useTheme, useMediaQuery } from "@mui/material";
 import { MetaData } from "../models/pagination";
 import { useState } from "react";
+import { DEFAULT_FONT_SIZE } from "../util/constants";
 
 interface Props {
     metaData: MetaData;
@@ -14,7 +15,6 @@ export default function AppPagination({metaData, onPageChange, onPageSizeChange}
     const [rowsPerPage, setRowsPerPage] = useState(metaData.pageSize)
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     function handlePageChange(page: number) {
         setPageNumber(page)
@@ -29,7 +29,7 @@ export default function AppPagination({metaData, onPageChange, onPageSizeChange}
 
     return (
         <Box display={totalCount === 0 ? 'none' : 'flex'} justifyContent='space-between' alignItems='center'>
-            <Typography fontSize={isTablet ? isMobile ? '0.8rem' : '0.9rem' : '1rem'}>
+            <Typography fontSize={DEFAULT_FONT_SIZE} >
                 Displaying {(currentPage-1)*pageSize+1}-
                 {currentPage*pageSize > totalCount 
                     ? totalCount 
