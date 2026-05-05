@@ -122,9 +122,6 @@ export default function CareerEvents() {
                     dispatch(reloadEvents())
                 }
             }
-            setStudentMode(false)
-            setCareerMode(false)
-            cancelView()
         } catch (error) {
             console.log(error)
         }

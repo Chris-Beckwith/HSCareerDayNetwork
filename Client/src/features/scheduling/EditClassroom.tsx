@@ -1,7 +1,7 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { Classroom } from "../../app/models/classroom";
 import { Session } from "../../app/models/session";
-import { getClassroomText } from "../../app/util/util";
+import { getClassroomText } from "../../app/util/displayUtil";
 import { Delete } from "@mui/icons-material";
 import { useState } from "react";
 import PropagateRoomAssign from "./PropagateRoomAssign";
@@ -39,10 +39,11 @@ export default function EditClassroom({ session, availableClassrooms, updateClas
                 <DialogContent>
                     <Typography sx={{ alignContent: 'center', display: 'flex' }}>
                         Current Room: {getClassroomText(currentRoom)}
-                        {currentRoom 
-                            ? <Button startIcon={<Delete />} color='error' 
-                                sx={{ p: 0 }} onClick={removeClassroom} /> 
-                                : ''}
+                        {currentRoom ?
+                            <IconButton color='error' sx={{ p: 0, ml: 1 }} onClick={removeClassroom}>
+                                <Delete fontSize="small"/>
+                            </IconButton>
+                            : ''}
                     </Typography>
                     <Table>
                         <TableHead>

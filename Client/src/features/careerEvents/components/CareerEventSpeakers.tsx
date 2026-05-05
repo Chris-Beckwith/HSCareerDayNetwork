@@ -219,7 +219,12 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
             />
             
             <Box display='flex' justifyContent="flex-end" sx={{ pt: 1, mb: 2 }}>
-                <AppButton variant="contained" onClick={() => updateCareerEvent(eventSpeakers)}>Update Speakers</AppButton>
+                <AppButton variant="contained" onClick={() => {
+                        updateCareerEvent(eventSpeakers)
+                        back()
+                    }}>
+                    Update Speakers
+                </AppButton>
             </Box>
         </>
     )

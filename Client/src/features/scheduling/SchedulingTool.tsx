@@ -1,6 +1,5 @@
-import { Button, Checkbox, Grid, IconButton, Typography } from "@mui/material"
+import { Checkbox, Grid, IconButton, Typography } from "@mui/material"
 import { CareerEvent } from "../../app/models/event"
-import { LoadingButton } from "@mui/lab"
 import { useEffect, useState } from "react"
 import SessionView, { UnplacedStudent } from "./SessionView"
 import { FieldValues, useForm } from "react-hook-form"
@@ -14,12 +13,14 @@ import { Career } from "../../app/models/career"
 import { findNextEventPhaseId } from "../../app/util/util"
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
 import { reloadEvents } from "../careerEvents/careerEventSlice"
-import { EVENT_PHASES } from "../../app/util/constants"
+import { DEFAULT_FONT_SIZE, EVENT_PHASES } from "../../app/util/constants"
 import { reloadClassrooms } from "../classroom/classroomSlice"
 import SessionViewSkeleton from "./SessionViewSkeleton" 
 import TriStateCheckbox from "./components/TriStateCheckbox"
 import { ScheduleParams } from "../../app/models/scheduleParams"
 import { ExpandMore, ExpandLess } from "@mui/icons-material"
+import AppButton from "../../app/components/AppButton"
+import AppLoadingButton from "../../app/components/AppLoadingButton"
 
 interface Props {
     event: CareerEvent
@@ -30,6 +31,9 @@ interface CheckedState {
     [key: number]: (0 | 1 | 2)[]
 }
 
+/**
+ * Component for setting the settings to generate a schedule
+ */
 export default function SchedulingTool({ event, back }: Props) {
     const dispatch = useAppDispatch()
     const { classrooms, metaData } = useClassrooms(event.school.id, 500)
@@ -216,15 +220,15 @@ export default function SchedulingTool({ event, back }: Props) {
 
     return (
         <Grid container>
-            <Grid container item xs={12}>
+            <Grid container item xs={12} spacing={2}>
 
                 <Grid container item xs={6} sx={{ alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                    <Button variant="contained" onClick={back}>Back to Event</Button>
+                    <AppButton variant="contained" onClick={back}>Back to Event</AppButton>
                 </Grid>
 
                 {activeStep === 1 &&
                     <Grid container item xs={6} sx={{ alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                        <LoadingButton loading={loading} variant="contained" onClick={SaveSchedule}>Save Schedule</LoadingButton>
+                        <AppLoadingButton loading={loading} variant="contained" onClick={SaveSchedule}>Save Schedule</AppLoadingButton>
                     </Grid>
                 }
 
@@ -235,31 +239,31 @@ export default function SchedulingTool({ event, back }: Props) {
                                 <form onSubmit={handleSubmit(generateSchedule)}>
                                     <Grid container spacing={2}>
                                         <Grid container item xs={12} spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                            <Grid item xs={2}>
-                                                <Typography variant="h6">Max Class Size</Typography>
+                                            <Grid item xs={4} sm={3}>
                                                 <AppTextInput type="number" inputProps={{ min: 1 }} control={control} label="Max Class Size" name="maxClassSize" />
                                             </Grid>
-                                            <Grid item xs={2}>
-                                                <Typography variant="h6">Min Class Size</Typography>
+                                            <Grid item xs={4} sm={3}>
                                                 <AppTextInput type="number" inputProps={{ min: 0 }} control={control} label="Min Class Size" name="minClassSize" />
                                             </Grid>
                                         </Grid>
 
                                         <Grid container item xs={12} spacing={2} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                            <Grid item xs={2}>
-                                                <Typography variant="body1" sx={{ fontSize: '1.1em', fontWeight: '500' }}>Number of Sessions</Typography>
-                                            </Grid>
-                                            <Grid item xs={2} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                                                <AppTextInput disabled control={control} label="Number of Sessions" name="sessionCount" />
+                                            <Grid item xs={4} sm={3}>
+                                                <Typography variant="body1"
+                                                    sx={{ fontSize: DEFAULT_FONT_SIZE, fontWeight: '500' }}>
+                                                    Number of Sessions: {sessionCountValue}
+                                                </Typography>
                                             </Grid>
                                         </Grid>
 
                                         <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
                                             <Grid container item xs={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                                <Typography variant="h6">Total Rooms: {metaData?.totalCount}</Typography>
+                                                <Typography variant="h6" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
+                                                    Total Rooms: {metaData?.totalCount}
+                                                </Typography>
                                             </Grid>
                                             <Grid container item xs={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                                <Typography variant="h6">
+                                                <Typography variant="h6" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
                                                     Larger Rooms:
                                                     {classrooms.filter(c => maxClassSizeValue > 0 && c.capacity > maxClassSizeValue).length > 0 &&
                                                         <>
@@ -270,37 +274,41 @@ export default function SchedulingTool({ event, back }: Props) {
                                                     }
                                                 </Typography>
                                                 {showLargeRooms && classrooms.filter(c => maxClassSizeValue > 0 && c.capacity > maxClassSizeValue).map(c => (
-                                                    <Typography key={c.building + "-" + c.roomNumber} sx={{ display: 'flex', alignItems: 'center', mx: 1}}>
+                                                    <Typography key={c.building + "-" + c.roomNumber} 
+                                                        sx={{ display: 'flex', alignItems: 'center', mx: 1, fontSize: DEFAULT_FONT_SIZE }}>
                                                         {c.building} - {c.roomNumber} - Size: {c.capacity}
                                                     </Typography>
                                                 ))}
                                             </Grid>
                                         </Grid>
                                         
-                                        <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                            <Typography variant="body1">
+                                        <Grid container item xs={12} rowGap={2} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Typography variant="body1" align="center" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
                                                 Click Same Speakers to allow careers to use the same speakers.  This will combine classes for the selected careers.
                                             </Typography>
                                             {selectCareers && 
-                                                <Typography>
+                                                <Typography align="center" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
                                                     Click save to add same speaker grouping.  You may add another group after saving a group.
                                                 </Typography>
                                             }
                                         </Grid>
 
                                         <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                            <Grid item xs={3} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'start' }}>
-                                                <Button variant="contained" onClick={handleSetSameSpeaker}>
+                                            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                                <AppButton variant="contained" onClick={handleSetSameSpeaker}>
                                                     {selectCareers ? 'Save' : 'Same Speakers'}
-                                                </Button>
+                                                </AppButton>
                                             </Grid>
                                             <Grid item xs={8} sx={{ justifyContent: 'flex-start' }}>
                                                 {sameSpeakers.map((c, outIndex) => (
                                                     <Grid item key={outIndex} xs={12}>
-                                                        <span>{outIndex + 1}.</span>
+                                                        <Typography component="span" sx={{ fontSize: DEFAULT_FONT_SIZE }}>{outIndex + 1}.</Typography>
                                                         {c.map((cc, index) => (
                                                             <span key={cc.id}>
-                                                                <Typography key={cc.id} sx={{ display: 'inline', pl: 1 }}>{cc.name}</Typography>
+                                                                <Typography key={cc.id} 
+                                                                    sx={{ display: 'inline', pl: 1, fontSize: DEFAULT_FONT_SIZE }}>
+                                                                        {cc.name}
+                                                                </Typography>
                                                                 {index !== c.length - 1 && <Typography sx={{ display: 'inline', px: 1 }}>-</Typography>}
                                                             </span>
                                                         ))}
@@ -311,55 +319,59 @@ export default function SchedulingTool({ event, back }: Props) {
 
                                         <Grid container item xs={12}>
                                             <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center'}}>
-                                                <Typography sx={{ display: 'flex', width: '400px'}}>
+                                                <Typography sx={{ display: 'flex', width: '400px', fontSize: DEFAULT_FONT_SIZE }}>
                                                     <Checkbox defaultChecked disabled size="small" sx={{ p: 0, '&.Mui-disabled': { color: 'primary.main' } }} />
                                                     Select sessions you want to force a career to be in
                                                 </Typography>
                                             </Grid>
                                             <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center'}}>
-                                                <Typography sx={{ display: 'flex', width: '400px' }}>
+                                                <Typography sx={{ display: 'flex', width: '400px', fontSize: DEFAULT_FONT_SIZE }}>
                                                     <Checkbox defaultChecked disabled size="small" sx={{ p: 0, '&.Mui-disabled': { color: 'error.main' } }} />
                                                     Select sessions you want to a career NOT to be in
                                                 </Typography>
                                             </Grid>
                                         </Grid>
 
-                                        <Grid item xs={1}></Grid>
-                                        <Grid container item xs={11}>
+                                        <Grid container item xs={12}>
                                             <Grid container>
                                                 <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
                                                     {[...Array(sessionCountValue)].map((_, index) => (
-                                                        <Typography key={index} sx={{ width: '20px', display: 'flex', justifyContent: 'center' }}>
+                                                        <Typography key={index} 
+                                                            sx={{ width: '20px', display: 'flex', justifyContent: 'center', fontSize: DEFAULT_FONT_SIZE }}>
                                                             {index + 1}
                                                         </Typography>
                                                     ))}
                                                 </Grid>
                                                 <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
                                                     {[...Array(sessionCountValue)].map((_, index) => (
-                                                        <Typography key={index} sx={{ width: '20px', display: 'flex', justifyContent: 'center' }}>
+                                                        <Typography key={index} 
+                                                            sx={{ width: '20px', display: 'flex', justifyContent: 'center', fontSize: DEFAULT_FONT_SIZE }}>
                                                             {index + 1}
                                                         </Typography>
                                                     ))}
                                                 </Grid>
                                                 <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
                                                     {[...Array(sessionCountValue)].map((_, index) => (
-                                                        <Typography key={index} sx={{ width: '20px', display: 'flex', justifyContent: 'center' }}>
+                                                        <Typography key={index} 
+                                                            sx={{ width: '20px', display: 'flex', justifyContent: 'center', fontSize: DEFAULT_FONT_SIZE }}>
                                                             {index + 1}
                                                         </Typography>
                                                     ))}
                                                 </Grid>
                                             </Grid>
                                             {event.careers.map(career => (
-                                                <Grid item xs={4} key={career.id} sx={{ display: 'flex', alignItems: 'center'}}>
+                                                <Grid item xs={4} key={career.id} sx={{ display: 'flex', alignItems: 'center', mb: 1}}>
                                                     {[...Array(sessionCountValue)].map((_, index) => (
                                                         <TriStateCheckbox key={index}
                                                             value={checkedState[career.id][index]}
                                                             handleChange={() => handleCheckboxChange(career.id, index)} />
                                                     ))}
                                                         <Typography variant="body2" 
-                                                            sx={{ ml: 1, cursor: selectCareers ? 'pointer' : 'default', '&:hover': {
-                                                                bgcolor: selectCareers ? 'lightgray' : 'transparent'
-                                                            } }}
+                                                            sx={{ ml: 1, cursor: selectCareers ? 'pointer' : 'default', 
+                                                                '&:hover': {
+                                                                    bgcolor: selectCareers ? 'lightgray' : 'transparent'
+                                                                },
+                                                                fontSize: DEFAULT_FONT_SIZE }}
                                                             onClick={selectCareers ? () => handleAddSameSpeaker(career) : undefined}
                                                         >
                                                             {career.name}
@@ -370,9 +382,9 @@ export default function SchedulingTool({ event, back }: Props) {
 
                                         <Grid container item xs={12}>
                                             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', pb: 2 }}>
-                                                <LoadingButton loading={loading} type="submit" variant="contained">
+                                                <AppLoadingButton loading={loading} type="submit" variant="contained">
                                                     Generate Schedule
-                                                </LoadingButton>
+                                                </AppLoadingButton>
                                             </Grid>
                                         </Grid>
                                     </Grid>

@@ -99,11 +99,17 @@ namespace CareerDayApi.Controllers
 
             if (classroom == null) return NotFound();
 
-            _context.Classrooms.Remove(classroom);
+            try {
+                _context.Classrooms.Remove(classroom);
 
-            var result = await _context.SaveChangesAsync() > 0;
+                var result = await _context.SaveChangesAsync() > 0;
 
-            if (result) return Ok();
+                if (result) return Ok();
+            }
+            catch (DbUpdateException e) when (IsUniqueConstraintException(e))
+            {
+                return Conflict(new { message = "Classroom cannot be deleted because it is assigned to a session in the scheduling tool" });
+            }
 
             return BadRequest(new ProblemDetails { Title = "Problem deleting classroom" });
         }
