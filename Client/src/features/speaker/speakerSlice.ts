@@ -9,7 +9,6 @@ interface SpeakerState {
     status: string
     speakerParams: SpeakerParams
     metaData: MetaData | null
-    speakers: Speaker[]
 }
 
 const speakerAdapter = createEntityAdapter<Speaker>()
@@ -49,8 +48,7 @@ export const speakerSlice = createSlice({
         speakersLoaded: false,
         status: 'idle',
         speakerParams: initParams(),
-        metaData: null,
-        speakers: []
+        metaData: null
     }),
     reducers: {
         setSpeaker: (state, action) => {
