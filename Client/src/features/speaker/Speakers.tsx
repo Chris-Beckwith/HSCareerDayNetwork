@@ -16,7 +16,7 @@ import SpeakerSkeleton from "./components/SpeakerSkeleton"
  * Component to display the list of speakers added.
  */
 export default function Speakers() {
-    const dispatch = useAppDispatch();
+    const dispatch = useAppDispatch()
     const { speakers, speakersLoaded, metaData, speakerParams } = useSpeakers()
     const [editMode, setEditMode] = useState(false)
     const [loading, setLoading] = useState(false)
