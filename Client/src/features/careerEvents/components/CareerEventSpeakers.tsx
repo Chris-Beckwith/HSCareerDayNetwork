@@ -1,9 +1,11 @@
 import { Box, Typography, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, TextField, TablePagination, useMediaQuery, useTheme } from "@mui/material";
 import { Speaker } from "../../../app/models/speaker";
-import { SetStateAction, useEffect, useState } from "react";
-import useSpeakers from "../../../app/hooks/useSpeakers";
+import { SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { Career } from "../../../app/models/career";
 import AppButton from "../../../app/components/AppButton";
+import useSpeakerPicker from "../../../app/hooks/useSpeakerPicker";
+import AppTextSearch from "../../../app/components/AppTextSearch";
+import { setSpeakerPickerSearchTerm } from "../../speaker/speakerPickerSlice";
 
 interface Props {
     careerEventName: string
@@ -16,73 +18,82 @@ interface Props {
  * Component to show and change speakers assigned to an event.
  */
 export default function CareerEventSpeakers({careerEventName, careerEventSpeakers, updateCareerEvent, back}: Props) {
-    const { speakers } = useSpeakers()
-    const [availableSpeakers, setAvailableSpeakers] = useState<Speaker[]>([])
-    const [eventSpeakers, setEventSpeakers] = useState<Speaker[]>([])
-    const [searchQuery, setSearchQuery] = useState('');
+    const { speakers, status, hasMore, loadMore, speakerParams, metaData } = useSpeakerPicker()
+    const [eventSpeakers, setEventSpeakers] = useState<Speaker[]>(() => careerEventSpeakers)
     const [searchEventQuery, setSearchEventQuery] = useState('')
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(25)
+    const [page, setPage] = useState(0)
+    const [rowsPerPage, setRowsPerPage] = useState(10)
     const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
+    const isTablet = useMediaQuery(useTheme().breakpoints.down('md'))
+    
+    const availableSpeakers = useMemo(() => {
+        const ids = new Set(eventSpeakers.map(s => s.id))
+        return speakers.filter(s => !ids.has(s.id))
+    }, [eventSpeakers, speakers])
+
+    const bottomRef = useRef<HTMLTableRowElement | null>(null)
 
     useEffect(() => {
-        if (eventSpeakers.length == 0)
-            setEventSpeakers(careerEventSpeakers)
-        setAvailableSpeakers(speakers.filter(s => !eventSpeakers.some(es => s.id === es.id)))
-    }, [speakers, careerEventSpeakers, eventSpeakers])
+        if (!bottomRef.current) return
 
-    const updateAvailableSpeakers = () => {
-        const updatedSpeakers = speakers.filter(s => !eventSpeakers.some(es => s.id === es.id))
-        setAvailableSpeakers(updatedSpeakers)
-    }
+        const observer = new IntersectionObserver(
+            entries => {
+                if (entries[0].isIntersecting && hasMore && status === 'idle')
+                    loadMore()
+            },
+            {
+                rootMargin: '300px',
+                threshold: 0
+            }
+        )
+
+        observer.observe(bottomRef.current)
+        return () => observer.disconnect()
+    }, [hasMore, loadMore, status])
 
     const handleAddEventSpeaker = (speaker: Speaker) => {
         const newEventSpeakers = [...eventSpeakers, speaker]
         setEventSpeakers(newEventSpeakers)
-        updateAvailableSpeakers()
+
+        if (availableSpeakers.length < 10 && hasMore)
+            loadMore()
     }
 
     const handleRemoveEventSpeaker = (speaker: Speaker) => {
         const newEventSpeakers = eventSpeakers.filter(s => s.id !== speaker.id)
         setEventSpeakers(newEventSpeakers)
-        updateAvailableSpeakers()
     }
 
     const runFilter = (speakers: Speaker[], searchQuery: string) => {
         return speakers.filter(speaker => {
             const fullName = `${speaker.firstName} ${speaker.middleName || ''} ${speaker.lastName}`.toLowerCase();
-            return fullName.includes(searchQuery.toLowerCase()) ||
-            speaker.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            speaker.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            speaker.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            speaker.phoneNumber.toLowerCase().includes(searchQuery.toLowerCase());
-        });
+            return fullName?.includes(searchQuery.toLowerCase()) ||
+            speaker.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            speaker.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            speaker.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            speaker.phoneNumber?.toLowerCase().includes(searchQuery.toLowerCase())
+        })
     }
 
-    const filterSpeakers = (speakers: Speaker[], filterEventSpeakers: boolean) => {
-        if (filterEventSpeakers) {
-            if (!searchEventQuery) return speakers;
-            return runFilter(speakers, searchEventQuery)
-        } else {
-            if (!searchQuery) return speakers;
-            return runFilter(speakers, searchQuery)
-        }
-    };
+    const filterSpeakers = (speakers: Speaker[]) => {
+        if (!searchEventQuery) return speakers
+        return runFilter(speakers, searchEventQuery)
+    }
 
     const handleChangePage = (newPage: SetStateAction<number> | null) => {
         if (newPage != null)
-            setPage(newPage);
-    };
+            setPage(newPage)
+    }
 
     const handleChangeRowsPerPage = (event: any) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
+        setRowsPerPage(parseInt(event.target.value, 10))
+        setPage(0)
+    }
 
-    const paginatedSpeakers = (speakers: Speaker[], filterEventSpeakers: boolean) => {
-        const filtered = filterSpeakers(speakers, filterEventSpeakers);
-        return filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-    };
+    const paginatedSpeakers = (speakers: Speaker[]) => {
+        const filtered = filterSpeakers(speakers)
+        return filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+    }
 
     return (
         <>
@@ -95,7 +106,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                     <TextField
                         label="Search"
                         variant="outlined"
-                        size="small"
+                        size={isTablet ? "small" : "medium"}
                         fullWidth
                         value={searchEventQuery}
                         onChange={(e) => setSearchEventQuery(e.target.value)}
@@ -119,7 +130,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {paginatedSpeakers(eventSpeakers, true).map(speaker => (
+                        {paginatedSpeakers(eventSpeakers).map(speaker => (
                             <TableRow
                                 key={speaker.id}
                                 onClick={() => handleRemoveEventSpeaker(speaker)}
@@ -148,7 +159,7 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
             <TablePagination
                 rowsPerPageOptions={[5, 10, 25, 50]}
                 component="div"
-                count={filterSpeakers(eventSpeakers, true).length}
+                count={filterSpeakers(eventSpeakers).length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={(_event, page) => handleChangePage(page)}
@@ -157,20 +168,21 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
 
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 2 }}>
                 <Typography variant={isMobile ? "h6" : "h5"}>Speakers</Typography>
-                
                 <Box>
-                    <TextField
-                        label="Search"
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                    <Typography variant={isMobile ? "body2" : "body1"}>
+                        <span style={{ textDecoration: 'underline' }}>Available Speakers:</span>
+                        <span style={{ fontWeight: 'bold', textDecorationLine: 'none', paddingLeft: '4px' }}>
+                            {metaData && (speakerParams.searchTerm ? metaData?.totalCount : metaData?.totalCount - eventSpeakers.length)}
+                        </span>
+                    </Typography>
+                </Box>
+                <Box>
+                    <AppTextSearch label="Search Speakers"
+                        stateSearchTerm={speakerParams.searchTerm} setParams={setSpeakerPickerSearchTerm} />
                 </Box>
             </Box>
-            <TableContainer component={Paper}>
-                <Table sx={{ '& .MuiTableCell-root': { fontSize: isMobile ? '0.75rem' : '0.875rem' } }}>
+            <TableContainer component={Paper} sx={{ maxHeight: isTablet ? isMobile ? 500 : 575 : 650, overflow: 'auto' }}>
+                <Table sx={{ '& .MuiTableCell-root': { fontSize: isMobile ? '0.75rem' : '0.875rem' } }} stickyHeader>
                     <TableHead>
                         <TableRow>
                             <TableCell>Photo</TableCell>
@@ -182,11 +194,12 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {paginatedSpeakers(availableSpeakers, false).map(speaker => (
+                        {availableSpeakers.map((speaker, index) => (
                             <TableRow
                                 key={speaker.id}
                                 onClick={() => handleAddEventSpeaker(speaker)}
                                 sx={{ cursor: "pointer" }}
+                                ref={index === availableSpeakers.length -1 ? bottomRef : null}
                                 hover
                             >
                                 <TableCell component="th" scope="row">
@@ -207,16 +220,6 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                     </TableBody>
                 </Table>
             </TableContainer>
-
-            <TablePagination
-                rowsPerPageOptions={[5, 10, 25, 50]}
-                component="div"
-                count={filterSpeakers(availableSpeakers, false).length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={(_event, page) => handleChangePage(page)}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-            />
             
             <Box display='flex' justifyContent="flex-end" sx={{ pt: 1, mb: 2 }}>
                 <AppButton variant="contained" onClick={() => {
