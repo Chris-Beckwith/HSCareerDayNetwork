@@ -9,4 +9,5 @@ export interface ScheduleParams {
         [key: number]: (0 | 1 | 2)[]
     }
     sameSpeakersForCareerList: Career[][]
+    careerMaxClassSizeList: Record<number, number>
 }

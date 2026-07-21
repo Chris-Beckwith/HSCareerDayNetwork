@@ -12,6 +12,7 @@ namespace CareerDayApi.Entities
         public int PeriodCount { get; set; }
         public string RequiredPeriodForCareerListJson { get; set; }
         public string SameSpeakersForCareerListJson { get; set; }
+        public string CareerMaxClassSizeListJson { get; set; }
 
         [NotMapped]
         public Dictionary<int, int[]> RequiredPeriodForCareerList
@@ -32,6 +33,15 @@ namespace CareerDayApi.Entities
                     PropertyNameCaseInsensitive = true
                 });
             set => SameSpeakersForCareerListJson = JsonSerializer.Serialize(value);
+        }
+
+        [NotMapped]
+        public Dictionary<int, int> CareerMaxClassSizeList
+        {
+            get => string.IsNullOrEmpty(CareerMaxClassSizeListJson)
+                ? new Dictionary<int, int>()
+                : JsonSerializer.Deserialize<Dictionary<int, int>>(CareerMaxClassSizeListJson);
+            set => CareerMaxClassSizeListJson = JsonSerializer.Serialize(value);
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Checkbox, Grid, IconButton, Typography } from "@mui/material"
+import { Checkbox, Grid, IconButton, Switch, TextField, Typography } from "@mui/material"
 import { CareerEvent } from "../../app/models/event"
 import { useEffect, useState } from "react"
 import SessionView, { UnplacedStudent } from "./SessionView"
@@ -31,6 +31,7 @@ interface CheckedState {
     [key: number]: (0 | 1 | 2)[]
 }
 
+
 /**
  * Component for setting the settings to generate a schedule
  */
@@ -47,6 +48,9 @@ export default function SchedulingTool({ event, back }: Props) {
     const [showLargeRooms, setShowLargeRooms] = useState(false)
     const [sameSpeakers, setSameSpeakers] = useState<Career[][]>([])
     const [sameSpeakersIndex, setSameSpeakersIndex] = useState(0)
+    const [showCareerMaxSize, setShowCareerMaxSize] = useState(false)
+    const [careerMaxClassSizeList, setCareerMaxClassSizeList] = useState<Record<number, number>>({})
+
     const { eventPhases } = useAppSelector(state => state.careerEvents)
 
     useEffect(() => {
@@ -79,6 +83,17 @@ export default function SchedulingTool({ event, back }: Props) {
     
     const maxClassSizeValue = watch('maxClassSize')
     const sessionCountValue = watch('sessionCount') || 3
+
+    const updateCareerMaxSize = (id: number, value: string) => {
+        setCareerMaxClassSizeList(prev => {
+            const updated = {...prev}
+            
+            if (value === "") delete updated[id]
+            else updated[id] = Number(value)
+
+            return updated
+        })
+    }
     
     const [checkedState, setCheckedState] = useState<CheckedState>(
         event.careers.reduce((acc: CheckedState, career) => {
@@ -155,7 +170,8 @@ export default function SchedulingTool({ event, back }: Props) {
             minClassSize: data.minClassSize,
             periodCount: sessionCountValue,
             requiredPeriodForCareerList: checkedState,
-            sameSpeakersForCareerList: sameSpeakers
+            sameSpeakersForCareerList: sameSpeakers,
+            careerMaxClassSizeList: careerMaxClassSizeList
         }
 
         try {
@@ -191,6 +207,7 @@ export default function SchedulingTool({ event, back }: Props) {
                     if (scheduleParams !== undefined)
                         await agent.Event.saveScheduleParams(scheduleParams)
                 }
+                //Else, update Schedule params ************ TODO
             } catch (error) {
                 console.log(error)
             } finally {
@@ -294,10 +311,14 @@ export default function SchedulingTool({ event, back }: Props) {
                                         </Grid>
 
                                         <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                            <Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                                                 <AppButton variant="contained" onClick={handleSetSameSpeaker}>
                                                     {selectCareers ? 'Save' : 'Same Speakers'}
                                                 </AppButton>
+                                            </Grid>
+                                            <Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-end'}}>
+                                                <Typography sx={{ display: 'flex', alignItems: 'center' }}>Change career max class size</Typography>
+                                                <Switch checked={showCareerMaxSize} onChange={() => setShowCareerMaxSize(!showCareerMaxSize)}/>
                                             </Grid>
                                             <Grid item xs={8} sx={{ justifyContent: 'flex-start' }}>
                                                 {sameSpeakers.map((c, outIndex) => (
@@ -333,7 +354,19 @@ export default function SchedulingTool({ event, back }: Props) {
                                         </Grid>
 
                                         <Grid container item xs={12}>
-                                            <Grid container>
+                                            {showCareerMaxSize ?
+                                                <Grid container>
+                                                    <Grid item xs={4} sx={{ pl: "16px", height: '24px' }}>
+                                                        <Typography>Max</Typography>
+                                                    </Grid>
+                                                    <Grid item xs={4} sx={{ pl: "16px", height: '24px' }}>
+                                                        <Typography>Max</Typography>
+                                                    </Grid>
+                                                    <Grid item xs={4} sx={{ pl: "16px", height: '24px' }}>
+                                                        <Typography>Max</Typography>
+                                                    </Grid>
+                                                </Grid>
+                                            : <Grid container>
                                                 <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
                                                     {[...Array(sessionCountValue)].map((_, index) => (
                                                         <Typography key={index} 
@@ -358,13 +391,24 @@ export default function SchedulingTool({ event, back }: Props) {
                                                         </Typography>
                                                     ))}
                                                 </Grid>
-                                            </Grid>
+                                            </Grid>}
                                             {event.careers.map(career => (
                                                 <Grid item xs={4} key={career.id} sx={{ display: 'flex', alignItems: 'center', mb: 1}}>
-                                                    {[...Array(sessionCountValue)].map((_, index) => (
+                                                    {showCareerMaxSize && 
+                                                        <TextField type="number" name="max class size" size="small"
+                                                            sx={{ width: 50, height: 20, ml: "10px", "& .MuiOutlinedInput-input": {
+                                                                    p: "0 1px",
+                                                                    textAlign: "center",
+                                                                }
+                                                            }}
+                                                            value={careerMaxClassSizeList[career.id] ?? ""}
+                                                            onChange={(e) => updateCareerMaxSize(career.id, e.target.value)}
+                                                        />
+                                                    }
+                                                    {!showCareerMaxSize && [...Array(sessionCountValue)].map((_, index) => (
                                                         <TriStateCheckbox key={index}
-                                                            value={checkedState[career.id][index]}
-                                                            handleChange={() => handleCheckboxChange(career.id, index)} />
+                                                        value={checkedState[career.id][index]}
+                                                        handleChange={() => handleCheckboxChange(career.id, index)} />
                                                     ))}
                                                         <Typography variant="body2" 
                                                             sx={{ ml: 1, cursor: selectCareers ? 'pointer' : 'default', 
