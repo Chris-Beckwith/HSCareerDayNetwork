@@ -207,7 +207,8 @@ const Survey = {
     export: (params: URLSearchParams) => requests.getBlob('surveys/export', params),
     listByEvent: (eventId: number) => requests.get(`surveys/${eventId}`),
     update: (survey: any) => requests.putForm('surveys', createFormData(survey)),
-    deleteSurveysByEvent: (eventId: number) => requests.delete(`surveys/${eventId}`)
+    deleteSurveysByEvent: (eventId: number) => requests.delete(`surveys/${eventId}`),
+    generateTestSurveyResults: (eventId: number) => requests.post('surveys/TestData', {eventId: eventId})
 }
 
 const Schedule = {

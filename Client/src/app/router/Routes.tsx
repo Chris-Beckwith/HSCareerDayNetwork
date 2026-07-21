@@ -26,6 +26,7 @@ export const router = createBrowserRouter([
                 { path: 'speakers', element: <Speakers /> },
                 { path: 'register', element: <Register /> },
                 { path: 'schoolAdmins', element: <SchoolUsers /> },
+                { path: 'testData', element: <CareerEvents /> },
                 { path: 'buggy-test', element: <BuggyTester /> },
             ]},
             {element: <RequireAuth roles={['SchoolUser']}/>, children: [
