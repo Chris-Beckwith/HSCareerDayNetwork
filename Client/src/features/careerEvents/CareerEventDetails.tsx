@@ -27,6 +27,7 @@ import ExportTool from "../scheduling/ExportTool";
 import EventCompleted from "./components/EventCompleted";
 import AppButton from "../../app/components/AppButton";
 import AppLoadingButton from "../../app/components/AppLoadingButton";
+import { useLocation } from "react-router-dom";
 
 interface Props {
     careerEvent: CareerEvent
@@ -62,6 +63,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const date = new Date(careerEvent.eventDate)
     const baseUrl = import.meta.env.VITE_APP_HOST || '/';
     const surveyUrl = `${baseUrl}survey/${careerEvent.guid}`
+    const location = useLocation()
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
@@ -263,6 +265,14 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             {careerEvent.isDeleted &&
                 <Grid item xs={12} display='flex' justifyContent='center'>
                         <Typography variant="h5" color="error">This Event is marked as deleted</Typography>
+                </Grid>
+            }
+            {location.pathname === '/testData' && 
+                eventPhaseName === EVENT_PHASES.SURVEYINPROGRESS && careerEvent.surveyCompletePercent < 100 &&
+                <Grid item xs={12} display='flex' justifyContent='center'>
+                    <AppButton variant="contained" onClick={() => agent.Survey.generateTestSurveyResults(careerEvent.id)}>
+                        Generate Test Survey Data
+                    </AppButton>
                 </Grid>
             }
 

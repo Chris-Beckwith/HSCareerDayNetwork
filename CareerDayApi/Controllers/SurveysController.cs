@@ -254,5 +254,45 @@ namespace CareerDayApi.Controllers
 
             return File(stream, _excelService.excelMimeType, fileName);
         }
+
+        [HttpPost("TestData")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> CreateTestSurveyData([FromBody] EventIdDto eventIdDto)
+        {
+            var eventId = eventIdDto.EventId;
+            var careerEvent = await _context.Events.Include(c => c.Careers)
+                .FirstOrDefaultAsync(e => e.Id == eventId);
+            var students = await _context.Students.Where(s => s.EventId == eventId).ToListAsync();
+            var surveys = new List<Survey>();
+
+            foreach(Student s in students)
+            {
+                if (!s.SurveyComplete) {
+                    var fiveCareers = careerEvent.Careers.OrderBy(x => Guid.NewGuid()).Take(5).ToList();
+                    var pCareers = fiveCareers.Take(3).ToList();
+                    var aCareers = fiveCareers.Skip(3).Take(2).ToList();
+                    var survey = new Survey
+                    {
+                        Student = s,
+                        StudentId = s.Id,
+                        PrimaryCareers = pCareers,
+                        AlternateCareers = aCareers
+                    };
+                    surveys.Add(survey);
+                }
+                s.SurveyComplete = true;
+            }
+
+            _context.Surveys.AddRange(surveys);
+
+            var result = await _context.SaveChangesAsync() > 0;
+
+            var updateProgress = await UpdateSurveyProgress.UpdateSurveyProgressAsync(eventId, _context);
+            if (!updateProgress) _logger.LogWarning("(CreateTestSurveyData) Failed to update event survey progress. EventId: {eventId}", eventId);
+
+            if (result) return Ok(result);
+
+            return BadRequest(new ProblemDetails { Title = "Problem creating test surveys "});
+        }
     }
 }

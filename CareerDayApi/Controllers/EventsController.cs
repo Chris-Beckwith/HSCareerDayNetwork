@@ -310,6 +310,8 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails { Title = "Problem saving schedule paramters" });
         }
 
+        //TODO UpdateScheduleParams
+
         [HttpGet("scheduleParams/{id}", Name = "getScheduleParams")]
         public async Task<ActionResult<GenerateScheduleParamsDto>> GetScheduleParams(int id)
         {

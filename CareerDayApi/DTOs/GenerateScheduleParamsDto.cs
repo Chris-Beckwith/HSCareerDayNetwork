@@ -10,5 +10,6 @@ namespace CareerDayApi.DTOs
         public int PeriodCount { get; set; }
         public Dictionary<int, int[]> RequiredPeriodForCareerList { get; set; }
         public Career[][] SameSpeakersForCareerList { get; set; }
+        public Dictionary<int, int> CareerMaxClassSizeList { get; set; }
     }
 }
