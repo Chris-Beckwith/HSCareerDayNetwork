@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useState } from "react"
 import { useAppDispatch } from "../store/configureStore"
-import { debounce, TextField, useMediaQuery, useTheme } from "@mui/material"
+import { debounce, InputAdornment, TextField, useMediaQuery, useTheme } from "@mui/material"
 import { DEFAULT_FONT_SIZE } from "../util/constants"
+import { Search } from "@mui/icons-material"
 
 interface Props<T> {
-    label: string
+    label?: string
     stateSearchTerm: string | undefined
     setParams: (payload: T) => {
         payload: T
         type: string
     }
+    isSmall?: boolean
 }
 
 type SearchParams = {
@@ -19,7 +21,7 @@ type SearchParams = {
 /**
  * Search Field
  */
-export default function AppTextSearch({ label, stateSearchTerm, setParams }: Props<SearchParams>) {
+export default function AppTextSearch({ label, stateSearchTerm, setParams, isSmall }: Props<SearchParams>) {
     const dispatch = useAppDispatch()
     const [searchTerm, setSearchTerm] = useState(stateSearchTerm)
     const theme = useTheme()
@@ -42,7 +44,7 @@ export default function AppTextSearch({ label, stateSearchTerm, setParams }: Pro
             variant='outlined'
             fullWidth
             value={searchTerm || ''}
-            size={isTablet ? "small" : "medium"}
+            size={isTablet || isSmall ? "small" : "medium"}
             sx={{
                 height: '100%',
                 '& .MuiInputBase-input': {
@@ -52,6 +54,13 @@ export default function AppTextSearch({ label, stateSearchTerm, setParams }: Pro
             onChange={(event: any) => {
                 setSearchTerm(event.target.value)
                 debouncedSearch(event)
+            }}
+            InputProps={{
+                startAdornment: (isSmall &&
+                    <InputAdornment position="start">
+                        <Search />
+                    </InputAdornment>
+                )
             }}
         />
     )

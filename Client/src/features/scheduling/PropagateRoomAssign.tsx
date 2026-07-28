@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import { Session } from "../../app/models/session";
 import { Classroom } from "../../app/models/classroom";
 import { getClassroomText } from "../../app/util/displayUtil";
@@ -17,9 +17,9 @@ export default function PropagateRoomAssign({ open, session, currentRoom, addCla
         <Dialog open={open} onClose={handleClose}>
             <DialogTitle>Assign room to same Career?</DialogTitle>
             <DialogContent>
-                <Typography sx={{ fontSize: DEFAULT_FONT_SIZE }}>
-                    Would you like to assign room {getClassroomText(currentRoom)} to {session.subject.name} in other sessions?
-                </Typography>
+                <Box sx={{ fontSize: DEFAULT_FONT_SIZE }}>
+                    Would you like to assign room: {getClassroomText(currentRoom)} to {session.subject.name} in other sessions?
+                </Box>
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => {

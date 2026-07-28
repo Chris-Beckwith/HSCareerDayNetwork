@@ -1,8 +1,8 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Session } from "../../app/models/session"
 import { Speaker } from "../../app/models/speaker"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material"
-import { Delete } from "@mui/icons-material"
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, InputAdornment, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from "@mui/material"
+import { Delete, Search } from "@mui/icons-material"
 import PropagateSpeakerAssign from "./PropagateSpeakerAssign"
 
 interface Props {
@@ -14,9 +14,10 @@ interface Props {
     handleClose: () => void
 }
 
-export default function EditSpeakers({ session, availableSpeakers, updateSpeakers, triggerRefresh, open, handleClose }: Props) {
+export default function SessionSpeakers({ session, availableSpeakers, updateSpeakers, triggerRefresh, open, handleClose }: Props) {
     const [currentSpeakers, setCurrentSpeakers] = useState<Speaker[]>(session.speakers)
     const [showPropConfirm, setShowPropConfirm] = useState(false)
+    const [searchEventQuery, setSearchEventQuery] = useState('')
 
     const removeSpeaker = (speaker: Speaker) => {
         setCurrentSpeakers(prev => prev?.filter(s => s.id !== speaker.id))
@@ -36,6 +37,23 @@ export default function EditSpeakers({ session, availableSpeakers, updateSpeaker
         handleClose()
     }
 
+    const runFilter = (speakers: Speaker[], searchQuery: string) => {
+        return speakers.filter(speaker => {
+            const fullName = `${speaker.firstName} ${speaker.middleName || ''} ${speaker.lastName}`.toLowerCase();
+            return fullName?.includes(searchQuery.toLowerCase()) ||
+            speaker.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            speaker.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            speaker.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            speaker.phoneNumber?.toLowerCase().includes(searchQuery.toLowerCase())
+        })
+    }
+
+    const filterSpeakers = useMemo(() => {
+        const speakers = availableSpeakers.filter(s => !currentSpeakers.some(sp => sp.id === s.id))
+
+        return searchEventQuery ? runFilter(speakers, searchEventQuery) : speakers
+    },[availableSpeakers, currentSpeakers, searchEventQuery])
+
     return (
         <>
             <Dialog open={open} onClose={cancel}>
@@ -43,13 +61,28 @@ export default function EditSpeakers({ session, availableSpeakers, updateSpeaker
                     Edit Speakers for Session {session.period} - {session.subject.name}
                 </DialogTitle>
                 <DialogContent>
-                    Current Speakers: 
-                    {currentSpeakers.map(s => 
-                        <Typography key={s.id}>
-                            {s.firstName} {s.middleName} {s.lastName} 
-                            <Button startIcon={<Delete />} color="error" sx={{ p: 0 }} onClick={() => removeSpeaker(s)} />
-                        </Typography>
-                    )}
+                    <Box>
+                        <Typography sx={{ fontStyle: 'italic', textDecoration: 'underline' }}>Current Speakers:</Typography>
+                        {currentSpeakers.map(s => 
+                            <Typography key={s.id} sx={{ pl: 1 }}>
+                                {s.firstName} {s.middleName} {s.lastName} 
+                                <Button startIcon={<Delete />} color="error" sx={{ p: 0 }} onClick={() => removeSpeaker(s)} />
+                            </Typography>
+                        )}
+                    </Box>
+
+                    <Box sx={{ pt: 2, pb: 1, display: 'flex', justifyContent: 'center' }}>
+                        <TextField variant="outlined" size="small"
+                            value={searchEventQuery}
+                            onChange={(e) => setSearchEventQuery(e.target.value)}
+                            InputProps={{
+                                startAdornment: 
+                                    <InputAdornment position="start">
+                                        <Search />
+                                    </InputAdornment>
+                            }}
+                        />
+                    </Box>
 
                     <Table>
                         <TableHead>
@@ -60,8 +93,7 @@ export default function EditSpeakers({ session, availableSpeakers, updateSpeaker
                         </TableHead>
 
                         <TableBody>
-                            {availableSpeakers.filter(s => !currentSpeakers.some(sp => sp.id === s.id)
-                                ).map(speaker => (
+                            {filterSpeakers.map(speaker => (
                                     <TableRow key={speaker.id} sx={{ cursor: "pointer"}} hover
                                         onClick={() => addSpeaker(speaker)}
                                     >

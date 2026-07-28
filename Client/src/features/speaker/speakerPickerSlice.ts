@@ -35,8 +35,8 @@ function getAxiosParams(speakerParams: SpeakerParams) {
     return params
 }
 
-export const fetchSpeakersPickerPageAsync = createAsyncThunk<Speaker[], void, {state: RootState}>(
-    'speaker/fetchSpeakersPickerPageAsync',
+export const fetchSpeakerPickerPageAsync = createAsyncThunk<Speaker[], void, {state: RootState}>(
+    'speaker/fetchSpeakerPickerPageAsync',
     async (_, thunkAPI) => {
         const params = getAxiosParams(thunkAPI.getState().speakerPicker.speakerParams)
         try {
@@ -75,10 +75,10 @@ export const speakerPickerSlice = createSlice({
         }
     },
     extraReducers: (builder => {
-        builder.addCase(fetchSpeakersPickerPageAsync.pending, (state) => {
-            state.status = 'pendingFetchSpeakersPicker'
+        builder.addCase(fetchSpeakerPickerPageAsync.pending, (state) => {
+            state.status = 'pendingFetchSpeakerPicker'
         }),
-        builder.addCase(fetchSpeakersPickerPageAsync.fulfilled, (state, action) => {
+        builder.addCase(fetchSpeakerPickerPageAsync.fulfilled, (state, action) => {
             const existingIds = new Set(state.speakers.map(s => s.id))
             const newSpeakers = action.payload.filter(s => !existingIds.has(s.id))
             state.speakers.push(...newSpeakers)
@@ -86,7 +86,7 @@ export const speakerPickerSlice = createSlice({
             state.status = 'idle'
             state.hasMore = action.payload.length === state.speakerParams.pageSize
         }),
-        builder.addCase(fetchSpeakersPickerPageAsync.rejected, (state, action) => {
+        builder.addCase(fetchSpeakerPickerPageAsync.rejected, (state, action) => {
             console.log("Rejected:", action.payload)
             state.status = 'idle'
         })

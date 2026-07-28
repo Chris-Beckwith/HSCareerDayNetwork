@@ -41,9 +41,18 @@ axios.interceptors.response.use(async response => {
     }
     
     return response
-}, (error: AxiosError) => {
-    const {data, status} = error.response as AxiosResponse
+}, async (error: AxiosError) => {
+    let {data} = error.response as AxiosResponse
+    const {status} = error.response as AxiosResponse
 
+    if (data instanceof Blob) {
+        try {
+            data = JSON.parse(await data.text());
+        } catch {
+            toast.error("An unexpected error occurred.");
+            return Promise.reject(error.response);
+        }
+    }
 
     switch (status) {
         case 400:
@@ -107,10 +116,10 @@ function createFormData(item: any, parentKey?: string) {
             for (const key in data) {
                 const value = data[key];
                 const formKey = parentKey ? `${parentKey}[${key}]` : key;
-                if (value instanceof Object && !(data instanceof File)) {
+                if (value instanceof Object && !(value instanceof File)) {
                     appendFormData(value, formKey);
                 } else {
-                    formData.append(formKey, value);
+                    formData.append(formKey, value ?? "");
                 }
             }
         } else {
@@ -154,6 +163,7 @@ const School = {
 
 const Classroom = {
     listBySchool: (params: URLSearchParams) => requests.get('rooms/bySchool', params),
+    largeRoomsBySchool: (params: URLSearchParams) => requests.get('rooms/largeBySchool', params),
     create: (classroom: any) => requests.post('rooms', classroom),
     update: (classroom: any) => requests.putForm('rooms', createFormData(classroom)),
     delete: (id: number) => requests.delete(`rooms/${id}`)
@@ -217,8 +227,14 @@ const Schedule = {
     getSessionsAndUnplaced: (eventId: number) => requests.get(`scheduling/${eventId}`),
     saveSessions: (sessions: any) => requests.postJson('scheduling/save', JSON.stringify({sessions}) ),
     updateSessions: (sessions: any) => requests.putJson('scheduling', JSON.stringify({sessions}) ),
-    deleteSessions: (eventId: number) => requests.delete(`scheduling/${eventId}`),
-    exportPrimary: (params: URLSearchParams) => requests.getBlob('scheduling/primary', params)
+    deleteSessions: (eventId: number) => requests.delete(`scheduling/${eventId}`)
+}
+
+const Export = {
+    exportPrimary: (params: URLSearchParams) => requests.getBlob('export/primary', params),
+    exportStudentSchedule: (params: URLSearchParams) => requests.getBlob('export/students', params),
+    exportSpeakerSchedule: (params: URLSearchParams) => requests.getBlob('export/speakers', params),
+    exportRoomSchedule: (params: URLSearchParams) => requests.getBlob('export/rooms', params)
 }
 
 const TestErrors = {
@@ -240,6 +256,7 @@ const agent = {
     Account,
     Survey,
     Schedule,
+    Export,
     TestErrors
 }
 

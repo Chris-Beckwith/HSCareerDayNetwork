@@ -8,7 +8,6 @@ import { schedulingValidationSchema } from "./schedulingValidation"
 import AppTextInput from "../../app/components/AppTextInput"
 import { Session } from "../../app/models/session"
 import agent from "../../app/api/agent"
-import useClassrooms from "../../app/hooks/useClassrooms"
 import { Career } from "../../app/models/career"
 import { findNextEventPhaseId } from "../../app/util/util"
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
@@ -21,6 +20,7 @@ import { ScheduleParams } from "../../app/models/scheduleParams"
 import { ExpandMore, ExpandLess } from "@mui/icons-material"
 import AppButton from "../../app/components/AppButton"
 import AppLoadingButton from "../../app/components/AppLoadingButton"
+import { Classroom } from "../../app/models/classroom"
 
 interface Props {
     event: CareerEvent
@@ -31,13 +31,11 @@ interface CheckedState {
     [key: number]: (0 | 1 | 2)[]
 }
 
-
 /**
  * Component for setting the settings to generate a schedule
  */
 export default function SchedulingTool({ event, back }: Props) {
     const dispatch = useAppDispatch()
-    const { classrooms, metaData } = useClassrooms(event.school.id, 500)
     const [loading, setLoading] = useState(false)
     const [loadingSessions, setLoadingSessions] = useState(false)
     const [activeStep, setActiveStep] = useState(0)
@@ -45,6 +43,8 @@ export default function SchedulingTool({ event, back }: Props) {
     const [unplacedStudents, setUnplacedStudents] = useState<UnplacedStudent[]>([])
     const [scheduleParams, setScheduleParams] = useState<ScheduleParams>()
     const [selectCareers, setSelectCareers] = useState(false)
+    const [totalClassrooms, setTotalClassrooms] = useState(0)
+    const [largeRooms, setLargeRooms] = useState<Classroom[]>([])
     const [showLargeRooms, setShowLargeRooms] = useState(false)
     const [sameSpeakers, setSameSpeakers] = useState<Career[][]>([])
     const [sameSpeakersIndex, setSameSpeakersIndex] = useState(0)
@@ -81,8 +81,25 @@ export default function SchedulingTool({ event, back }: Props) {
         }
     })
     
-    const maxClassSizeValue = watch('maxClassSize')
+    const maxClassSizeValue = watch('maxClassSize') || 0
     const sessionCountValue = watch('sessionCount') || 3
+
+    useEffect(() => {
+        if (maxClassSizeValue <= 0 || maxClassSizeValue === null) {
+            setLargeRooms([])
+        } else {
+            const params = new URLSearchParams()
+            params.append('schoolId', event.school.id.toString())
+            params.append('maxClassSize', maxClassSizeValue.toString())
+
+            agent.Classroom.largeRoomsBySchool(params)
+                .then(response => {
+                    setLargeRooms(response.items)
+                    setTotalClassrooms(response.metaData.totalCount)
+                })
+                .catch(error => console.log("Error fetching large classrooms: ", error))
+        }
+    },[event.school.id, maxClassSizeValue])
 
     const updateCareerMaxSize = (id: number, value: string) => {
         setCareerMaxClassSizeList(prev => {
@@ -228,8 +245,7 @@ export default function SchedulingTool({ event, back }: Props) {
                 if (loadingSessions)
                     return <SessionViewSkeleton event={event} />
                 else
-                    return <SessionView event={event} sessions={sessions} classrooms={classrooms} unplacedStudents={unplacedStudents}
-                        scheduleParams={scheduleParams} />
+                    return <SessionView event={event} sessions={sessions} unplacedStudents={unplacedStudents} scheduleParams={scheduleParams} />
             default:
                 throw new Error('Unknown step')
         }
@@ -276,13 +292,13 @@ export default function SchedulingTool({ event, back }: Props) {
                                         <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
                                             <Grid container item xs={3} sx={{ display: 'flex', justifyContent: 'center' }}>
                                                 <Typography variant="h6" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
-                                                    Total Rooms: {metaData?.totalCount}
+                                                    Total Rooms: {totalClassrooms}
                                                 </Typography>
                                             </Grid>
                                             <Grid container item xs={3} sx={{ display: 'flex', justifyContent: 'center' }}>
                                                 <Typography variant="h6" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
                                                     Larger Rooms:
-                                                    {classrooms.filter(c => maxClassSizeValue > 0 && c.capacity > maxClassSizeValue).length > 0 &&
+                                                    {largeRooms.length > 0 &&
                                                         <>
                                                             <IconButton color="primary" size="small" onClick={() => setShowLargeRooms(!showLargeRooms)}>
                                                                 {showLargeRooms ? <ExpandMore /> : <ExpandLess /> }
@@ -290,7 +306,7 @@ export default function SchedulingTool({ event, back }: Props) {
                                                         </>
                                                     }
                                                 </Typography>
-                                                {showLargeRooms && classrooms.filter(c => maxClassSizeValue > 0 && c.capacity > maxClassSizeValue).map(c => (
+                                                {showLargeRooms && largeRooms.map(c => (
                                                     <Typography key={c.building + "-" + c.roomNumber} 
                                                         sx={{ display: 'flex', alignItems: 'center', mx: 1, fontSize: DEFAULT_FONT_SIZE }}>
                                                         {c.building} - {c.roomNumber} - Size: {c.capacity}
@@ -407,8 +423,8 @@ export default function SchedulingTool({ event, back }: Props) {
                                                     }
                                                     {!showCareerMaxSize && [...Array(sessionCountValue)].map((_, index) => (
                                                         <TriStateCheckbox key={index}
-                                                        value={checkedState[career.id][index]}
-                                                        handleChange={() => handleCheckboxChange(career.id, index)} />
+                                                            value={checkedState[career.id][index]}
+                                                            handleChange={() => handleCheckboxChange(career.id, index)} />
                                                     ))}
                                                         <Typography variant="body2" 
                                                             sx={{ ml: 1, cursor: selectCareers ? 'pointer' : 'default', 

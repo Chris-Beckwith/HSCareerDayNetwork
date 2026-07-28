@@ -22,7 +22,7 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult<List<Classroom>>> GetClassrooms()
         {
             return await _context.Classrooms
-                .OrderBy(c => c.Building).OrderBy(c => c.RoomNumber)
+                .OrderBy(c => c.Building).ThenBy(c => c.RoomNumber)
                 .ToListAsync();
         }
 
@@ -41,6 +41,27 @@ namespace CareerDayApi.Controllers
             Response.AddPaginationHeader(classrooms.MetaData);
 
             return classrooms;
+        }
+
+        [HttpGet("LargeBySchool")]
+        public async Task<ActionResult<List<Classroom>>> GetLargeRoomsBySchool([FromQuery]ClassroomParams classroomParams)
+        {
+            var largeRooms = await _context.Classrooms
+                .Where(c => c.School.Id == classroomParams.SchoolId && c.Capacity > classroomParams.MaxClassSize)
+                .OrderBy(c => c.Building).ThenBy(c => c.RoomNumber)
+                .ToListAsync();
+
+            var metaData = new PaginationMetaData
+            {
+                TotalCount = largeRooms.Count,
+                PageSize = classroomParams.PageSize,
+                CurrentPage = classroomParams.PageNumber,
+                TotalPages = (int)Math.Ceiling(largeRooms.Count / (double)classroomParams.PageSize)
+            };
+
+            Response.AddPaginationHeader(metaData);
+
+            return largeRooms;
         }
 
         [HttpGet("{id}", Name = "GetClassroomById")]

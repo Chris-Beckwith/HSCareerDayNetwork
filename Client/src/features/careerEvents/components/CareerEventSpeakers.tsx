@@ -31,6 +31,11 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
         return speakers.filter(s => !ids.has(s.id))
     }, [eventSpeakers, speakers])
 
+    useEffect(() => {
+        if (availableSpeakers.length < 10 && hasMore)
+            loadMore()
+    }, [availableSpeakers.length, hasMore, loadMore])
+
     const bottomRef = useRef<HTMLTableRowElement | null>(null)
 
     useEffect(() => {
@@ -99,10 +104,14 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
         <>
             <Typography variant={isMobile ? "h5" : "h4"} display='flex' justifyContent='center' sx={{mb: 4}}>{careerEventName}</Typography>
 
-            <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 2 }}>
-                <Typography variant={isMobile ? "h6" : "h5"} align="center">Event Speakers</Typography>
-
-                <Box>
+            <Box display='grid' alignItems='center' gridTemplateColumns='1fr auto 1fr' sx={{ m: 2 }}>
+                <Box justifySelf="start">
+                    <AppButton variant="contained" color="inherit" onClick={back}>Back</AppButton>
+                </Box>
+                
+                <Typography variant={isMobile ? "h6" : "h5"} align="center" justifySelf="center">Event Speakers</Typography>
+                
+                <Box justifySelf="end">
                     <TextField
                         label="Search"
                         variant="outlined"
@@ -111,10 +120,6 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                         value={searchEventQuery}
                         onChange={(e) => setSearchEventQuery(e.target.value)}
                     />
-                </Box>
-
-                <Box>
-                    <AppButton variant="contained" color="inherit" onClick={back}>Back</AppButton>
                 </Box>
             </Box>
             <TableContainer component={Paper}>
