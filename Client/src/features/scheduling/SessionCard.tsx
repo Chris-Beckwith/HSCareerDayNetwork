@@ -2,11 +2,11 @@ import { Box, Button, Card, CardActions, CardContent, CardHeader, Tooltip, Typog
 import { Session } from "../../app/models/session";
 import { useState } from "react";
 import SessionStudentView from "./SessionStudentView";
-import { Classroom } from "../../app/models/classroom";
-import EditClassroom from "./EditClassroom";
+import { Classroom, ClassroomParams } from "../../app/models/classroom";
+import SessionClassroom from "./SessionClassroom";
 import { getClassroomText } from "../../app/util/displayUtil";
 import { Speaker } from "../../app/models/speaker";
-import EditSpeakers from "./EditSpeakers";
+import SessionSpeakers from "./SessionSpeakers";
 import { Student } from "../../app/models/student";
 import AppButton from "../../app/components/AppButton";
 import { DEFAULT_FONT_SIZE } from "../../app/util/constants";
@@ -19,10 +19,14 @@ interface Props {
     updateSpeakers: (session: Session, speakers: Speaker[], propagate: boolean) => void
     triggerRefresh: () => void
     onSwapStudent: (student: Student) => void
+    status: string
+    hasMore: boolean
+    loadMore: () => void
+    classroomParams: ClassroomParams
 }
 
-export default function SessionCard({ session, availableClassrooms, updateClassroom, 
-        availableSpeakers, updateSpeakers, triggerRefresh, onSwapStudent }: Props) {
+export default function SessionCard({ session, availableClassrooms, updateClassroom, availableSpeakers, updateSpeakers,
+        triggerRefresh, onSwapStudent, status, hasMore, loadMore, classroomParams }: Props) {
     const [showStudents, setShowStudents] = useState(false)
     const [showRooms, setShowRooms] = useState(false)
     const [showSpeakers, setShowSpeakers] = useState(false)
@@ -74,7 +78,7 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                             pb: 0.5,
                         }}>
                         <Typography sx={{ fontWeight: 'light', mr: 0.5, fontSize: DEFAULT_FONT_SIZE }}>Location:</Typography>
-                        <Typography sx={{ flex: '1 1 auto', minWidth: 0 }}>{getClassroomText(session.classroom)}</Typography>
+                        <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>{getClassroomText(session.classroom)}</Box>
                     </Box>
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 0.5 }}>
                         <Typography sx={{ fontWeight: 'light', fontSize: DEFAULT_FONT_SIZE }}>
@@ -101,9 +105,10 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
 
             <SessionStudentView session={session} onSwapStudent={onSwapStudent}
                 open={showStudents} handleClose={() => setShowStudents(false)} />
-            <EditClassroom session={session} availableClassrooms={availableClassrooms} updateClassroom={updateClassroom}
-                triggerRefresh={triggerRefresh} open={showRooms} handleClose={() => setShowRooms(false)} />
-            <EditSpeakers session={session} availableSpeakers={availableSpeakers} updateSpeakers={updateSpeakers}
+            <SessionClassroom session={session} availableClassrooms={availableClassrooms} updateClassroom={updateClassroom}
+                triggerRefresh={triggerRefresh} open={showRooms} handleClose={() => setShowRooms(false)}
+                status={status} hasMore={hasMore} loadMore={loadMore} classroomParams={classroomParams} />
+            <SessionSpeakers session={session} availableSpeakers={availableSpeakers} updateSpeakers={updateSpeakers}
                 triggerRefresh={triggerRefresh} open={showSpeakers} handleClose={() => setShowSpeakers(false)} />
         </>
     )

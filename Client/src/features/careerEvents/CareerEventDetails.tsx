@@ -59,6 +59,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [prevEventPhaseName, setPrevEventPhaseName] = useState('')
     const [confirmPrevMessage, setConfirmPrevMessage] = useState('')
     const [loading, setLoading] = useState(false)
+    const [testDataLoading, setTestDataLoading] = useState(false)
     const { eventPhases } = useAppSelector(state => state.careerEvents)
     const date = new Date(careerEvent.eventDate)
     const baseUrl = import.meta.env.VITE_APP_HOST || '/';
@@ -134,6 +135,18 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             console.log(error)
         }
         setConfirmCompleteLoading(false)
+    }
+
+    async function generateTestSurveys() {
+        setTestDataLoading(true)
+        try {
+            await agent.Survey.generateTestSurveyResults(careerEvent.id)
+                .then(() => dispatch(reloadEvents()))
+                .catch(error => console.log(error))
+                .finally(() => setTestDataLoading(false))
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     if (!careerEvent) return <NotFound />
@@ -270,9 +283,9 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             {location.pathname === '/testData' && 
                 eventPhaseName === EVENT_PHASES.SURVEYINPROGRESS && careerEvent.surveyCompletePercent < 100 &&
                 <Grid item xs={12} display='flex' justifyContent='center'>
-                    <AppButton variant="contained" onClick={() => agent.Survey.generateTestSurveyResults(careerEvent.id)}>
+                    <AppLoadingButton variant="contained" loading={testDataLoading} onClick={generateTestSurveys}>
                         Generate Test Survey Data
-                    </AppButton>
+                    </AppLoadingButton>
                 </Grid>
             }
 
