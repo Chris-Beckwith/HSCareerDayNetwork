@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "../store/configureStore";
-import { fetchSpeakersPickerPageAsync, setSpeakerPickerParams } from "../../features/speaker/speakerPickerSlice";
+import { fetchSpeakerPickerPageAsync, setSpeakerPickerParams } from "../../features/speaker/speakerPickerSlice";
 
 export default function useSpeakerPicker() {
     const { speakers, speakersLoaded, status, hasMore, speakerParams, metaData } = useAppSelector(state => state.speakerPicker)
@@ -9,12 +9,12 @@ export default function useSpeakerPicker() {
     const loadMore = useCallback(() => {
         if (status === 'idle' && hasMore) {
             dispatch(setSpeakerPickerParams({pageNumber: speakerParams.pageNumber + 1}))
-            dispatch(fetchSpeakersPickerPageAsync())
+            dispatch(fetchSpeakerPickerPageAsync())
         }
     }, [dispatch, hasMore, speakerParams.pageNumber, status])
 
     useEffect(() => {
-        if (!speakersLoaded) dispatch(fetchSpeakersPickerPageAsync())
+        if (!speakersLoaded) dispatch(fetchSpeakerPickerPageAsync())
     }, [dispatch, speakersLoaded])
 
     return {

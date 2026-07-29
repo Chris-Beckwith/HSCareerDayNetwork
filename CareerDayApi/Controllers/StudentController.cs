@@ -425,6 +425,7 @@ namespace CareerDayApi.Controllers
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var worksheet = package.Workbook.Worksheets[0];
 
+            // ******** TODO ********* Probably need to make this better/looser/more options
             if (!worksheet.Cells[1, 1].Text.ToLower().Contains("school")
                 || (!worksheet.Cells[1, 2].Text.ToLower().Equals("student_number") && !worksheet.Cells[1, 2].Text.ToLower().Equals("id"))
                 || !worksheet.Cells[1, 3].Text.ToLower().Equals("lastfirst")

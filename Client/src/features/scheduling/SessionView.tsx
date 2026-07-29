@@ -5,7 +5,7 @@ import { Career } from "../../app/models/career"
 import SessionCard from "./SessionCard"
 import { CareerEvent } from "../../app/models/event"
 import { Classroom } from "../../app/models/classroom"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Speaker } from "../../app/models/speaker"
 import UnplacedStudentList from "./UnplacedStudentList"
 import PlacementDialog from "./PlacementDialog"
@@ -14,6 +14,7 @@ import useSurveys from "../../app/hooks/useSurveys"
 import { Survey } from "../../app/models/survey"
 import { ScheduleParams } from "../../app/models/scheduleParams"
 import { DEFAULT_FONT_SIZE } from "../../app/util/constants"
+import useClassroomPicker from "../../app/hooks/useClassroomPicker"
 
 export interface UnplacedStudent {
     student: Student
@@ -25,12 +26,12 @@ export interface UnplacedStudent {
 interface Props {
     event: CareerEvent
     sessions: Session[]
-    classrooms: Classroom[]
     unplacedStudents: UnplacedStudent[]
     scheduleParams: ScheduleParams | undefined
 }
 
-export default function SessionView({ event, sessions, classrooms, unplacedStudents, scheduleParams }: Props) {
+export default function SessionView({ event, sessions, unplacedStudents, scheduleParams }: Props) {
+    const { classrooms, status, hasMore, loadMore, classroomParams } = useClassroomPicker(event.school.id)
     const [refreshKey, setRefreshKey] = useState(0)
     const [showUnplacedStudents, setShowUnplacedStudents] = useState(false)
     const [showPlacementDialog, setShowPlacementDialog] = useState(false)
@@ -48,6 +49,36 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
     const triggerRefresh = () => {
         setRefreshKey((prev: number) => prev + 1)
     }
+
+    const availableClassrooms = useMemo(() => {
+        return periods.reduce((acc, p) => {
+            acc[p] = classrooms.filter(
+                classroom => !sessions.some(s => s.period === p && s.classroom?.id === classroom.id)
+            )
+
+            return acc
+        }, {} as Record<number, Classroom[]>)
+    },[classrooms, periods, sessions])
+    
+    const availableSpeakers = useMemo(() => {
+        return periods.reduce((acc, p) => {
+            acc[p] = event.speakers.filter(
+                speaker => !sessions.some(s => 
+                    s.period === p && s.speakers.some(sp => sp.id === speaker.id))
+            )
+
+            return acc
+        }, {} as Record<number, Speaker[]>)
+    },[event.speakers, periods, sessions])
+
+    useEffect(() => {
+        for (const p of periods) {
+            const rooms = availableClassrooms[p]
+
+            if (rooms.length < 10 && hasMore)
+                loadMore()
+        }
+    },[availableClassrooms, hasMore, loadMore, periods])
 
     const updateClassroom = (session: Session, classroom: Classroom, propagate: boolean) => {
         session.classroom = classroom
@@ -134,18 +165,11 @@ export default function SessionView({ event, sessions, classrooms, unplacedStude
                                     .sort((a, b) => a.subject.category.localeCompare(b.subject.category))
                                     .sort((a, b) => a.subject.courseId - b.subject.courseId)
                                     .map((session, index) => {
-                                        const availableClassrooms = classrooms.filter(
-                                            classroom => !sessions.some(s => s.period === session.period && s.classroom?.id === classroom.id)
-                                        )
-                                        const availableSpeakers = event.speakers.filter(
-                                            speaker => !sessions.some(s =>
-                                                s.period === session.period && s.speakers.some(sp => sp.id === speaker.id))
-                                        )
                                         return (
                                             <Grid item key={index} sx={{ my: 2 }}>
-                                                <SessionCard session={session} availableClassrooms={availableClassrooms} updateClassroom={updateClassroom} 
-                                                    availableSpeakers={availableSpeakers} updateSpeakers={updateSpeakers} triggerRefresh={triggerRefresh}
-                                                    onSwapStudent={onSwapStudent}
+                                                <SessionCard session={session} availableClassrooms={availableClassrooms[p]} updateClassroom={updateClassroom} 
+                                                    availableSpeakers={availableSpeakers[p]} updateSpeakers={updateSpeakers} triggerRefresh={triggerRefresh}
+                                                    onSwapStudent={onSwapStudent} status={status} hasMore={hasMore} loadMore={loadMore} classroomParams={classroomParams}
                                                 />
                                             </Grid>
                                         )

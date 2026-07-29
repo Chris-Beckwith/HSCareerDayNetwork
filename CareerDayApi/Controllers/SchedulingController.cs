@@ -3,9 +3,6 @@ using AutoMapper;
 using CareerDayApi.Data;
 using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
-using CareerDayApi.Extensions;
-using CareerDayApi.RequestHelpers;
-using CareerDayApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,11 +10,9 @@ using Microsoft.EntityFrameworkCore;
 namespace CareerDayApi.Controllers
 {
     [Authorize(Roles = "Admin")]
-    public class SchedulingController(CareerDayContext context, ExcelService excelService,
-        IMapper mapper, ILogger<SchedulingController> logger) : BaseApiController
+    public class SchedulingController(CareerDayContext context, IMapper mapper, ILogger<SchedulingController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
-        private readonly ExcelService _excelService = excelService;
         private readonly IMapper _mapper = mapper;
         private readonly ILogger<SchedulingController> _logger = logger;
 
@@ -264,10 +259,10 @@ namespace CareerDayApi.Controllers
                         if (!enrolledPeriods.Contains(i)) {
                             // Available session
                             Session openSession = periods[i]
-                                    .Where(session => session.Subject.Id == enrolledSession.Subject.Id 
-                                        && session.Students.Count < GetMaxClassSize(enrolledSession.Subject.Id))
-                                    .OrderBy(session => session.Students.Count)
-                                    .FirstOrDefault();
+                                .Where(session => session.Subject.Id == enrolledSession.Subject.Id 
+                                    && session.Students.Count < GetMaxClassSize(enrolledSession.Subject.Id))
+                                .OrderBy(session => session.Students.Count)
+                                .FirstOrDefault();
 
                             Session sessionToPlace = periods[enrolledSession.Period - 1]
                                 .Where(session => session.Subject.Id == unplacedCareer.Id 
@@ -948,76 +943,6 @@ namespace CareerDayApi.Controllers
             if (result) return Ok();
 
             return BadRequest(new ProblemDetails { Title = "Problem deleting sessions for event: " + eventId });
-        }
-
-        /**
-         * Exports the primary student schedule to .xlsx file.
-         * Contains student Id, Student Name, Gender, Grade, Homeroom Teacher, (Home)Room
-         * Sessions and room number if assigned.
-         */
-        [HttpGet("primary")]
-        public async Task<ActionResult> ExportPrimary([FromQuery] ExportParams exportParams)
-        {
-            var careerEvent = await _context.Events.FindAsync(exportParams.EventId);
-            
-            var students = await _context.Students
-                .Where(s => s.EventId == exportParams.EventId)
-                .Include(s => s.Sessions).ThenInclude(s => s.Classroom)
-                .Include(s => s.Sessions).ThenInclude(s => s.Speakers)
-                .Include(s => s.Sessions).ThenInclude(s => s.Subject)
-                .ToListAsync();
-
-            var numOfSessions = students[0].Sessions.Count;
-
-            var headers = new List<string>(){
-                "Student Id",
-                "Last First Name",
-                "Gender",
-                "Grade",
-                "Teacher",
-                "Room"
-            };
-
-            for (var i = 1; i <= numOfSessions; i++)
-            {
-                headers.Add("Career " + i);
-                headers.Add("Room " + i);
-            }
-
-            var rows = new List<object[]>();
-
-            foreach(var student in students)
-            {
-                var sessions = student.Sessions.OrderBy(s => s.Period).ToList();
-                var rowIndex = 6;
-
-                var row = new object[rowIndex + sessions.Count * 2];
-                row[0] = student.StudentNumber;
-                row[1] = student.LastFirstName;
-                row[2] = student.Gender;
-                row[3] = student.Grade;
-                row[4] = student.HomeroomTeacher;
-                row[5] = student.HomeroomNumber;
-
-                foreach(var session in sessions)
-                {
-                    row[rowIndex++] = session.Subject.Name;
-                    if (session.Classroom != null)
-                        row[rowIndex++] = session.Classroom.Building + session.Classroom.RoomNumber;
-                    else
-                        rowIndex++;
-                }
-
-                rows.Add(row);
-            }
-
-            string fileName = $"{careerEvent.Name}_{careerEvent.EventDate.ToString("MM-dd-yyyy")}_PrimarySchedule.xlsx";
-
-            var stream = await _excelService.ExportToExcel(headers, rows, "Primary Schedule");
-
-            Response.AddExcelHeader(fileName, _excelService.excelMimeType);
-
-            return File(stream, _excelService.excelMimeType, fileName);
         }
     }
 

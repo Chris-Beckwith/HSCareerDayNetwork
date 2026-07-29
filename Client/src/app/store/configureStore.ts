@@ -10,12 +10,14 @@ import { classroomSlice } from "../../features/classroom/classroomSlice";
 import { surveySlice } from "../../features/survey/surveySlice";
 import { userSlice } from "../../features/account/userSlice";
 import { speakerPickerSlice } from "../../features/speaker/speakerPickerSlice";
+import { classroomPickerSlice } from "../../features/classroom/classroomPickerSlice";
 
 export const store = configureStore({
     reducer: {
         careerEvents: careerEventSlice.reducer,
         schools: schoolSlice.reducer,
         classrooms: classroomSlice.reducer,
+        classroomPicker: classroomPickerSlice.reducer,
         students: studentSlice.reducer,
         surveys: surveySlice.reducer,
         speakers: speakerSlice.reducer,

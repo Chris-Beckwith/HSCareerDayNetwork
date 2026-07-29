@@ -1,10 +1,12 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
-import { Classroom } from "../../app/models/classroom";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { Classroom, ClassroomParams } from "../../app/models/classroom";
 import { Session } from "../../app/models/session";
 import { getClassroomText } from "../../app/util/displayUtil";
 import { Delete } from "@mui/icons-material";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import PropagateRoomAssign from "./PropagateRoomAssign";
+import AppTextSearch from "../../app/components/AppTextSearch";
+import { setClassroomPickerSearchTerm } from "../classroom/classroomPickerSlice";
 
 interface Props {
     session: Session
@@ -13,9 +15,18 @@ interface Props {
     triggerRefresh: () => void
     open: boolean
     handleClose: () => void
+    status: string
+    hasMore: boolean
+    loadMore: () => void
+    classroomParams: ClassroomParams
 }
 
-export default function EditClassroom({ session, availableClassrooms, updateClassroom, triggerRefresh, open, handleClose }: Props) {
+/**
+ * Component to add/remove classroom to a session
+ */
+export default function SessionClassroom({ session, availableClassrooms, updateClassroom, triggerRefresh,
+    open, handleClose, status, hasMore, loadMore, classroomParams }: Props) {
+
     const [currentRoom, setCurrentRoom] = useState<Classroom | undefined>(session.classroom)
     const [showPropConfirm, setShowPropConfirm] = useState(false)
 
@@ -30,21 +41,57 @@ export default function EditClassroom({ session, availableClassrooms, updateClas
         setCurrentRoom(classroom)
     }
 
+    const dialogContentRef = useRef<HTMLDivElement | null>(null)
+    const observer = useRef<IntersectionObserver>()
+
+    const lastRowRef = useCallback((node: HTMLTableRowElement | null) => {
+        if (!open || !node) return
+
+        observer.current?.disconnect()
+
+        observer.current = new IntersectionObserver(
+            entries => {
+                if (entries[0].isIntersecting && hasMore && status === 'idle')
+                    loadMore()
+            },
+            {
+                root: dialogContentRef.current,
+                rootMargin: "300px"
+            }
+        )
+
+        observer.current.observe(node)
+    },[hasMore, loadMore, open, status])
+
     return (
         <>
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>
                     Edit Classroom for Session {session.period} - {session.subject.name}
                 </DialogTitle>
-                <DialogContent>
-                    <Typography sx={{ alignContent: 'center', display: 'flex' }}>
-                        Current Room: {getClassroomText(currentRoom)}
+                <DialogContent ref={dialogContentRef}>
+                    <Box sx={{ display: 'flex' }}>
+                        <Typography sx={{ display: 'flex', pr: 0.5, fontStyle: 'italic', textDecoration: 'underline' }}>
+                            Current Room:
+                        </Typography>
+                        {getClassroomText(currentRoom)}
+                        
                         {currentRoom ?
                             <IconButton color='error' sx={{ p: 0, ml: 1 }} onClick={removeClassroom}>
                                 <Delete fontSize="small"/>
                             </IconButton>
                             : ''}
-                    </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'center', pt: 1 }}>
+                        <Box sx={{ width: '50%' }}>
+                            <AppTextSearch isSmall={true}
+                                stateSearchTerm={classroomParams.searchTerm} 
+                                setParams={setClassroomPickerSearchTerm} />
+                        </Box>
+                    </Box>
+                    
+                    
                     <Table>
                         <TableHead>
                             <TableRow>
@@ -55,12 +102,13 @@ export default function EditClassroom({ session, availableClassrooms, updateClas
                         </TableHead>
 
                         <TableBody>
-                            {availableClassrooms.map(room => (
+                            {availableClassrooms.map((room, index) => (
                                 <TableRow key={room.id} sx={{ cursor: "pointer" }} hover 
                                     onClick={() => {
                                         addClassroom(session, room, false)
                                         setShowPropConfirm(true)
                                     }}
+                                    ref={index === availableClassrooms.length - 1 ? lastRowRef : null}
                                 >
                                     <TableCell>{room.building}</TableCell>
                                     <TableCell>{room.roomNumber}</TableCell>
