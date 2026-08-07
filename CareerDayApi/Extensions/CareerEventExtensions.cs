@@ -60,8 +60,9 @@ namespace CareerDayApi.Extensions
             return query
                     .Include(p => p.EventPhase)
                     .Include(s => s.School).ThenInclude(a => a.Address)
-                    .Include(s => s.Speakers).ThenInclude(c => c.Careers)
-                    .Include(s => s.Speakers).ThenInclude(a => a.Address)
+                    .Include(s => s.Speakers).ThenInclude(s => s.Careers)
+                    .Include(s => s.Speakers).ThenInclude(s => s.Address)
+                    .Include(s => s.Speakers).ThenInclude(s => s.PhoneNumbers)
                     .Include(c => c.Careers);
         }
     }

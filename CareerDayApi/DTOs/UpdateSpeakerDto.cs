@@ -22,8 +22,9 @@ namespace CareerDayApi.DTOs
         public School SchoolLastSpokeAt { get; set; }
         public IFormFile File { get; set; }
         public string Email { get; set; }
-        public string PhoneNumber { get; set; }
+        public List<PhoneNumber> PhoneNumbers { get; set; }
         public SpeakerAddress Address { get; set; }
         public List<int> CareerIds { get; set; }
+        public Boolean RemovePortrait { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 import { TextField, useMediaQuery, useTheme } from "@mui/material";
 import { UseControllerProps, useController } from "react-hook-form";
 import { DEFAULT_FONT_SIZE } from "../util/constants";
+import { MaskedInput } from "../util/MaskedInput";
 
 interface Props extends UseControllerProps {
     label: string
@@ -8,6 +9,7 @@ interface Props extends UseControllerProps {
     rows?: number
     type?: string
     inputProps?: React.InputHTMLAttributes<HTMLInputElement>
+    format?: string
 }
 
 /**
@@ -16,6 +18,8 @@ interface Props extends UseControllerProps {
 export default function AppTextInput(props: Props) {
     const {fieldState, field} = useController({...props, defaultValue: ''})
     const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
+
+    const phoneMask = [{mask: "(000) 000-0000"}, {mask: "(000) 000-0000 x000000"}]
 
     return (
         <TextField
@@ -35,6 +39,12 @@ export default function AppTextInput(props: Props) {
                 },
                 ...props.inputProps
             }}
+            InputProps={ props.format === "phone" ? {
+                inputComponent: MaskedInput as any,
+                inputProps: {
+                    mask: phoneMask
+                }
+            } : undefined }
             size={isMobile ? "small" : "medium"}
             sx={{
                 height: '100%',

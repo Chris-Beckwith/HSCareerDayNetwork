@@ -1,7 +1,7 @@
 import { Box, Button, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { MouseEvent, useState } from "react"
 import { useAppDispatch } from "../../app/store/configureStore"
-import { reloadSpeakers, setPageNumber, setSpeakerParams } from "./speakerSlice"
+import { reloadSpeakers, setPageNumber, setSpeakerSearchParams } from "./speakerSlice"
 import { Speaker } from "../../app/models/speaker"
 import SpeakerForm from "./SpeakerForm"
 import { Delete } from "@mui/icons-material"
@@ -35,7 +35,7 @@ export default function Speakers() {
             title: speaker.title ?? '',
             company: speaker.company ?? '',
             schoolLastSpokeAt: speaker.schoolLastSpokeAt ?? null,
-            phoneNumber: speaker.phoneNumber ?? '',
+            phoneNumbers: speaker.phoneNumbers,
             email: speaker.email ?? '',
             portraitUrl: speaker.portraitUrl ?? '',
             careers: speaker.careers ?? [],
@@ -92,7 +92,7 @@ export default function Speakers() {
                 <Typography variant={isTablet ? "h4" : "h3"}>Speakers</Typography>
                 <Box>
                     <AppTextSearch label="Search Speakers"
-                        stateSearchTerm={speakerParams.searchTerm} setParams={setSpeakerParams} />
+                        stateSearchTerm={speakerParams.searchTerm} setParams={setSpeakerSearchParams} />
                 </Box>
                 <Button variant="contained" onClick={() => setEditMode(true)}
                     sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}
@@ -110,7 +110,7 @@ export default function Speakers() {
                             <TableCell>Company</TableCell>
                             <TableCell>Email</TableCell>
                             <TableCell>Phone Number</TableCell>
-                            <TableCell align="right" width={160}></TableCell>
+                            <TableCell align="right"></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -140,7 +140,9 @@ export default function Speakers() {
                                         <TableCell>{speaker.title}</TableCell>
                                         <TableCell>{speaker.company}</TableCell>
                                         <TableCell>{speaker.email}</TableCell>
-                                        <TableCell>{speaker.phoneNumber}</TableCell>
+                                        <TableCell>{speaker.phoneNumbers[0]?.number}
+                                            {speaker.phoneNumbers[0]?.ext && ` x${speaker.phoneNumbers[0]?.ext}` }
+                                        </TableCell>
                                         <TableCell align="right">
                                             <IconButton size="small" color='error' onClick={(e) => handleShowDeletePopup(e, speaker)}>
                                                 <Delete fontSize="small" />

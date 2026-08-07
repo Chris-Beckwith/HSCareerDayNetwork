@@ -44,7 +44,10 @@ export default function SessionSpeakers({ session, availableSpeakers, updateSpea
             speaker.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             speaker.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             speaker.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            speaker.phoneNumber?.toLowerCase().includes(searchQuery.toLowerCase())
+            speaker.phoneNumbers?.some(phone =>
+                `${phone.number}${phone.ext ? ` x${phone.ext}` : ""}`
+                    .toLowerCase().includes(searchQuery.toLowerCase())
+            )
         })
     }
 
