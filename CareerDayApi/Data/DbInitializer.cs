@@ -71,7 +71,13 @@ namespace CareerDayApi.Data
                     Company = "CompanyTest",
                     PortraitUrl = "/images/cure.jpg",
                     Email = "Test@test.com",
-                    PhoneNumber = "12345678900",
+                    PhoneNumbers = new List<PhoneNumber>()
+                    {
+                        new PhoneNumber {
+                            Number = "12345678900",
+                            Type = PhoneNumberType.Mobile
+                        },
+                    },
                     Address = new SpeakerAddress {
                         Address1 = "123 Test St",
                         City = "Testcity",
@@ -89,7 +95,13 @@ namespace CareerDayApi.Data
                     Company = "Foil Forest",
                     PortraitUrl = "/images/chris.png",
                     Email = "Cbeckwit1@gmail.com",
-                    PhoneNumber = "12345678900",
+                    PhoneNumbers = new List<PhoneNumber>()
+                    {
+                        new PhoneNumber {
+                            Number = "12345678900",
+                            Type = PhoneNumberType.Mobile
+                        },
+                    },
                     // Careers = []
                 },
                 new() {
@@ -100,7 +112,13 @@ namespace CareerDayApi.Data
                     Company = "Cultural Learnings of America for Make Benefit Glorius Nation of Kazakhstan",
                     PortraitUrl = "/images/borat.jpg",
                     Email = "Borat@Kazakhstan.com",
-                    PhoneNumber = "12345678900",
+                    PhoneNumbers = new List<PhoneNumber>()
+                    {
+                        new PhoneNumber {
+                            Number = "12345678900",
+                            Type = PhoneNumberType.Mobile
+                        },
+                    },
                     // Careers = []
                 },
                 new() {
@@ -111,7 +129,13 @@ namespace CareerDayApi.Data
                     Company = "Black Pearl",
                     PortraitUrl = "/images/pirate.jpg",
                     Email = "Pirate@Hook.com",
-                    PhoneNumber = "12345678900",
+                    PhoneNumbers = new List<PhoneNumber>()
+                    {
+                        new PhoneNumber {
+                            Number = "12345678900",
+                            Type = PhoneNumberType.Mobile
+                        },
+                    },
                     // Careers = []
                 },
                 new() {
@@ -122,7 +146,13 @@ namespace CareerDayApi.Data
                     Company = "NBC",
                     PortraitUrl = "/images/wat.jpg",
                     Email = "wat@nbc.gov",
-                    PhoneNumber = "12345678900",
+                    PhoneNumbers = new List<PhoneNumber>()
+                    {
+                        new PhoneNumber {
+                            Number = "12345678900",
+                            Type = PhoneNumberType.Mobile
+                        },
+                    },
                     // Careers = []
                 },
             };
@@ -175,7 +205,13 @@ namespace CareerDayApi.Data
                             Company = "NewCompanyTest",
                             PortraitUrl = "/images/pirate.jpg",
                             Email = "NewTest@newTest.com",
-                            PhoneNumber = "12345678900",
+                            PhoneNumbers = new List<PhoneNumber>()
+                            {
+                                new PhoneNumber {
+                                    Number = "12345678900",
+                                    Type = PhoneNumberType.Mobile
+                                },
+                            },
                         }
                     }
                 },

@@ -76,7 +76,10 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
             speaker.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             speaker.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             speaker.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            speaker.phoneNumber?.toLowerCase().includes(searchQuery.toLowerCase())
+            speaker.phoneNumbers?.some(phone =>
+                `${phone.number}${phone.ext ? ` x${phone.ext}` : ""}`
+                    .toLowerCase().includes(searchQuery.toLowerCase())
+            )
         })
     }
 
@@ -154,7 +157,9 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                                 <TableCell>{speaker.title}</TableCell>
                                 <TableCell>{speaker.company}</TableCell>
                                 <TableCell>{speaker.email}</TableCell>
-                                <TableCell>{speaker.phoneNumber}</TableCell>
+                                <TableCell>{speaker.phoneNumbers[0]?.number}
+                                    {speaker.phoneNumbers[0]?.ext && ` x${speaker.phoneNumbers[0]?.ext}` }
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -219,7 +224,8 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                                 <TableCell>{speaker.title}</TableCell>
                                 <TableCell>{speaker.company}</TableCell>
                                 <TableCell>{speaker.email}</TableCell>
-                                <TableCell>{speaker.phoneNumber}</TableCell>
+                                <TableCell>{speaker.phoneNumbers[0]?.number}
+                                    {speaker.phoneNumbers[0]?.ext && ` x${speaker.phoneNumbers[0]?.ext}` }</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

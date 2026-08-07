@@ -12,11 +12,18 @@ export interface Speaker {
     schoolLastSpokeAt: School
     portraitUrl: string
     email: string
-    phoneNumber: string
+    phoneNumbers: PhoneNumber[]
     address: Address
     careers: Career[]
     careerIds: number[]
     publicId: string
+}
+
+export interface PhoneNumber {
+    type: number
+    number: string
+    ext: string
+    isPrimary: boolean
 }
 
 export interface SpeakerParams {

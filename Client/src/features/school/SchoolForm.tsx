@@ -108,7 +108,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
                             <Grid item display='flex' justifyContent='space-between' xs={12} sm={10} md={8}>
                                 <Button onClick={cancelEdit} variant="contained" color="inherit">Cancel</Button>
                                 {school &&
-                                    <Button onClick={() => setAddRooms(true)} variant="contained" color="primary">Add Rooms</Button>}
+                                    <Button onClick={() => setAddRooms(true)} variant="contained" color="primary">View Rooms</Button>}
                                 <LoadingButton
                                     loading={isSubmitting}
                                     variant="contained"

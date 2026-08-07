@@ -131,3 +131,4 @@ npm install react-dropzone
 npm install dayjs
 npm install @mui/x-date-pickers
 npm install @mui/x-data-grid
+npm install react-imask

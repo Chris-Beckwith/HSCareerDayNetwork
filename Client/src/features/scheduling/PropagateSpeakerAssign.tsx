@@ -16,7 +16,7 @@ export default function PropagateSpeakerAssign({ open, session, currentSpeakers,
             <DialogContent>
                 <Typography>
                     Would you like to assign speaker(s): {currentSpeakers.map(s =>
-                        s.firstName + " " + s.middleName + " " + s.lastName
+                        [s.firstName, s.middleName, s.lastName].filter(Boolean).join(" ")
                     ).join(", ")} to {session.subject.name} in other sessions?
                 </Typography>
             </DialogContent>
