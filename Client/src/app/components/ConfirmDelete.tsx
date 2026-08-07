@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function ConfirmDelete({ open, itemName, itemType, customText, handleClose, confirmDelete, loading }: Props) {
-    const contentText = customText ? customText : `Are you sure you want to delete the <strong>${itemType}: ${itemName}</strong>?`
+    const contentText = customText ? customText : `Are you sure you want to delete the <strong>${itemType}${itemName ? `: ${itemName}` : ""}</strong>?`
 
     return (
         <Dialog

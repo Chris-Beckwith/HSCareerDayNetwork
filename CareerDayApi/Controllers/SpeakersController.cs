@@ -27,10 +27,19 @@ namespace CareerDayApi.Controllers
                 .Search(speakerParams.SearchTerm)
                 .Include(s => s.Address)
                 .Include(s => s.Careers)
+                .Include(s => s.PhoneNumbers)
                 .Include(s => s.SchoolLastSpokeAt);
             
             var speakers = await PagedList<Speaker>.ToPagedList(query,
                 speakerParams.PageNumber, speakerParams.PageSize);
+
+            foreach(var speaker in speakers)
+            {
+                speaker.PhoneNumbers = speaker.PhoneNumbers
+                    .OrderByDescending(p => p.IsPrimary)
+                    .ThenBy(p => p.Type)
+                    .ToList();
+            }
 
             Response.AddPaginationHeader(speakers.MetaData);
 
@@ -43,6 +52,7 @@ namespace CareerDayApi.Controllers
             var speaker = await _context.Speakers
                 .Include(s => s.Address)
                 .Include(s => s.Careers)
+                .Include(s => s.PhoneNumbers)
                 .Include(s => s.SchoolLastSpokeAt)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -51,6 +61,11 @@ namespace CareerDayApi.Controllers
                 _logger.LogInformation("Speaker Not Found ID: {id}", id);
                 return NotFound();
             }
+
+            speaker.PhoneNumbers = speaker.PhoneNumbers
+                .OrderByDescending(p => p.IsPrimary)
+                .ThenBy(p => p.Type)
+                .ToList();
 
             return speaker;
         }
@@ -103,6 +118,7 @@ namespace CareerDayApi.Controllers
             var speaker = await _context.Speakers
                 .Include(s => s.Careers)
                 .Include(s => s.Address)
+                .Include(s => s.PhoneNumbers)
                 .FirstOrDefaultAsync(s => s.Id == speakerDto.Id);
 
             if (speaker == null) return NotFound();
@@ -119,6 +135,7 @@ namespace CareerDayApi.Controllers
                 speaker.SchoolLastSpokeAt = school;
             }
 
+            // Update Careers
             List<Career> careers = await _context.Careers.Where(c => speakerDto.CareerIds.Any(id => id == c.Id)).ToListAsync();
 
             if (careers == null)
@@ -138,14 +155,23 @@ namespace CareerDayApi.Controllers
                 speaker.Careers.Add(career);
             }
 
+            //Update Phone Numbers
+            speaker.PhoneNumbers.Clear();
+            foreach(var phoneNumber in speakerDto.PhoneNumbers)
+            {
+                speaker.PhoneNumbers.Add(new PhoneNumber
+                {
+                    Number = phoneNumber.Number,
+                    Ext = phoneNumber.Ext,
+                    Type = phoneNumber.Type,
+                    IsPrimary = phoneNumber.IsPrimary
+                });
+            }
+
             _mapper.Map(speakerDto, speaker);
 
-            if (speakerDto.File != null)
+            if (speakerDto.File != null || speakerDto.RemovePortrait)
             {
-                var imageResult = await _imageService.AddImageAsync(speakerDto.File);
-
-                if (imageResult.Error != null) return BadRequest(new ProblemDetails { Title = imageResult.Error.Message });
-
                 if (!string.IsNullOrEmpty(speaker.PublicId))
                 {
                     var imageDeleteResult = await _imageService.DeleteImageAsync(speaker.PublicId);
@@ -153,6 +179,16 @@ namespace CareerDayApi.Controllers
                     if (imageDeleteResult.Error != null)
                         _logger.LogError("Problem deleting image from Cloudinary: {error}", imageDeleteResult.Error.Message);
                 }
+
+                speaker.PortraitUrl = null;
+                speaker.PublicId = null;
+            }
+
+            if (speakerDto.File != null)
+            {
+                var imageResult = await _imageService.AddImageAsync(speakerDto.File);
+
+                if (imageResult.Error != null) return BadRequest(new ProblemDetails { Title = imageResult.Error.Message });
 
                 speaker.PortraitUrl = imageResult.SecureUrl.ToString();
                 speaker.PublicId = imageResult.PublicId;
@@ -171,6 +207,7 @@ namespace CareerDayApi.Controllers
             var speaker = await _context.Speakers
                 .Include(s => s.Careers)
                 .Include(s => s.Address)
+                .Include(s => s.PhoneNumbers)
                 .Include(s => s.SchoolLastSpokeAt)
                 .FirstOrDefaultAsync(s => s.Id  == id);
 

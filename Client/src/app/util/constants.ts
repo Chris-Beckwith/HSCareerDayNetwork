@@ -20,3 +20,7 @@ export const EVENT_PANEL_BUTTON = {
 export const DEFAULT_FONT_SIZE = {
     xs: '.8rem', sm: '.9rem', md: '1rem'
 }
+
+export const PHONE_NUMBER_TYPE = [
+    "Mobile", "Work", "Home", "Other"
+]

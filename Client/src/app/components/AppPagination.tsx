@@ -11,13 +11,11 @@ interface Props {
 
 export default function AppPagination({metaData, onPageChange, onPageSizeChange}: Props) {
     const {currentPage, totalCount, totalPages, pageSize} = metaData
-    const [pageNumber, setPageNumber] = useState(currentPage)
     const [rowsPerPage, setRowsPerPage] = useState(metaData.pageSize)
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
     function handlePageChange(page: number) {
-        setPageNumber(page)
         onPageChange(page)
     }
 
@@ -50,7 +48,7 @@ export default function AppPagination({metaData, onPageChange, onPageSizeChange}
                 color="secondary"
                 size={isMobile ? "small" : "medium"}
                 count={totalPages}
-                page={pageNumber}
+                page={currentPage}
                 onChange={(_e, page) => handlePageChange(page) }
             />
         </Box>

@@ -5,6 +5,7 @@ import { reloadCareerSets } from "../careerSlice";
 import { useAppDispatch } from "../../../app/store/configureStore";
 import { LoadingButton } from "@mui/lab";
 import { useState } from "react";
+import useCareers from "../../../app/hooks/useCareers";
 
 interface Props {
     open: boolean
@@ -17,7 +18,19 @@ interface Props {
  */
 export default function ConfirmCareerSet({ open, handleClose, careerSet }: Props) {
     const dispatch = useAppDispatch()
+    const { careerSets } = useCareers()
+    const [name, setName] = useState('')
+    const [error, setError] = useState(false)
     const [loading, setLoading] = useState(false)
+
+    const handleChange = (value: string) => {
+        setName(value)
+
+        if (careerSets.some(cs => cs.name === value))
+            setError(true)
+        else
+            setError(false)
+    }
 
     return (
         <Dialog
@@ -52,6 +65,10 @@ export default function ConfirmCareerSet({ open, handleClose, careerSet }: Props
                     label="Name"
                     fullWidth
                     variant="standard"
+                    value={name}
+                    onChange={(e) => handleChange(e.target.value)}
+                    error={error}
+                    helperText={error ? "Career Set name must be unique" : ""}
                 />
             </DialogContent>
             <DialogActions>

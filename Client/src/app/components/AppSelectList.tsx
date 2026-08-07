@@ -1,5 +1,6 @@
-import { FormControl, FormHelperText, InputLabel, MenuItem, Select } from "@mui/material"
+import { MenuItem, TextField, useMediaQuery, useTheme } from "@mui/material"
 import { useController, UseControllerProps } from "react-hook-form"
+import { DEFAULT_FONT_SIZE } from "../util/constants";
 
 interface Props extends UseControllerProps {
     label: string;
@@ -8,20 +9,21 @@ interface Props extends UseControllerProps {
 
 export default function AppSelectList(props: Props) {
     const {fieldState, field} = useController({...props, defaultValue: ''})
+    const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
 
     return (
-        <FormControl fullWidth error={!!fieldState.error}>
-            <InputLabel>{props.label}</InputLabel>
-            <Select 
-                label={props.label}
-                onChange={field.onChange}
-                value={field.value}
-            >
-                {props.items.map((item, index) => (
-                    <MenuItem key={index} value={item}>{item}</MenuItem>
-                ))}
-            </Select>
-            <FormHelperText>{fieldState.error?.message}</FormHelperText>
-        </FormControl>
+        <TextField select fullWidth label={props.label} value={field.value}
+            onChange={field.onChange} error={!!fieldState.error} helperText={fieldState.error?.message}
+            size={isMobile ? "small" : "medium"}
+            sx={{
+                '& .MuiOutlinedInput-input': {
+                    fontSize: DEFAULT_FONT_SIZE,
+                }
+            }}
+        >
+            {props.items.map(item => (
+                <MenuItem key={item} value={item} sx={{ fontSize: DEFAULT_FONT_SIZE }}>{item}</MenuItem>
+            ))}
+        </TextField>
     )
 }

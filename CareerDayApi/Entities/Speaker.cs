@@ -11,7 +11,7 @@ namespace CareerDayApi.Entities
         public string PortraitUrl { get; set; }
         public School SchoolLastSpokeAt { get; set; }
         public string Email { get; set; }
-        public string PhoneNumber { get; set; }
+        public List<PhoneNumber> PhoneNumbers { get; set; }
         public SpeakerAddress Address { get; set; }
         public List<Career> Careers { get; set; }
         public string PublicId { get; set; }

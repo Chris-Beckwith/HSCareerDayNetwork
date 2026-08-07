@@ -34,7 +34,7 @@ export default function AddCareers({selectedCareerIds, careers, categories,
         <>
             <Grid container item justifyContent="center">
                 <Grid item xs={12} sm={10} md={8}>
-                    <Typography variant="h6">Selected Careers</Typography>
+                    <Typography variant="h6">Speaker Career Subjects</Typography>
                 </Grid>
                 <Grid item xs={12} sm={10} md={8}>
                     <List sx={{ boxShadow: 1, border: 1, p: isMobile ? 0 : 1 }}>
@@ -52,7 +52,7 @@ export default function AddCareers({selectedCareerIds, careers, categories,
                             </ListItem>
                         )) :
                             <ListItem sx={{ fontStyle: "italic", fontSize: isMobile ? ".85rem" : "1rem" }}>
-                                No Selected Career Subjects
+                                No Career Subjects
                             </ListItem>
                         }
                     </List>

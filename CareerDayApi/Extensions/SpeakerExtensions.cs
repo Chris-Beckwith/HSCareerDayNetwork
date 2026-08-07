@@ -16,7 +16,9 @@ namespace CareerDayApi.Extensions
                 || s.Title.ToLower().Contains(lowerCaseSearchTerm)
                 || s.Company.ToLower().Contains(lowerCaseSearchTerm)
                 || s.Email.ToLower().Contains(lowerCaseSearchTerm)
-                || s.PhoneNumber.ToLower().Contains(lowerCaseSearchTerm));
+                || s.PhoneNumbers.Any(p => 
+                    (p.Number.ToLower() + " x" + (p.Ext ?? "").ToLower()).Contains(lowerCaseSearchTerm))
+                );
         }
     }
 }
