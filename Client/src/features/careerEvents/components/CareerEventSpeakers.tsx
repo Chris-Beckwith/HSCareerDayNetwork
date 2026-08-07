@@ -157,8 +157,8 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                                 <TableCell>{speaker.title}</TableCell>
                                 <TableCell>{speaker.company}</TableCell>
                                 <TableCell>{speaker.email}</TableCell>
-                                <TableCell>{speaker.phoneNumbers && speaker.phoneNumbers[0]?.number}
-                                    {speaker.phoneNumbers && speaker.phoneNumbers[0]?.ext && ` x${speaker.phoneNumbers[0]?.ext}` }
+                                <TableCell>{speaker.phoneNumbers[0]?.number}
+                                    {speaker.phoneNumbers[0]?.ext && ` x${speaker.phoneNumbers[0]?.ext}` }
                                 </TableCell>
                             </TableRow>
                         ))}

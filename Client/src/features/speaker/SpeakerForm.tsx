@@ -96,7 +96,6 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                     .map((phone: { type: string; number: string; isPrimary: any; }, index: number) => {
                         const match = phone.number.match(/^(\(\d{3}\)\s\d{3}-\d{4})(?:\s*x\s*(\d+))?$/i)
 
-                        console.log(match)
                         return {
                             type: PHONE_NUMBER_TYPE.indexOf(phone.type),
                             number: match?.[1] ?? "",
