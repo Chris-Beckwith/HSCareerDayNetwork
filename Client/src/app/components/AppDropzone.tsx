@@ -1,6 +1,6 @@
 import { UploadFile } from '@mui/icons-material'
 import { FormControl, FormHelperText, Typography, useMediaQuery, useTheme } from '@mui/material'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useController, UseControllerProps, UseFormSetValue } from 'react-hook-form'
 
@@ -14,8 +14,9 @@ interface Props extends UseControllerProps {
  * Dropzone component for adding images
  */
 export default function AppDropzone({ descriptionText, setValue, portraitUrl, ...props }: Props) {
-    const { fieldState, field } = useController({ ...props, defaultValue: null })
+    const { fieldState, field } = useController(props)
     const hasPortrait = !!portraitUrl
+    const previewUrlRef = useRef<string | null>(null)
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
@@ -35,12 +36,25 @@ export default function AppDropzone({ descriptionText, setValue, portraitUrl, ..
         borderColor: 'green'
     }
 
+    useEffect(() => {
+        return () => {
+            if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+        }
+    }, [])
+
     const onDrop = useCallback((acceptedFiles: any[]) => {
+        if (!acceptedFiles.length) return
+        
+        if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+        
         acceptedFiles[0] = Object.assign(acceptedFiles[0], 
             {preview: URL.createObjectURL(acceptedFiles[0])})
+
+        previewUrlRef.current = acceptedFiles[0].preview
         field.onChange(acceptedFiles[0])
+
         if (hasPortrait)
-            setValue("removePortrait", false)
+            setValue("removePortrait", true, { shouldDirty: true })
     }, [field, hasPortrait, setValue])
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })

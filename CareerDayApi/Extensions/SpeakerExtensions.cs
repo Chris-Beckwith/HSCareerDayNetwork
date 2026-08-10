@@ -1,4 +1,5 @@
 using CareerDayApi.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Extensions
 {
@@ -19,6 +20,15 @@ namespace CareerDayApi.Extensions
                 || s.PhoneNumbers.Any(p => 
                     (p.Number.ToLower() + " x" + (p.Ext ?? "").ToLower()).Contains(lowerCaseSearchTerm))
                 );
+        }
+
+        public static IQueryable<Speaker> GetSpeakerDetails(this IQueryable<Speaker> query)
+        {
+            return query
+                    .Include(s => s.Address)
+                    .Include(s => s.Careers)
+                    .Include(s => s.PhoneNumbers)
+                    .Include(s => s.SchoolLastSpokeAt);
         }
     }
 }

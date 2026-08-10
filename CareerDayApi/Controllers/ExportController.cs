@@ -1,6 +1,8 @@
 using CareerDayApi.Data;
 using CareerDayApi.DTOs;
+using CareerDayApi.Entities;
 using CareerDayApi.Extensions;
+using CareerDayApi.RequestHelpers;
 using CareerDayApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,8 +27,8 @@ namespace CareerDayApi.Controllers
          * Contains student Id, Student Name, Gender, Grade, Homeroom Teacher, (Home)Room
          * Sessions and room number if assigned.
          */
-        [HttpGet("primary")]
-        public async Task<ActionResult> ExportPrimary([FromQuery] EventIdDto eventIdDto)
+        [HttpGet("primarySchedule")]
+        public async Task<ActionResult> ExportPrimarySchedule([FromQuery] EventIdDto eventIdDto)
         {
             var careerEvent = await _context.Events.FindAsync(eventIdDto.EventId);
             
@@ -74,8 +76,8 @@ namespace CareerDayApi.Controllers
                 {
                     row[rowIndex++] = session.Subject.Name;
                     if (session.Classroom != null)
-                        row[rowIndex++] = session.Classroom.Building[..Math.Min(session.Classroom.Building.Length, 8)]
-                            + session.Classroom.RoomNumber[..Math.Min(session.Classroom.RoomNumber.Length, 8)];
+                        row[rowIndex++] = session.Classroom.Building?[..Math.Min(session.Classroom.Building.Length, 8)]
+                            + session.Classroom.RoomNumber?[..Math.Min(session.Classroom.RoomNumber.Length, 8)];
                     else
                         rowIndex++;
                 }
@@ -100,8 +102,8 @@ namespace CareerDayApi.Controllers
             return File(stream, _excelService.excelMimeType, fileName);
         }
     
-        [HttpGet("students")]
-        public async Task<ActionResult> ExportStudents([FromQuery] EventIdDto eventIdDto)
+        [HttpGet("studentsSchedule")]
+        public async Task<ActionResult> ExportStudentsSchedule([FromQuery] EventIdDto eventIdDto)
         {
             var careerEvent = await _context.Events.FindAsync(eventIdDto.EventId);
 
@@ -121,8 +123,8 @@ namespace CareerDayApi.Controllers
             return File(stream, _excelService.excelMimeType, fileName);
         }
 
-        [HttpGet("rooms")]
-        public async Task<ActionResult> ExportRooms([FromQuery] EventIdDto eventIdDto)
+        [HttpGet("roomsSchedule")]
+        public async Task<ActionResult> ExportRoomsSchedule([FromQuery] EventIdDto eventIdDto)
         {
             var careerEvent = await _context.Events.FindAsync(eventIdDto.EventId);
             var sessions = await _context.Sessions
@@ -190,8 +192,8 @@ namespace CareerDayApi.Controllers
          * Contains: Event Title, Speaker Name, List of Sessions, Rooms, Teacher, Subject
          * and number of students enrolled.
          */
-        [HttpGet("speakers")]
-        public async Task<ActionResult> ExportSpeakers([FromQuery] EventIdDto eventIdDto)
+        [HttpGet("speakersSchedule")]
+        public async Task<ActionResult> ExportSpeakersSchedule([FromQuery] EventIdDto eventIdDto)
         {
             var careerEvent = await _context.Events.FindAsync(eventIdDto.EventId);
 
@@ -215,6 +217,189 @@ namespace CareerDayApi.Controllers
 
             Response.AddExcelHeader(fileName, _excelService.excelMimeType);
             
+            return File(stream, _excelService.excelMimeType, fileName);
+        }
+    
+        /**
+         * Exports speakers by event or from the speakers page.
+         *
+         * Portrait?, Name, Title, Company, Email, Phone numbers, LastSchool, Subjects, Address
+         */
+        [HttpGet("speakers")]
+        public async Task<ActionResult> ExportSpeakers([FromQuery] SpeakerExportParams speakerExportParams)
+        {
+            List<Speaker> speakers;
+
+            if (speakerExportParams.EventId != null)
+            {
+                //Export Event Speakers
+                speakers = await _context.Events
+                    .Where(e => e.Id == speakerExportParams.EventId)
+                    .SelectMany(e => e.Speakers)
+                    .GetSpeakerDetails()
+                    .ToListAsync();
+            }
+            else
+            {
+                //Export list of speakers provided
+                if (!string.IsNullOrEmpty(speakerExportParams.SearchTerm))
+                {
+                    speakers = await _context.Speakers
+                        .Search(speakerExportParams.SearchTerm)
+                        .GetSpeakerDetails()
+                        .ToListAsync();
+                }
+                else
+                {
+                    speakers = await _context.Speakers
+                        .GetSpeakerDetails()
+                        .ToListAsync();
+                }
+            }
+
+            //Ensure Primary phone is first
+            foreach(var speaker in speakers)
+            {
+                speaker.PhoneNumbers = speaker.PhoneNumbers
+                    .OrderByDescending(p => p.IsPrimary)
+                    .ThenBy(p => p.Type)
+                    .ToList();
+            }
+            
+            var headers = new List<String>();
+            var colCount = 0;
+            
+            if (speakerExportParams.IncludePortrait)
+            {
+                headers.Add("Portrait");
+                colCount++;
+            }
+
+            headers.Add("Speaker Name");
+            headers.Add("Title");
+            headers.Add("Company");
+            headers.Add("Email");
+            headers.Add("Primary Phone");
+            colCount += 5;
+
+            var totalPhoneNumbers = speakers.Max(s => s.PhoneNumbers.Count);
+            for (var i = 1; i < totalPhoneNumbers; i++)
+            {
+                headers.Add("Phone Number " + (i+1).ToString());
+                colCount++;
+            }
+
+            if (speakerExportParams.IncludeLastSchool)
+            {
+                headers.Add("Last School Spoke At");
+                colCount++;
+            }
+
+            var totalSubjects = speakers.Max(s => s.Careers.Count);
+            if (speakerExportParams.IncludeSubjects)
+            {
+                if (totalSubjects == 1)
+                {
+                    headers.Add("Subject");
+                    colCount++;
+                }
+                else
+                {
+                    for (var i = 1; i <= totalSubjects; i++)
+                    {
+                        headers.Add("Subject " + i);
+                        colCount++;
+                    }
+                }
+            }
+
+            if (speakerExportParams.IncludeAddress)
+            {
+                headers.Add("Address");
+                colCount++;
+            }
+
+            var rows = new List<object[]>();
+
+            foreach(var speaker in speakers)
+            {
+                var row = new object[colCount];
+                var rowIndex = 0;
+
+                if (speakerExportParams.IncludePortrait)
+                {
+                    row[rowIndex++] = speaker.PortraitUrl;
+                }
+
+                string[] name = [speaker.FirstName, speaker.MiddleName, speaker.LastName];
+                row[rowIndex++] = string.Join(" ", name.Where(s => !string.IsNullOrEmpty(s)));
+                row[rowIndex++] = speaker.Title;
+                row[rowIndex++] = speaker.Company;
+                row[rowIndex++] = speaker.Email;
+
+                foreach(var phone in speaker.PhoneNumbers)
+                {
+                    string phoneNumber = string.IsNullOrEmpty(phone.Ext) ? phone.Number : phone.Number + " x" + phone.Ext;
+                    row[rowIndex++] = phoneNumber;
+                }
+                for(int i = speaker.PhoneNumbers.Count; i < totalPhoneNumbers; i++)
+                {
+                    rowIndex++;
+                }
+
+                if (speakerExportParams.IncludeLastSchool)
+                {
+                    row[rowIndex++] = speaker.SchoolLastSpokeAt?.Name;
+                }
+
+                if (speakerExportParams.IncludeSubjects)
+                {
+                    foreach(var subject in speaker.Careers)
+                    {
+                        row[rowIndex++] = subject.Name;
+                    }
+                    for(int i = speaker.Careers.Count; i < totalSubjects; i++)
+                    {
+                        rowIndex++;
+                    }
+                }
+
+                if (speakerExportParams.IncludeAddress)
+                {
+                    row[rowIndex++] = speaker.Address?.ToMultilineString();
+                }
+
+                rows.Add(row);
+            }
+
+            List<bool> centeredCols = [];
+            for(int i = 0; i < colCount; i++)
+            {
+                centeredCols.Add(true);
+            }
+
+
+            string fileName;
+
+            if (speakerExportParams.EventId != null)
+            {
+                string eventName = await _context.Events
+                    .Where(e => e.Id == speakerExportParams.EventId)
+                    .Select(e => e.Name)
+                    .FirstOrDefaultAsync();
+
+                fileName = $"{eventName}_Event_Speakers.xlsx";
+            }
+            else
+            {
+                fileName = $"Speakers_Export_{DateTime.Today.ToString("MM-dd-yyyy")}.xlsx";
+            }
+
+            var stream = await _excelService
+                .ExportSpeakers(headers, rows, "Speakers", speakerExportParams.IncludePortrait, centeredCols);
+
+            Response.AddExcelHeader(fileName, _excelService.excelMimeType);
+
             return File(stream, _excelService.excelMimeType, fileName);
         }
     }

@@ -4,8 +4,10 @@ using OfficeOpenXml.Style;
 
 namespace CareerDayApi.Services
 {
-    public class ExcelService
+    public class ExcelService(ILogger<ExcelService> logger, IWebHostEnvironment environment)
     {
+        private readonly ILogger<ExcelService> _logger = logger;
+        private readonly IWebHostEnvironment _environment = environment;
         public string excelMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
         public async Task<MemoryStream> ExportToExcel(List<string> headers, List<object[]> rows,
@@ -18,11 +20,62 @@ namespace CareerDayApi.Services
             // Freeze top row
             worksheet.View.FreezePanes(2, 1);
 
+            PopulateWorksheet(worksheet, 0, headers, rows, centeredCols);
+
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+            var stream = new MemoryStream();
+            await excelPackage.SaveAsAsync(stream);
+            stream.Position = 0;
+
+            return stream;
+        }
+
+        public async Task<MemoryStream> ExportSpeakers(List<string> headers, List<object[]> rows,
+            string worksheetName, bool includePortrait, List<bool> centeredCols = null)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var excelPackage = new ExcelPackage();
+            var worksheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+
+            // Freeze top row
+            worksheet.View.FreezePanes(2, 1);
+
+            if (includePortrait)
+            {
+                //row and column indexes start at 0 for .setPosition()
+                await PopulateImageColumn(worksheet, rows, 1, 0);
+                PopulateWorksheet(worksheet, 1, headers, rows, centeredCols);
+                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+                worksheet.Column(1).Width = 15;
+                worksheet.Column(4).Style.WrapText = true;
+                worksheet.Column(4).Width = 30;
+            }
+            else
+            {
+                PopulateWorksheet(worksheet, 0, headers, rows, centeredCols);
+                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+                worksheet.Column(3).Style.WrapText = true;
+                worksheet.Column(3).Width = 30;
+            }
+
+
+            var stream = new MemoryStream();
+            await excelPackage.SaveAsAsync(stream);
+            stream.Position = 0;
+
+            return stream;
+        }
+
+        private static void PopulateWorksheet(ExcelWorksheet worksheet, int startingCol, 
+            List<string> headers, List<object[]> rows, List<bool> centeredCols = null)
+        {
             // Add headers
             for (int col = 0; col < headers.Count; col++)
             {
                 worksheet.Cells[1, col + 1].Value = headers[col];
                 worksheet.Cells[1, col + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                worksheet.Cells[1, col + 1].Style.Font.Bold = true;
                 // worksheet.Cells[1, col + 1].Style.Border.BorderAround(ExcelBorderStyle.Thick);
             }
 
@@ -30,7 +83,7 @@ namespace CareerDayApi.Services
             for (int rowIndex = 0; rowIndex < rows.Count; rowIndex++)
             {
                 var row = rows[rowIndex];
-                for (int colIndex = 0; colIndex < row.Length; colIndex++)
+                for (int colIndex = startingCol; colIndex < row.Length; colIndex++)
                 {
                     worksheet.Cells[rowIndex + 2, colIndex + 1].Value = row[colIndex];
                     if (centeredCols != null && colIndex < centeredCols.Count && centeredCols[colIndex])
@@ -40,14 +93,78 @@ namespace CareerDayApi.Services
                     // worksheet.Cells[rowIndex + 2, colIndex + 1].Style.Border.BorderAround(ExcelBorderStyle.Thin);
                 }
             }
+        }
 
-            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+        private async Task PopulateImageColumn(ExcelWorksheet worksheet, List<object[]> rows, int startingRow, int imageColumn)
+        {
+            using var httpClient = new HttpClient();
+            using var semaphore = new SemaphoreSlim(10);
 
-            var stream = new MemoryStream();
-            await excelPackage.SaveAsAsync(stream);
-            stream.Position = 0;
+            var imageTasks = new List<Task<(int rowIndex, string speakerName, byte[] imageBytes)>>();
 
-            return stream;
+            for(int rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+            {
+                var speakerName = (string)rows[rowIndex][1];
+                var imageUrl = (string)rows[rowIndex][0];
+
+                if (string.IsNullOrEmpty(imageUrl))
+                    continue;
+                
+                if (imageUrl.Contains("da7nuaie7/image/upload/"))
+                    imageUrl = imageUrl.Replace("/image/upload", "/image/upload/w_200,h_200,c_fit/");
+
+                imageTasks.Add(DownloadImageAsync(httpClient, semaphore, imageUrl, rowIndex, speakerName));
+            }
+
+            var images = await Task.WhenAll(imageTasks);
+
+            foreach(var (rowIndex, speakerName, imageBytes) in images)
+            {
+                if (imageBytes.Length == 0)
+                    continue;
+
+                using var imageStream = new MemoryStream(imageBytes);
+
+                var picture = worksheet.Drawings.AddPicture(speakerName, imageStream);
+
+                picture.SetPosition(rowIndex + startingRow, 0, imageColumn, 0);
+                picture.SetSize(100, 100);
+                worksheet.Row(rowIndex + startingRow + 1).Height = 75;
+                worksheet.Row(rowIndex + startingRow + 1).Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            }
+        }
+
+        private async Task<(int rowIndex, string speakerName, byte[] imageBytes)> DownloadImageAsync(
+            HttpClient httpClient, SemaphoreSlim semaphore, string imageUrl, int rowIndex, string speakerName
+        )
+        {
+            await semaphore.WaitAsync();
+
+            try
+            {
+                byte[] imageBytes;
+
+                if (Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri) &&
+                    (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                {
+                    imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
+                }
+                else
+                {
+                    var filePath = Path.Combine(_environment.WebRootPath, imageUrl.TrimStart('/'));
+                    imageBytes = await File.ReadAllBytesAsync(filePath);
+                }
+                return (rowIndex, speakerName, imageBytes);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to download image for {speakerName}", speakerName);
+                return (rowIndex, speakerName, Array.Empty<byte>());
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         /**
