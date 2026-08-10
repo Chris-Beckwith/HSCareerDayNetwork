@@ -27,7 +27,9 @@ function App() {
     initApp().then(() => setLoading(false))
   }, [initApp])
 
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("darkMode") === 'true'
+  })
   const paletteType = darkMode ? 'dark' : 'light';
   const theme = createTheme({
     palette: {
@@ -36,7 +38,11 @@ function App() {
         default: paletteType === 'light' ? '#eaeaea' : '#121212'
       }
     }
-  });
+  })
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", String(darkMode))
+  },[darkMode])
 
   function handleThemeChange() {
     setDarkMode(!darkMode)

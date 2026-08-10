@@ -1,4 +1,4 @@
-import { Box, Typography, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, TextField, TablePagination, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Typography, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, TextField, TablePagination, useMediaQuery, useTheme, IconButton } from "@mui/material";
 import { Speaker } from "../../../app/models/speaker";
 import { SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { Career } from "../../../app/models/career";
@@ -6,10 +6,14 @@ import AppButton from "../../../app/components/AppButton";
 import useSpeakerPicker from "../../../app/hooks/useSpeakerPicker";
 import AppTextSearch from "../../../app/components/AppTextSearch";
 import { setSpeakerPickerSearchTerm } from "../../speaker/speakerPickerSlice";
+import { UploadFile } from "@mui/icons-material";
+import ExportSpeakers from "../../../app/components/ExportSpeakers";
+import agent from "../../../app/api/agent";
+import { downloadExcel } from "../../../app/util/util";
+import { CareerEvent } from "../../../app/models/event";
 
 interface Props {
-    careerEventName: string
-    careerEventSpeakers: Speaker[]
+    careerEvent: CareerEvent
     updateCareerEvent: (speakers?: Speaker[], careers?: Career[]) => void
     back: () => void
 }
@@ -17,14 +21,19 @@ interface Props {
 /**
  * Component to show and change speakers assigned to an event.
  */
-export default function CareerEventSpeakers({careerEventName, careerEventSpeakers, updateCareerEvent, back}: Props) {
+export default function CareerEventSpeakers({careerEvent, updateCareerEvent, back}: Props) {
+    const careerEventName = careerEvent.name
+    const careerEventSpeakers = careerEvent.speakers
     const { speakers, status, hasMore, loadMore, speakerParams, metaData } = useSpeakerPicker()
     const [eventSpeakers, setEventSpeakers] = useState<Speaker[]>(() => careerEventSpeakers)
     const [searchEventQuery, setSearchEventQuery] = useState('')
     const [page, setPage] = useState(0)
     const [rowsPerPage, setRowsPerPage] = useState(10)
+    const isDark = useTheme().palette.mode === 'dark'
     const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
     const isTablet = useMediaQuery(useTheme().breakpoints.down('md'))
+    const [showExportDialog, setShowExportDialog] = useState(false)
+    const [loading, setLoading] = useState(false)
     
     const availableSpeakers = useMemo(() => {
         const ids = new Set(eventSpeakers.map(s => s.id))
@@ -103,6 +112,28 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
         return filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
     }
 
+    async function exportSpeakers(portrait: boolean, address: boolean, subjects: boolean, lastSchool: boolean)
+    {
+        setLoading(true)
+
+        const params = {
+            searchTerm: "",
+            eventId: careerEvent.id,
+            includeLastSchool: lastSchool,
+            includePortrait: portrait,
+            includeSubjects: subjects,
+            includeAddress: address
+        }
+
+        await agent.Export.exportSpeakers(params)
+            .then(response => downloadExcel(response))
+            .catch(error => console.log(error))
+            .finally(() => {
+                setLoading(false)
+                setShowExportDialog(false)
+        })
+    }
+
     return (
         <>
             <Typography variant={isMobile ? "h5" : "h4"} display='flex' justifyContent='center' sx={{mb: 4}}>{careerEventName}</Typography>
@@ -112,7 +143,12 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                     <AppButton variant="contained" color="inherit" onClick={back}>Back</AppButton>
                 </Box>
                 
-                <Typography variant={isMobile ? "h6" : "h5"} align="center" justifySelf="center">Event Speakers</Typography>
+                <Box display="flex">
+                    <Typography variant={isMobile ? "h6" : "h5"} align="center" justifySelf="center">Event Speakers</Typography>
+                    <IconButton size="small" color="primary" onClick={() => setShowExportDialog(true)}>
+                        <UploadFile fontSize={isTablet ? "small" : "medium"} />
+                    </IconButton>
+                </Box>
                 
                 <Box justifySelf="end">
                     <TextField
@@ -147,8 +183,11 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                             >
                                 <TableCell component="th" scope="row">
                                     <Box display='flex' alignItems='center'>
-                                        <img src={speaker.portraitUrl || "/images/Silhouette_No_Profile_Pic.png"} 
-                                            alt={speaker.lastName} style={{ height: 50, marginRight: 20 }} />
+                                        <img src={speaker.portraitUrl || "/images/Silhouette_No_Profile_Pic.png"} alt={speaker.lastName}
+                                            style={{ height: 50, marginRight: 20,
+                                                filter: (isDark && !speaker.portraitUrl) ? 'invert(1) opacity(0.7)' : 'none'
+                                             }}
+                                        />
                                     </Box>
                                 </TableCell>
                                 <TableCell>
@@ -214,8 +253,10 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                             >
                                 <TableCell component="th" scope="row">
                                     <Box display='flex' alignItems='center'>
-                                        <img src={speaker.portraitUrl || "/images/Silhouette_No_Profile_Pic.png"} 
-                                            alt={speaker.lastName} style={{ height: 50, marginRight: 20 }} />
+                                        <img src={speaker.portraitUrl || "/images/Silhouette_No_Profile_Pic.png"} alt={speaker.lastName}
+                                            style={{ height: 50, marginRight: 20,
+                                                filter: (isDark && !speaker.portraitUrl) ? 'invert(1) opacity(0.7)' : 'none' }}
+                                        />
                                     </Box>
                                 </TableCell>
                                 <TableCell>
@@ -240,6 +281,9 @@ export default function CareerEventSpeakers({careerEventName, careerEventSpeaker
                     Update Speakers
                 </AppButton>
             </Box>
+
+            <ExportSpeakers open={showExportDialog} handleClose={() => setShowExportDialog(false)} loading={loading}
+                    exportSpeakers={exportSpeakers} isFilterSpeakers={false} />
         </>
     )
 }

@@ -154,8 +154,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     if (editMode) return <CareerEventForm selectedEvent={careerEvent} cancelEdit={cancelEdit} saveEdit={saveEdit} />
 
     if (speakerMode) return <CareerEventSpeakers
-        careerEventName={careerEvent.name}
-        careerEventSpeakers={careerEvent.speakers}
+        careerEvent={careerEvent}
         updateCareerEvent={updateCareerEvent} back={back} />
 
     if (careerMode) return <CareerEventCareers

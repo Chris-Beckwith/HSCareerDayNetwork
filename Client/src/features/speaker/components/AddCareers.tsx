@@ -2,20 +2,19 @@ import { Grid, Typography, List, ListItem, IconButton, FormControl, InputLabel, 
 import { useState } from "react"
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Career } from "../../../app/models/career";
+import { UseFormSetValue } from "react-hook-form";
 
 interface Props {
-    selectedCareerIds: number[],
+    setValue: UseFormSetValue<any>,
     careers: Career[],
     categories: string[],
-    onAddSelectedCareer: (careerId: number) => void,
-    onRemoveSelectedCareer: (id: number) => void
+    careerIds: number[],
 }
 
 /**
  * Form component to add careers to speaker.
  */
-export default function AddCareers({selectedCareerIds, careers, categories,
-        onAddSelectedCareer, onRemoveSelectedCareer}: Props) {
+export default function AddCareers({ careers, categories, careerIds, setValue }: Props) {
     const [category, setCategory] = useState('')
     const [career, setCareer] = useState('')
     const theme = useTheme()
@@ -30,6 +29,18 @@ export default function AddCareers({selectedCareerIds, careers, categories,
         setCareer(event.target.value as string)
     }
 
+    const addCareer = (careerId: number) => {
+        if (careerIds.includes(careerId))
+            return
+
+        setValue('careerIds', [...careerIds, careerId].sort((a, b) => a - b),
+            { shouldDirty: true })
+    }
+
+    const removeCareer = (careerId: number) => {
+        setValue('careerIds', careerIds.filter(id => id !== careerId), { shouldDirty: true })
+    }
+
     return (
         <>
             <Grid container item justifyContent="center">
@@ -38,11 +49,11 @@ export default function AddCareers({selectedCareerIds, careers, categories,
                 </Grid>
                 <Grid item xs={12} sm={10} md={8}>
                     <List sx={{ boxShadow: 1, border: 1, p: isMobile ? 0 : 1 }}>
-                        {selectedCareerIds && selectedCareerIds.length > 0 ? careers.filter(c => selectedCareerIds.includes(c.id)).map(career => (
+                        {careerIds && careerIds.length > 0 ? careers.filter(c => careerIds.includes(c.id)).map(career => (
                             <ListItem key={career.id}
                                 secondaryAction={
                                     <IconButton edge="end" aria-label="remove"
-                                        onClick={() => onRemoveSelectedCareer(career.id)}
+                                        onClick={() => removeCareer(career.id)}
                                     >
                                         <DeleteIcon color="error" />
                                     </IconButton>
@@ -99,7 +110,7 @@ export default function AddCareers({selectedCareerIds, careers, categories,
                 </Grid>
                 <Grid item xs={12} sm={10} md={8} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                     <Button variant="contained"
-                        onClick={() => onAddSelectedCareer(parseInt(career))}
+                        onClick={() => addCareer(parseInt(career))}
                     >
                         Add Career
                     </Button>

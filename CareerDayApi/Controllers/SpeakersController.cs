@@ -25,10 +25,7 @@ namespace CareerDayApi.Controllers
         {
             var query = _context.Speakers
                 .Search(speakerParams.SearchTerm)
-                .Include(s => s.Address)
-                .Include(s => s.Careers)
-                .Include(s => s.PhoneNumbers)
-                .Include(s => s.SchoolLastSpokeAt);
+                .GetSpeakerDetails();
             
             var speakers = await PagedList<Speaker>.ToPagedList(query,
                 speakerParams.PageNumber, speakerParams.PageSize);
@@ -50,10 +47,7 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult<Speaker>> GetSpeaker(int id)
         {
             var speaker = await _context.Speakers
-                .Include(s => s.Address)
-                .Include(s => s.Careers)
-                .Include(s => s.PhoneNumbers)
-                .Include(s => s.SchoolLastSpokeAt)
+                .GetSpeakerDetails()
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (speaker == null)
