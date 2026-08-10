@@ -4,13 +4,15 @@ import { useAppDispatch } from "../../app/store/configureStore"
 import { reloadSpeakers, setPageNumber, setSpeakerSearchParams } from "./speakerSlice"
 import { Speaker } from "../../app/models/speaker"
 import SpeakerForm from "./SpeakerForm"
-import { Delete } from "@mui/icons-material"
+import { Delete, UploadFile } from "@mui/icons-material"
 import agent from "../../app/api/agent"
 import AppPagination from "../../app/components/AppPagination"
 import useSpeakers from "../../app/hooks/useSpeakers"
 import AppTextSearch from "../../app/components/AppTextSearch"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import SpeakerSkeleton from "./components/SpeakerSkeleton"
+import ExportSpeakers from "../../app/components/ExportSpeakers"
+import { downloadExcel } from "../../app/util/util"
 
 /**
  * Component to display the list of speakers added.
@@ -20,9 +22,11 @@ export default function Speakers() {
     const { speakers, speakersLoaded, metaData, speakerParams } = useSpeakers()
     const [editMode, setEditMode] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [showDeletePopup, setShowDeletePopup] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [showExportDialog, setShowExportDialog] = useState(false)
     const [selectedSpeaker, setSelectedSpeaker] = useState<Speaker | undefined>(undefined)
     const theme = useTheme()
+    const isDark = theme.palette.mode === 'dark'
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -57,7 +61,7 @@ export default function Speakers() {
     function handleShowDeletePopup(event: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>, speaker: Speaker) {
         event.stopPropagation()
         setSelectedSpeaker(speaker)
-        setShowDeletePopup(true)
+        setShowDeleteDialog(true)
     }
 
     async function handleDeleteSpeaker() {
@@ -68,7 +72,7 @@ export default function Speakers() {
                 .catch(error => console.log(error))
                 .finally(() => {
                     setLoading(false)
-                    setShowDeletePopup(false)
+                    setShowDeleteDialog(false)
                     setSelectedSpeaker(undefined)
                 })
         }
@@ -76,12 +80,34 @@ export default function Speakers() {
 
     function handleCloseDelete() {
         if (selectedSpeaker) setSelectedSpeaker(undefined)
-        setShowDeletePopup(false)
+        setShowDeleteDialog(false)
     }
 
     function cancelEdit() {
         if (selectedSpeaker) setSelectedSpeaker(undefined)
         setEditMode(false)
+    }
+
+    async function exportSpeakers(portrait: boolean, address: boolean,
+        subjects: boolean, lastSchool: boolean, filterSpeakers: boolean)
+    {
+        setLoading(true)
+
+        const params = {
+            searchTerm: filterSpeakers ? speakerParams.searchTerm : "",
+            includeLastSchool: lastSchool,
+            includePortrait: portrait,
+            includeSubjects: subjects,
+            includeAddress: address
+        }
+
+        await agent.Export.exportSpeakers(params)
+            .then(response => downloadExcel(response))
+            .catch(error => console.log(error))
+            .finally(() => {
+                setLoading(false)
+                setShowExportDialog(false)
+        })
     }
 
     if (editMode) return <SpeakerForm speaker={selectedSpeaker} cancelEdit={cancelEdit} />
@@ -110,7 +136,11 @@ export default function Speakers() {
                             <TableCell>Company</TableCell>
                             <TableCell>Email</TableCell>
                             <TableCell>Phone Number</TableCell>
-                            <TableCell align="right"></TableCell>
+                            <TableCell align="right" sx={{ p: 0, pr: 2 }}>
+                                <IconButton size="small" color="primary" onClick={() => setShowExportDialog(true)}>
+                                    <UploadFile fontSize={isTablet ? "small" : "medium"} />
+                                </IconButton>
+                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -127,11 +157,11 @@ export default function Speakers() {
                                     <>
                                         <TableCell component="th" scope="row">
                                             <Box display='flex' alignItems='center'>
-                                                {speaker.portraitUrl ?
-                                                    <img src={speaker.portraitUrl} alt={speaker.lastName} style={{ height: 50, marginRight: 20 }} />
-                                                    :
-                                                    <img src="/images/Silhouette_No_Profile_Pic.png" alt={speaker.lastName} style={{ height: 50, marginRight: 20 }} />
-                                                }
+                                                <img src={speaker.portraitUrl || "/images/Silhouette_No_Profile_Pic.png"} alt={speaker.lastName} 
+                                                    style={{ height: 50, marginRight: 20, 
+                                                        filter: (isDark && !speaker.portraitUrl) ? 'invert(1) opacity(0.7)' : 'none'
+                                                    }}
+                                                />
                                             </Box>
                                         </TableCell>
                                         <TableCell>
@@ -164,8 +194,10 @@ export default function Speakers() {
                 }
             </Box>
             
-            <ConfirmDelete open={showDeletePopup} itemType="Speaker" itemName={`${selectedSpeaker?.firstName || ''} ${selectedSpeaker?.lastName || ''}`}
+            <ConfirmDelete open={showDeleteDialog} itemType="Speaker" itemName={`${selectedSpeaker?.firstName || ''} ${selectedSpeaker?.lastName || ''}`}
                 handleClose={handleCloseDelete} confirmDelete={handleDeleteSpeaker} loading={loading} />
+            <ExportSpeakers open={showExportDialog} handleClose={() => setShowExportDialog(false)} loading={loading}
+                exportSpeakers={exportSpeakers} isFilterSpeakers={!!speakerParams.searchTerm} />
         </>
     )
 }

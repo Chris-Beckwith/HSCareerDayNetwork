@@ -1,5 +1,5 @@
 import { Button, Grid, IconButton, Paper, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { FieldValues, useForm } from "react-hook-form";
+import { FieldValues, useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { speakerValidationSchema } from "./speakerValidation";
 import AddressInputs from "../../app/components/AddressInputs";
@@ -30,7 +30,6 @@ interface Props {
  * Form component to add or edit speakers.
  */
 export default function SpeakerForm({ speaker, cancelEdit }: Props) {
-    const [selectedCareers, setSelectedCareers] = useState<number[]>([])
     const { careers, categories, status } = useCareers()
     const dispatch = useAppDispatch()
     const { control, watch, reset, handleSubmit, setValue, formState: { isDirty, isSubmitting } } = useForm({
@@ -48,38 +47,32 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
     })
     const watchFile = watch('file')
     const removePortrait = watch('removePortrait')
+    const careerIds = useWatch({
+        control,
+        name: 'careerIds'
+    })
+
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
-    let isWatchFile : boolean
     const [confirmDelete, setConfirmDelete] = useState(false)
 
     useEffect(() => {
-        if (!speaker || watchFile) return
+        if (!speaker) return
         const sanitizedSpeaker = {
             ...speaker,
+            careerIds: speaker.careers.map(career => career.id).sort((a, b) => a - b),
             phoneNumbers: speaker.phoneNumbers.map(phone => ({
                 type: PHONE_NUMBER_TYPE[phone.type],
                 number: phone.number + (phone.ext ? " x" + phone.ext : ""),
                 primary: phone.isPrimary
             })),
-            file: null
+            file: null,
+            removePortrait: false
         }
         reset(sanitizedSpeaker)
-        setSelectedCareers(prevSelectedCareers => {
-            if (speaker.careers) {
-                const newCareers = speaker.careers.filter(career =>
-                    !prevSelectedCareers.some(existingCareer => existingCareer === career.id)
-                ).map(c => c.id)
-                return [...prevSelectedCareers, ...newCareers]
-            }
-            return prevSelectedCareers;
-        })
-        return () => {
-            if (watchFile) URL.revokeObjectURL(watchFile.preview);
-        }
-    }, [speaker, reset, watchFile, setSelectedCareers])
+    }, [speaker, reset])
 
     async function handleAddSpeaker(data: FieldValues) {
         try {
@@ -116,7 +109,6 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                 }
             }
 
-            if (selectedCareers) sanitiziedData.careerIds = selectedCareers
             let response: Speaker
             if (speaker) {
                 response = await agent.Speaker.update(sanitiziedData)
@@ -130,22 +122,9 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
         }
     }
 
-    const handleAddSelectedCareer = (careerId: number) => {
-        const career = careers.find(careerToFind => careerToFind.id === careerId)
-        if (career && !selectedCareers.includes(careerId))
-            setSelectedCareers([...selectedCareers, careerId])
-    }
-
-    const handleRemoveSelectedCareer = (id: number) => {
-        setSelectedCareers(prevItems => prevItems.filter(careerId => careerId !== id))
-    }
-
     async function handleDeletePortrait() {
-        if (isWatchFile) {
-            setValue("file", null, { shouldDirty: true })
-            if (speaker?.portraitUrl)
-                setValue("removePortrait", true)
-        } else {
+        setValue("file", null, { shouldDirty: true })
+        if (speaker?.portraitUrl) {
             setValue("removePortrait", true, { shouldDirty: true })
         }
         setConfirmDelete(false)
@@ -177,10 +156,7 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
 
                                             <IconButton sx={{ position: "absolute", top: 0, right: '25px', p: 0 }}
                                                 color="error" size="small"
-                                                onClick={() => {
-                                                    setConfirmDelete(true)
-                                                    isWatchFile = true
-                                                }}
+                                                onClick={() => setConfirmDelete(true)}
                                             >
                                                 <Cancel />
                                             </IconButton>
@@ -193,10 +169,7 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                                             
                                                 <IconButton sx={{ position: "absolute", top: 0, right: '25px', p: 0 }}
                                                     color="error" size="small"
-                                                    onClick={() => {
-                                                        setConfirmDelete(true)
-                                                        isWatchFile = false
-                                                    }}
+                                                    onClick={() => setConfirmDelete(true)}
                                                 >
                                                     <Cancel />
                                                 </IconButton>
@@ -209,9 +182,8 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
                         <AddCareers
                             careers={careers}
                             categories={categories}
-                            selectedCareerIds={selectedCareers}
-                            onAddSelectedCareer={handleAddSelectedCareer}
-                            onRemoveSelectedCareer={handleRemoveSelectedCareer}
+                            careerIds={careerIds ?? []}
+                            setValue={setValue}
                         />
 
                         <AddressInputs control={control} name="address" />

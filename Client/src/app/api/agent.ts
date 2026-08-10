@@ -231,10 +231,11 @@ const Schedule = {
 }
 
 const Export = {
-    exportPrimary: (params: URLSearchParams) => requests.getBlob('export/primary', params),
-    exportStudentSchedule: (params: URLSearchParams) => requests.getBlob('export/students', params),
-    exportSpeakerSchedule: (params: URLSearchParams) => requests.getBlob('export/speakers', params),
-    exportRoomSchedule: (params: URLSearchParams) => requests.getBlob('export/rooms', params)
+    exportPrimary: (params: URLSearchParams) => requests.getBlob('export/primarySchedule', params),
+    exportStudentSchedule: (params: URLSearchParams) => requests.getBlob('export/studentsSchedule', params),
+    exportSpeakerSchedule: (params: URLSearchParams) => requests.getBlob('export/speakersSchedule', params),
+    exportRoomSchedule: (params: URLSearchParams) => requests.getBlob('export/roomsSchedule', params),
+    exportSpeakers: (params: any) => requests.getBlob('export/speakers', params)
 }
 
 const TestErrors = {
