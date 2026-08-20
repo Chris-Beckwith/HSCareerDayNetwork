@@ -18,6 +18,7 @@ import useEvents from "../../app/hooks/useEvents";
 import { normalizeNewline } from "../../app/util/util";
 import AppLoadingButton from "../../app/components/AppLoadingButton";
 import AppButton from "../../app/components/AppButton";
+import AppBackButton from "../../app/components/AppBackButton";
 
 interface Props {
     selectedEvent?: CareerEvent
@@ -94,7 +95,10 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
     return (
         <>
             <Paper variant="outlined" sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
-                <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{selectedEvent ? "Edit Event" : "Add New Event"}</Typography>
+                <Grid container sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                    <AppBackButton onClick={cancelEdit} sx={{ left: isMobile ? 4 : 24 }} />
+                    <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{selectedEvent ? "Edit Event" : "Add New Event"}</Typography>
+                </Grid>
                 <form onSubmit={handleSubmit(handleAddEvent)}>
                     <Grid container justifyContent='center' sx={{mt: 2}}>
                         <Grid container item xs={12} sm={11} md={9} spacing={2}>

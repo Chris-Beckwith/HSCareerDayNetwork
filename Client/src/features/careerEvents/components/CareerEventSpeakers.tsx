@@ -1,4 +1,4 @@
-import { Box, Typography, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, TextField, TablePagination, useMediaQuery, useTheme, IconButton } from "@mui/material";
+import { Box, Typography, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, TextField, TablePagination, useMediaQuery, useTheme, Grid } from "@mui/material";
 import { Speaker } from "../../../app/models/speaker";
 import { SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { Career } from "../../../app/models/career";
@@ -6,11 +6,12 @@ import AppButton from "../../../app/components/AppButton";
 import useSpeakerPicker from "../../../app/hooks/useSpeakerPicker";
 import AppTextSearch from "../../../app/components/AppTextSearch";
 import { setSpeakerPickerSearchTerm } from "../../speaker/speakerPickerSlice";
-import { UploadFile } from "@mui/icons-material";
 import ExportSpeakers from "../../../app/components/ExportSpeakers";
 import agent from "../../../app/api/agent";
 import { downloadExcel } from "../../../app/util/util";
 import { CareerEvent } from "../../../app/models/event";
+import AppBackButton from "../../../app/components/AppBackButton";
+import AppExportButton from "../../../app/components/AppExportButton";
 
 interface Props {
     careerEvent: CareerEvent
@@ -136,23 +137,20 @@ export default function CareerEventSpeakers({careerEvent, updateCareerEvent, bac
 
     return (
         <>
-            <Typography variant={isMobile ? "h5" : "h4"} display='flex' justifyContent='center' sx={{mb: 4}}>{careerEventName}</Typography>
+            <Grid container item xs={12} display='flex' justifyContent='center' position='relative' alignItems='center'>
+                <AppBackButton onClick={back} />
+                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} display='flex' justifyContent='center'>{careerEventName}</Typography>
+            </Grid>
 
-            <Box display='grid' alignItems='center' gridTemplateColumns='1fr auto 1fr' sx={{ m: 2 }}>
-                <Box justifySelf="start">
-                    <AppButton variant="contained" color="inherit" onClick={back}>Back</AppButton>
-                </Box>
-                
-                <Box display="flex">
+            <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 1 }}>
+                <Box display='flex'>
                     <Typography variant={isMobile ? "h6" : "h5"} align="center" justifySelf="center">Event Speakers</Typography>
-                    <IconButton size="small" color="primary" onClick={() => setShowExportDialog(true)}>
-                        <UploadFile fontSize={isTablet ? "small" : "medium"} />
-                    </IconButton>
+                    <AppExportButton title="Download Event Speakers" onClick={() => setShowExportDialog(true)} sx={{ pb: '1px' }} />
                 </Box>
                 
-                <Box justifySelf="end">
+                <Box>
                     <TextField
-                        label="Search"
+                        label="Search Event"
                         variant="outlined"
                         size={isTablet ? "small" : "medium"}
                         fullWidth
@@ -216,9 +214,8 @@ export default function CareerEventSpeakers({careerEvent, updateCareerEvent, bac
             />
 
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 2 }}>
-                <Typography variant={isMobile ? "h6" : "h5"}>Speakers</Typography>
                 <Box>
-                    <Typography variant={isMobile ? "body2" : "body1"}>
+                    <Typography variant={isMobile ? "h6" : "h5"}>
                         <span style={{ textDecoration: 'underline' }}>Available Speakers:</span>
                         <span style={{ fontWeight: 'bold', textDecorationLine: 'none', paddingLeft: '4px' }}>
                             {metaData && (speakerParams.searchTerm ? metaData?.totalCount : metaData?.totalCount - eventSpeakers.length)}
@@ -226,7 +223,7 @@ export default function CareerEventSpeakers({careerEvent, updateCareerEvent, bac
                     </Typography>
                 </Box>
                 <Box>
-                    <AppTextSearch label="Search Speakers"
+                    <AppTextSearch label="Search Available"
                         stateSearchTerm={speakerParams.searchTerm} setParams={setSpeakerPickerSearchTerm} />
                 </Box>
             </Box>

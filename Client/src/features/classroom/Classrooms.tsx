@@ -1,4 +1,4 @@
-import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { School } from "../../app/models/school";
 import { MouseEvent, useEffect, useState } from "react";
 import ClassroomForm from "./ClassroomForm";
@@ -14,6 +14,7 @@ import AppTextSearch from "../../app/components/AppTextSearch";
 import AppPagination from "../../app/components/AppPagination";
 import AppButton from "../../app/components/AppButton";
 import ConfirmDelete from "../../app/components/ConfirmDelete";
+import AppBackButton from "../../app/components/AppBackButton";
 
 interface Props {
     school: School
@@ -69,11 +70,12 @@ export default function Classrooms({ school, back }: Props) {
 
     return (
         <>
-            <Box sx={{mb: 2}}>
-                <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{school.name} Classrooms</Typography>
-            </Box>
-            <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
-                <AppButton variant="contained" color="inherit" onClick={back}>Back</AppButton>
+            <Grid container item xs={12} display='flex' justifyContent='center' position='relative' alignItems='center'>
+                <AppBackButton onClick={back} />
+                <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{school.name}</Typography>
+            </Grid>
+            <Box display='flex' justifyContent='space-between' alignItems='center' sx={{m: 2}}>
+                <Typography variant={isMobile ? "h6" : "h5"}>Classrooms</Typography>
                 <Box>
                     <AppTextSearch label="Search Classrooms"
                         stateSearchTerm={classroomParams.searchTerm} setParams={setClassroomParams} />

@@ -181,18 +181,18 @@ export default function CareerEvents() {
             </Grid>
             <Grid item xs={7} sm={8} md={9}>
                 <Grid container spacing={2}>
-                    {careerEvents?.map(event => {
+                    {careerEventsLoaded ? careerEvents?.map(event => {
                         if (!event) return null
                         return (
                             <Grid item xs={isTablet ? isMobile ? 12 : 6 : 4} key={event.id}>
-                                {!careerEventsLoaded ? (
-                                    <CareerEventCardSkeleton />
-                                ) : (
-                                    <CareerEventCard careerEvent={event} handleEventCardClick={handleEventCardClick} />
-                                )}
+                                <CareerEventCard careerEvent={event} handleEventCardClick={handleEventCardClick} />
                             </Grid>
                         )
-                    })}
+                    }) : [1, 2, 3, 4, 5, 6].map(i => (
+                        <Grid item xs={isTablet ? isMobile ? 12 : 6 : 4} key={i}>
+                            <CareerEventCardSkeleton />
+                        </Grid>
+                    ))}
                 </Grid>
             </Grid>
             <Grid item xs={1} sm={4} md={3} />

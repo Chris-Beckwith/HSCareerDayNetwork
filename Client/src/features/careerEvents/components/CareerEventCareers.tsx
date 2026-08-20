@@ -1,10 +1,11 @@
-import { Box, Paper, Switch, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Grid, Paper, Switch, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { Career } from "../../../app/models/career"
 import { useEffect, useState } from "react"
 import CareerList from "../../careers/CareerList"
 import { Speaker } from "../../../app/models/speaker"
 import ConfirmCareerSet from "../../careers/careerSets/ConfirmCareerSet"
 import AppButton from "../../../app/components/AppButton"
+import AppBackButton from "../../../app/components/AppBackButton"
 
 interface Props {
     careerEventName: string
@@ -22,6 +23,7 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
     const [saveCareerSet, setSaveCareerSet] = useState(false)
     const [openSaveCareerSet, setOpenSaveCareerSet] = useState(false)
     const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
+    const isTablet = useMediaQuery(useTheme().breakpoints.down('md'))
 
     useEffect(() => {
         setEventCareers(careerEventCareers)
@@ -68,11 +70,13 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
 
     return (
         <>
-            <Typography variant={isMobile ? "h4" : "h3"} display='flex' justifyContent='center'>{careerEventName}</Typography>
+            <Grid container item xs={12} display='flex' justifyContent='center' position='relative' alignItems='center'>
+                <AppBackButton onClick={back} />
+                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} display='flex' justifyContent='center'>{careerEventName}</Typography>
+            </Grid>
             
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mt: 2 }}>
                 <Box>
-                    <AppButton variant="contained" color="inherit" onClick={back} sx={{mr: 2}}>Back</AppButton>
                     <Tooltip title={isSameCareerSet() ? !allowUpdate ? "Survey already open, please do not change careers"
                                 : "List of careers is not different" 
                                 : !allowUpdate ? "Survey already open, please do not change careers" : ""} arrow>

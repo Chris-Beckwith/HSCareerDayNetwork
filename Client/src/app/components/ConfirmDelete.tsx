@@ -21,8 +21,8 @@ export default function ConfirmDelete({ open, itemName, itemType, customText, ha
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title">
-                {"Are you sure you want to delete "}{itemName}{"?"}
+            <DialogTitle id="alert-dialog-title" textAlign="center">
+                {"Delete "}{itemType + (itemName ? ": " : "")}{itemName}{"?"}
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description"

@@ -42,11 +42,18 @@ namespace CareerDayApi.Controllers
         [HttpPost]
         public async Task<ActionResult<School>> CreateSchool(School school)
         {
-            _context.Schools.Add(school);
+            try
+            {
+                _context.Schools.Add(school);
 
-            var result = await _context.SaveChangesAsync() > 0;
+                var result = await _context.SaveChangesAsync() > 0;
 
-            if (result) return CreatedAtRoute("GetSchool", new { Id = school.Id }, school);
+                if (result) return CreatedAtRoute("GetSchool", new { Id = school.Id }, school);
+            }
+            catch (DbUpdateException e) when (IsUniqueConstraintException(e))
+            {
+                return Conflict(new { message = GetAndLogErrorMsg(e) });
+            }
 
             return BadRequest(new ProblemDetails { Title = "Problem creating new school" });
         }
@@ -54,15 +61,22 @@ namespace CareerDayApi.Controllers
         [HttpPut]
         public async Task<ActionResult<School>> UpdateSchool([FromForm] UpdateSchoolDto schoolDto)
         {
-            var school = await _context.Schools.FindAsync(schoolDto.Id);
+            try
+            {
+                var school = await _context.Schools.FindAsync(schoolDto.Id);
 
-            if (school == null) return NotFound();
+                if (school == null) return NotFound();
 
-            _mapper.Map(schoolDto, school);
+                _mapper.Map(schoolDto, school);
 
-            var result = await _context.SaveChangesAsync() > 0;
+                var result = await _context.SaveChangesAsync() > 0;
 
-            if (result) return Ok(school);
+                if (result) return Ok(school);
+            }
+            catch (DbUpdateException e) when (IsUniqueConstraintException(e))
+            {
+                return Conflict(new { message = GetAndLogErrorMsg(e) });
+            }
 
             return BadRequest(new ProblemDetails { Title = "Problem updating school" });
         }
@@ -92,7 +106,8 @@ namespace CareerDayApi.Controllers
         
         private static bool IsUniqueConstraintException(DbUpdateException e)
         {
-            return e.InnerException != null && e.InnerException.Message.Contains("23503");
+            return e.InnerException != null 
+                && (e.InnerException.Message.Contains("23503") || e.InnerException.Message.Contains("23505"));
         }
 
         private string GetAndLogErrorMsg(DbUpdateException e)
@@ -101,6 +116,10 @@ namespace CareerDayApi.Controllers
             if (e.InnerException.Message.Contains("Students_Schools_SchoolId"))
             {
                 msg = "The school has an event with students in it.  Please remove the students from event to delete the school";
+            }
+            else if (e.InnerException.Message.Contains("Schools_Name"))
+            {
+                msg = "Please choose a unique school name.";
             }
             _logger.LogError(e, "An error occurred deleting a school");
             return msg;

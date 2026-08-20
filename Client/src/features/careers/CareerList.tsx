@@ -137,7 +137,7 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
     if (!careerSetsLoaded) return <LoadingComponent message="Loading Career Sets..." />
 
     return (
-        <Grid container spacing={2}>
+        <Grid container spacing={2} sx={{ pb: 2 }}>
             <Grid item display='flex' justifyContent='space-between' xs={12}>
                 <Button variant='contained' size={isMobile ? "small" : "medium"}
                     onClick={() => hideShowAllCategories(hiddenCategories.length !== categories?.length)}>

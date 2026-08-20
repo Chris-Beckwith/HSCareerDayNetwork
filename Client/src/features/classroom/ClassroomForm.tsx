@@ -11,6 +11,7 @@ import { Paper, Typography, Grid, useTheme, useMediaQuery } from "@mui/material"
 import AppTextInput from "../../app/components/AppTextInput";
 import AppButton from "../../app/components/AppButton";
 import AppLoadingButton from "../../app/components/AppLoadingButton";
+import AppBackButton from "../../app/components/AppBackButton";
 
 interface Props {
     school: School
@@ -61,6 +62,9 @@ export default function ClassroomForm({ school, selectedRoom, cancelEdit }: Prop
         <>
             <Paper variant="outlined" sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
                 <Typography align="center" variant={isMobile ? "h5" : "h4"}>{selectedRoom ? "Edit Classroom" : "Add Classroom"}</Typography>
+                <Grid container sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                    <AppBackButton onClick={cancelEdit} sx={{ left: isMobile ? 4 : 24 }} />
+                </Grid>
                 <Typography align="center" variant="body1">For</Typography>
                 <Typography align="center" variant={isMobile ? "h5" : "h4"}>{school.name}</Typography>
                 <form onSubmit={handleSubmit(handleAddClassroom)}>
