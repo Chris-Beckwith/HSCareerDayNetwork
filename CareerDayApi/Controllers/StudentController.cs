@@ -84,8 +84,9 @@ namespace CareerDayApi.Controllers
         {
             if (await IsDuplicateStudentAsync(student.StudentNumber, student.Event, null))
             {
-                throw new InvalidOperationException(
-                    $"A student with student Id Number ({student.StudentNumber}) already exists for this event: {student.Event.Name}");
+                return Conflict(new { 
+                    message = $"A student with student Id Number ({student.StudentNumber}) already exists for this event: {student.Event.Name}" 
+                });
             }
 
             var school = await _context.Schools.FindAsync(student.School.Id);
@@ -110,15 +111,22 @@ namespace CareerDayApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Student>> UpdateStudent([FromForm] UpdateStudentDto studentDto)
         {
-            var student = await _context.Students.FindAsync(studentDto.Id);
+            try
+            {
+                var student = await _context.Students.FindAsync(studentDto.Id);
 
-            if (student == null) return NotFound();
+                if (student == null) return NotFound();
 
-            _mapper.Map(studentDto, student);
+                _mapper.Map(studentDto, student);
 
-            var result = await _context.SaveChangesAsync() > 0;
+                var result = await _context.SaveChangesAsync() > 0;
 
-            if (result) return Ok(student);
+                if (result) return Ok(student);
+            }
+            catch (DbUpdateException e) when (IsUniqueConstraintException(e))
+            {
+                return Conflict(new { message = GetAndLogErrorMsg(e) });
+            }
 
             return BadRequest(new ProblemDetails { Title = "Problem updating student" });
         }

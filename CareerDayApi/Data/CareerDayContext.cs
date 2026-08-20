@@ -25,6 +25,10 @@ namespace CareerDayApi.Data
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<School>()
+                .HasIndex(c => c.Name)
+                .IsUnique();
+
             builder.Entity<Event>()
                 .HasMany(s => s.Speakers)
                 .WithMany();

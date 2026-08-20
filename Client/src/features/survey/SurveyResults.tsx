@@ -10,6 +10,7 @@ import { Survey } from "../../app/models/survey";
 import EditSurvey from "./EditSurvey";
 import AppButton from "../../app/components/AppButton";
 import AppLoadingButton from "../../app/components/AppLoadingButton";
+import AppBackButton from "../../app/components/AppBackButton";
 
 interface Props {
     event: CareerEvent
@@ -117,15 +118,17 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
     return (
         <Grid container>
 
-            <Grid item xs={2}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
-                    <AppButton variant="contained" color="inherit" onClick={back}>{schoolUser ? 'View Students' : 'Back'}</AppButton>
-                </Box>
+            <Grid container item xs={12} display='flex' justifyContent='center' position='relative' alignItems='center'>
+                {schoolUser ?
+                    <AppButton variant="contained" color="inherit" onClick={back}>View Students</AppButton>
+                :
+                    <AppBackButton onClick={back}  />
+                }
+                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} textAlign='center' flexGrow={1}>{event.school.name}</Typography>
             </Grid>
-            <Grid item xs={8}>
-                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} textAlign='center' flexGrow={1}>{event.school.name} Survey Results</Typography>
+            <Grid item xs={12}>
+                <Typography variant={isTablet ? isMobile ? "h6" : "h5" : "h4"} textAlign='center'>Survey Results</Typography>
             </Grid>
-            <Grid item xs={2}></Grid>
 
             <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                 <Grid item xs={3} sm={4} sx={{ display: 'flex', justifyContent: 'flex-start' }}></Grid>

@@ -4,7 +4,7 @@ import { useAppDispatch } from "../../app/store/configureStore"
 import { reloadSpeakers, setPageNumber, setSpeakerSearchParams } from "./speakerSlice"
 import { Speaker } from "../../app/models/speaker"
 import SpeakerForm from "./SpeakerForm"
-import { Delete, UploadFile } from "@mui/icons-material"
+import { Delete } from "@mui/icons-material"
 import agent from "../../app/api/agent"
 import AppPagination from "../../app/components/AppPagination"
 import useSpeakers from "../../app/hooks/useSpeakers"
@@ -13,6 +13,7 @@ import ConfirmDelete from "../../app/components/ConfirmDelete"
 import SpeakerSkeleton from "./components/SpeakerSkeleton"
 import ExportSpeakers from "../../app/components/ExportSpeakers"
 import { downloadExcel } from "../../app/util/util"
+import AppExportButton from "../../app/components/AppExportButton"
 
 /**
  * Component to display the list of speakers added.
@@ -137,9 +138,7 @@ export default function Speakers() {
                             <TableCell>Email</TableCell>
                             <TableCell>Phone Number</TableCell>
                             <TableCell align="right" sx={{ p: 0, pr: 2 }}>
-                                <IconButton size="small" color="primary" onClick={() => setShowExportDialog(true)}>
-                                    <UploadFile fontSize={isTablet ? "small" : "medium"} />
-                                </IconButton>
+                                <AppExportButton title="Download Speakers" onClick={() => setShowExportDialog(true)}/>
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -170,8 +169,8 @@ export default function Speakers() {
                                         <TableCell>{speaker.title}</TableCell>
                                         <TableCell>{speaker.company}</TableCell>
                                         <TableCell>{speaker.email}</TableCell>
-                                        <TableCell>{speaker.phoneNumbers[0]?.number}
-                                            {speaker.phoneNumbers[0]?.ext && ` x${speaker.phoneNumbers[0]?.ext}` }
+                                        <TableCell>{speaker.phoneNumbers && speaker.phoneNumbers[0]?.number}
+                                            {speaker.phoneNumbers && speaker.phoneNumbers[0]?.ext && ` x${speaker.phoneNumbers[0]?.ext}` }
                                         </TableCell>
                                         <TableCell align="right">
                                             <IconButton size="small" color='error' onClick={(e) => handleShowDeletePopup(e, speaker)}>

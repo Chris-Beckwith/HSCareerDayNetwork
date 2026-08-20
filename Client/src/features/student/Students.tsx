@@ -1,4 +1,4 @@
-import { Box, Grid, IconButton, Paper, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Grid, IconButton, Paper, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 import useStudents from "../../app/hooks/useStudents"
 import AppTextSearch from "../../app/components/AppTextSearch"
 import { reloadStudents, resetStudentParams, setPageMetaData, setStudentParams } from "./studentSlice"
@@ -11,12 +11,14 @@ import ImportStudents from "./ImportStudents"
 import agent from "../../app/api/agent"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import { Student, StudentParams } from "../../app/models/student"
-import { Delete, Edit, Sync } from "@mui/icons-material"
+import { Delete, Edit, Upload } from "@mui/icons-material"
 import StudentForm from "./StudentForm"
 import { CareerEvent } from "../../app/models/event"
 import { downloadExcel } from "../../app/util/util"
 import AppButton from "../../app/components/AppButton"
 import IncompleteStudentsDialog from "./IncompleteStudentsDialog"
+import AppBackButton from "../../app/components/AppBackButton"
+import AppExportButton from "../../app/components/AppExportButton"
 
 interface Props {
     event: CareerEvent
@@ -128,10 +130,6 @@ export default function Students({ event, back, schoolUser }: Props) {
         setDeleteStudent(undefined)
     }
 
-    const syncStudents = async () => {
-        dispatch(reloadStudents())
-    }
-
     function getAxiosParams(studentParams: StudentParams) {
         const params = new URLSearchParams()
         params.append('eventId', event.id.toString())
@@ -163,8 +161,31 @@ export default function Students({ event, back, schoolUser }: Props) {
 
     return (
         <Grid container columnSpacing={2}>
+            <Grid item xs={12} display='flex' justifyContent='center' alignItems='center' position='relative'>
+                {schoolUser ? 
+                    <AppButton variant="contained" color="inherit" onClick={back} sx={{ position: 'absolute', left: 24 }} >
+                        Survey Results
+                    </AppButton>
+                :
+                <Box sx={{ minHeight: isTablet ? isMobile ? 32 : 40 : 51 }}>
+                        <AppBackButton onClick={back} sx={{ left: 20, pt: isMobile ? "6px" : 1 }}/>
+                    </Box>
+                }
+
+                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} sx={{ display: 'flex', alignContent: 'center' }}>
+                    {event.name}
+                </Typography>
+
+                <Grid item sx={{ position: 'absolute', right: 8, bottom: 0, alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                    <Tooltip title="Upload Students">
+                        <IconButton aria-label="Upload" size="small" color="primary" onClick={() => setOpenImport(true)}>
+                            <Upload fontSize={isTablet ? "small" : "medium"} />
+                        </IconButton>
+                    </Tooltip>
+                    <AppExportButton title="Download Students" onClick={handleExportStudents} />
+                </Grid>
+            </Grid>
             <Grid item xs={3} sm={2}>
-                <AppButton variant="contained" color="inherit" onClick={back}>{schoolUser ? 'Survey Results' : 'Back'}</AppButton>
                 <Paper sx={{ my: 2 }}>
                     <AppTextSearch label="Search Students" 
                         stateSearchTerm={studentParams.searchTerm} setParams={setStudentParams} />
@@ -199,13 +220,6 @@ export default function Students({ event, back, schoolUser }: Props) {
             </Grid>
 
             <Grid item xs={9} sm={10}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant={isTablet ? isMobile ? "h6" : "h5" : "h4"} sx={{ display: 'flex', alignContent: 'center' }}>
-                        {event.name}
-                        <IconButton sx={{ ml: 0.5 }} onClick={syncStudents}><Sync color="primary" /></IconButton>
-                    </Typography>
-                    <AppButton variant="contained" onClick={handleExportStudents}>Export Student List</AppButton>
-                </Box>
                 <Box sx={{ mb: 2 }}>
                     <Typography align="center" variant={isMobile ? "h6" : "h5"} sx={{ color: 'primary.main' }}>{responseMsg}</Typography>
                     {incompleteStudents.length > 0 && 
@@ -237,10 +251,6 @@ export default function Students({ event, back, schoolUser }: Props) {
                 
                 {!schoolUser &&
                     <Grid item display='flex' justifyContent='space-between' sx={{ my: 2 }}>
-                        <AppButton variant="contained" 
-                            onClick={() => setOpenImport(true)}>
-                                Import Students
-                        </AppButton>
                         <AppButton variant="contained" color="success" onClick={() => setAddStudent(true)}>Add Student</AppButton>
                         <AppButton variant="contained" color="error" 
                             onClick={() => setOpenDelete(true)}>

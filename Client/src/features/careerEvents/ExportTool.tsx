@@ -61,7 +61,7 @@ export default function ExportTool({ open, careerEvent, handleClose }: Props) {
 
     return (
         <Dialog open={open} onClose={handleClose}>
-            <DialogTitle>Choose Schedule to Export for {careerEvent.name}</DialogTitle>
+            <DialogTitle textAlign="center">Choose Schedule to Export for {careerEvent.name}</DialogTitle>
             <DialogContent>
                 <Grid container item xs={12} spacing={3}>
                     <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>

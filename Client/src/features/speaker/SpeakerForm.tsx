@@ -20,6 +20,7 @@ import SpeakerSchool from "./components/SpeakerSchool";
 import { Cancel } from "@mui/icons-material";
 import ConfirmDelete from "../../app/components/ConfirmDelete";
 import { PHONE_NUMBER_TYPE } from "../../app/util/constants";
+import AppBackButton from "../../app/components/AppBackButton";
 
 interface Props {
     speaker?: Speaker,
@@ -135,7 +136,10 @@ export default function SpeakerForm({ speaker, cancelEdit }: Props) {
     return (
         <>
             <Paper variant="outlined" sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
-                <Typography align="center" variant={isTablet ? "h4" : "h3"}>{speaker ? "Edit Speaker" : "Add New Speaker"}</Typography>
+                <Grid container sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                    <AppBackButton onClick={cancelEdit} sx={{ left: isMobile ? 4 : 24 }} />
+                    <Typography align="center" variant={isTablet ? "h4" : "h3"}>{speaker ? "Edit Speaker" : "Add New Speaker"}</Typography>
+                </Grid>
                 <form onSubmit={handleSubmit(handleAddSpeaker)}>
                     <Grid container rowSpacing={2} sx={{ my: 4 }}>
                         <Name control={control} name="name" />

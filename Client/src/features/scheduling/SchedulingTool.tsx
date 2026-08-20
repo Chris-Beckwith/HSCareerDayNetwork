@@ -5,7 +5,6 @@ import SessionView, { UnplacedStudent } from "./SessionView"
 import { FieldValues, useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { schedulingValidationSchema } from "./schedulingValidation"
-import AppTextInput from "../../app/components/AppTextInput"
 import { Session } from "../../app/models/session"
 import agent from "../../app/api/agent"
 import { Career } from "../../app/models/career"
@@ -21,6 +20,8 @@ import { ExpandMore, ExpandLess } from "@mui/icons-material"
 import AppButton from "../../app/components/AppButton"
 import AppLoadingButton from "../../app/components/AppLoadingButton"
 import { Classroom } from "../../app/models/classroom"
+import AppBackButton from "../../app/components/AppBackButton"
+import AppNumberInput from "../../app/components/AppNumberInput"
 
 interface Props {
     event: CareerEvent
@@ -256,7 +257,7 @@ export default function SchedulingTool({ event, back }: Props) {
             <Grid container item xs={12} spacing={2}>
 
                 <Grid container item xs={6} sx={{ alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                    <AppButton variant="contained" onClick={back}>Back to Event</AppButton>
+                    <AppBackButton onClick={back} sx={{ left: {xs: 20, sm: 28}, mt: { xs:'-2px', sm: '1px', md: '3px'} }} />
                 </Grid>
 
                 {activeStep === 1 &&
@@ -273,10 +274,10 @@ export default function SchedulingTool({ event, back }: Props) {
                                     <Grid container spacing={2}>
                                         <Grid container item xs={12} spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
                                             <Grid item xs={4} sm={3}>
-                                                <AppTextInput type="number" inputProps={{ min: 1 }} control={control} label="Max Class Size" name="maxClassSize" />
+                                                <AppNumberInput min={1} control={control} label="Max Class Size" name="maxClassSize" />
                                             </Grid>
                                             <Grid item xs={4} sm={3}>
-                                                <AppTextInput type="number" inputProps={{ min: 0 }} control={control} label="Min Class Size" name="minClassSize" />
+                                                <AppNumberInput min={0} control={control} label="Min Class Size" name="minClassSize" />
                                             </Grid>
                                         </Grid>
 

@@ -4,14 +4,12 @@ import AppButton from "../../../app/components/AppButton"
 
 interface Props {
     open: boolean
-    previousPhase: string
-    message: string
     loading?: boolean
     handleConfirm: () => void
     handleClose: () => void
 }
 
-export default function ConfirmPreviousPhase({open, previousPhase, message, loading, handleConfirm, handleClose}: Props) {
+export default function ConfirmCloseSurvey({open, loading, handleConfirm, handleClose}: Props) {
     return (
         <Dialog
             open={open}
@@ -20,11 +18,11 @@ export default function ConfirmPreviousPhase({open, previousPhase, message, load
             aria-describedby="alert-dialog-description"
         >
             <DialogTitle id="alert-dialog-title">
-                Do you want to go to previous phase: {previousPhase}
+                Do you want to go to Close Survey
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    {message}
+                    Are you sure you want to close the survey?
                 </DialogContentText>
             </DialogContent>
             <DialogActions>

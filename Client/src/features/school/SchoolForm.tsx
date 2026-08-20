@@ -11,6 +11,8 @@ import { Paper, Typography, Grid, Button, useTheme, useMediaQuery } from "@mui/m
 import AddressInputs from "../../app/components/AddressInputs"
 import AppTextInput from "../../app/components/AppTextInput"
 import Classrooms from "../classroom/Classrooms"
+import AppBackButton from "../../app/components/AppBackButton"
+import AppNumberInput from "../../app/components/AppNumberInput"
 
 interface Props {
     school?: School,
@@ -27,6 +29,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
     })
     const [addRooms, setAddRooms] = useState(false)
     const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     useEffect(() => {
@@ -46,7 +49,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
                 contactEmail: data.contactEmail ?? '',
                 contactName: data.contactName ?? '',
                 contactPhone: data.contactPhone ?? '',
-                estimatedNumOfStudents: data.estimatedNumOfStudents,
+                estimatedNumOfStudents: Number(data.estimatedNumOfStudents.replace(/,/g, "")),
                 address: {
                     address1: data.address.address1 ?? '',
                     address2: data.address.address2 ?? '',
@@ -78,7 +81,10 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
     return (
         <>
             <Paper variant="outlined" sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
-                <Typography align="center" variant={isTablet ? "h4" : "h3"}>{school ? "Edit School" : "Add New School"}</Typography>
+                <Grid container sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                    <AppBackButton onClick={cancelEdit} sx={{ left: isMobile ? 4 : 24 }} />
+                    <Typography align="center" variant={isTablet ? "h4" : "h3"}>{school ? "Edit School" : "Add New School"}</Typography>
+                </Grid>
                 <form onSubmit={handleSubmit(handleAddSchool)}>
                     <Grid container rowSpacing={2} sx={{ my: 4 }}>
                         <Grid container item columnSpacing={2} justifyContent="center">
@@ -86,7 +92,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
                                 <AppTextInput control={control} name="name" label="School Name" />
                             </Grid>
                             <Grid item xs={3} sm={2}>
-                                <AppTextInput type="number" control={control} name="estimatedNumOfStudents" label="Estimated Student Count" />
+                                <AppNumberInput control={control} name="estimatedNumOfStudents" label="Student Count" />
                             </Grid>
                         </Grid>
 
@@ -95,7 +101,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
                                 <AppTextInput control={control} name="contactName" label="Contact Name" />
                             </Grid>
                             <Grid item xs={4} sm={3} md={2}>
-                                <AppTextInput control={control} name="contactPhone" label="Contact Phone" />
+                                <AppTextInput control={control} name="contactPhone" label="Contact Phone" format="phone" />
                             </Grid>
                             <Grid item xs={4} sm={4} md={3}>
                                 <AppTextInput control={control} name="contactEmail" label="Contact Email" />
