@@ -10,6 +10,7 @@ interface Props extends UseControllerProps {
 export default function AppSelectList(props: Props) {
     const {fieldState, field} = useController({...props, defaultValue: ''})
     const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
+    const isTablet = useMediaQuery(useTheme().breakpoints.down('md'))
 
     return (
         <TextField select fullWidth label={props.label} value={field.value}
@@ -18,6 +19,10 @@ export default function AppSelectList(props: Props) {
             sx={{
                 '& .MuiOutlinedInput-input': {
                     fontSize: DEFAULT_FONT_SIZE,
+                },
+                '& .MuiSelect-select': {
+                    paddingTop: isTablet ? isMobile ? '6.2px' : '15.35px' : '16.5px',
+                    paddingBottom: isTablet ? isMobile ? '6.2px' : '15.35px' : '16.5px'
                 }
             }}
         >

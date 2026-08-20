@@ -12,6 +12,7 @@ import { reloadCareers } from "./careerSlice";
 import useCareers from "../../app/hooks/useCareers";
 import { normalizeNewline } from "../../app/util/util";
 import { DEFAULT_FONT_SIZE } from "../../app/util/constants";
+import AppBackButton from "../../app/components/AppBackButton";
 
 interface Props {
     selectedCareer: Career | undefined
@@ -74,7 +75,10 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
 
     return (
         <Paper variant="outlined" sx={{ my: { xs: 3, md: 4 }, p: { xs: 2, md: 2 } }}>
-            <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{selectedCareer ? "Edit Career" : "Add Career"}</Typography>
+            <Grid container xs={12} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                <AppBackButton onClick={cancelEdit} sx={{ left: isMobile ? 4 : 24 }} />
+                <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{selectedCareer ? "Edit Career" : "Add Career"}</Typography>
+            </Grid>
             <form onSubmit={handleSubmit(handleAddCareer)}>
                 <Grid container rowSpacing={2}>
                     <Grid container item spacing={2} justifyContent="center" mt={0}>

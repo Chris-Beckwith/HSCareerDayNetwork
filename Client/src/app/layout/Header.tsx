@@ -4,7 +4,7 @@ import { useAppSelector } from "../store/configureStore";
 import SignedInMenu from "./SignedInMenu";
 import { DarkMode, LightMode } from "@mui/icons-material";
 import MenuIcon from '@mui/icons-material/Menu';
-import React from "react";
+import { useState } from "react";
 
 const midLinks = [
     { title: 'Events', path: '/' },
@@ -28,7 +28,7 @@ interface Props {
 export default function Header({ darkMode, handleThemeChange }: Props) {
     const { user } = useAppSelector(state => state.account)
     const navigate = useNavigate()
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const open = Boolean(anchorEl)
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -41,11 +41,11 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
     )
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
+        setAnchorEl(event.currentTarget)
     }
 
     const handleClose = () => {
-        setAnchorEl(null);
+        setAnchorEl(null)
     }
 
     const handlePathTransform = (path: string) => {
@@ -66,18 +66,18 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
 
     return (
         <AppBar position='static' sx={{ mb: 3, left: 0, right: 0 }}>
-            <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box display='flex' alignItems='center'>
+            <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box display='flex' alignItems='center' justifyContent='flex-start' flex={1}>
                     <img src="/images/NHSCDN-logo.png" alt="logo" 
                         style= {{ height: isTablet ? isMobile ? 70 : 90 : 110, marginTop: 5, marginBottom: 5 }} />
                 </Box>
 
                 {user?.roles?.includes("Admin") &&
                     (isMobile ? (
-                        <Box sx={{ mr: 6 }}>
+                        <Box>
                             <Button
                                 onClick={handleClick}
-                                sx={{typography: 'h6', minWidth: 0, color: 'text.secondary', '&:hover': { backgroundColor: '#757575' } }}
+                                sx={{typography: 'h6', color: 'text.secondary', '&:hover': { backgroundColor: '#757575' } }}
                             >
                                 <MenuIcon sx={{ mr: .5 }}/>
                                 {currentLink?.title || handlePathTransform(location.pathname)}
@@ -97,7 +97,7 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
                             </Menu>
                         </Box>
                     ) : (
-                        <List sx={{ display: 'flex' }}>
+                        <List sx={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
                             {midLinks.map(({ title, path }) => (
                                 <ListItem key={path} component={NavLink} to={path} sx={navStyles}>
                                     {title.toUpperCase()}
@@ -112,7 +112,7 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
                     </IconButton>
                 </Box>
 
-                <Box display='flex' alignItems='center' sx={{ ml: -4 }}>
+                <Box display='flex' justifyContent='flex-end' flex={1} alignItems='center'>
                     {user ? (
                         <SignedInMenu />
                     ) : (
