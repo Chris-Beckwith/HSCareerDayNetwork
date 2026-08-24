@@ -1,5 +1,5 @@
 import { useAppDispatch } from "../../app/store/configureStore";
-import { reloadEvents, resetEventParams, setEventParams, setPageNumber } from "./careerEventSlice";
+import { reloadEvents, resetEventParams, setEventParams, setPagination } from "./careerEventSlice";
 import { useEffect, useState } from "react";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import { Button, Grid, Paper, useMediaQuery, useTheme } from "@mui/material";
@@ -44,7 +44,6 @@ export default function CareerEvents() {
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
-    const isNarrow = useMediaQuery(theme.breakpoints.down(524))
     const dispatch = useAppDispatch()
 
     useEffect(() => {
@@ -196,11 +195,13 @@ export default function CareerEvents() {
                 </Grid>
             </Grid>
             <Grid item xs={1} sm={4} md={3} />
-            <Grid item xs={ isTablet ? isNarrow ? 11 : 8 : 9} sx={{ mb: 2 }}>
+            <Grid item xs={ isTablet ? isMobile ? 11 : 8 : 9} sx={{ my: 1 }}>
                 {metaData &&
                     <AppPagination
                         metaData={metaData}
-                        onPageChange={(page: number) => dispatch(setPageNumber({ pageNumber: page }))}
+                        onPageChange={(page: number) => dispatch(setPagination({ pageNumber: page }))}
+                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize }))}
+                        customPageSizes={[9,18,27,36,45]}
                     />
                 }
             </Grid>

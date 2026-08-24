@@ -1,7 +1,7 @@
 import { createAsyncThunk, createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import { Career } from "../../app/models/career";
 import agent from "../../app/api/agent";
-import { RootState } from "../../app/store/configureStore";
+import type { RootState } from "../../app/store/configureStore";
 import { CareerSet } from "../../app/models/careerSet";
 
 interface CareerState {

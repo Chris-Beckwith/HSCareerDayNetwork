@@ -30,7 +30,11 @@ export default function Login() {
 
     async function submitForm(data: FieldValues) {
         try {
-            await dispatch(signInUser(data))
+            const result = await dispatch(signInUser(data))
+            
+            if (signInUser.rejected.match(result)) {
+                throw result.payload
+            }
         } catch (error) {
             console.log(error)
         }

@@ -1,6 +1,7 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, Typography, useTheme } from "@mui/material";
 import { UnplacedStudent } from "./SessionView";
 import { PersonAdd } from "@mui/icons-material";
+import { blue } from "@mui/material/colors";
 
 interface Props {
     unplacedStudents: UnplacedStudent[],
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function UnplacedStudentList({ unplacedStudents, placeStudent, open, handleClose }: Props) {
+    const darkMode = useTheme().palette.mode === 'dark'
     return (
         <Dialog open={open}>
             <DialogTitle>
@@ -19,7 +21,7 @@ export default function UnplacedStudentList({ unplacedStudents, placeStudent, op
                 <Grid item xs={12}>
                     <Divider />
                     {unplacedStudents.sort((a,b) => a.student.lastFirstName.localeCompare(b.student.lastFirstName)).map((s, index) => (
-                        <Grid item key={index} sx={{ '&:hover': { bgcolor: 'primary.light' } }}>
+                        <Grid item key={index} sx={{ '&:hover': { bgcolor: darkMode ? blue[900] : 'primary.light' } }}>
                             <Typography variant="body2"><em>{s.student.lastFirstName}</em></Typography>
                             <Grid item sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="body2">Open Session: {s.period} - Grade: {s.student.grade}</Typography>

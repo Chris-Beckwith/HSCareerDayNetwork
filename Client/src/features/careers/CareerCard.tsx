@@ -6,6 +6,7 @@ import agent from "../../app/api/agent"
 import { useAppDispatch } from "../../app/store/configureStore"
 import { reloadCareers } from "./careerSlice"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
+import { blue, brown, deepOrange, indigo } from "@mui/material/colors"
 
 interface Props {
     career: Career
@@ -20,6 +21,10 @@ interface Props {
 
 /**
  * Component to display the career name, description and delete button
+ * 
+ * highlightRow - Set of rows selected (primary selections on survey)
+ * highlightAlternate - Only for survey, set of alternate careers selected
+ * onPrimaryCareers - Only for survey to denote if selecting primary or alternate careers
  */
 export default function CareerCard({ career, handleSelectCareer, hideDescription, hideDelete, 
         highlightRow, highlightAlternate, onPrimaryCareers, survey }: Props) {
@@ -28,6 +33,7 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
     const [target, setTarget] = useState<Career | undefined>(undefined)
     const dispatch = useAppDispatch()
     const theme = useTheme()
+    const darkMode = theme.palette.mode === 'dark'
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
     
@@ -59,34 +65,34 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
     function getHighlight() {
         if (survey) {
             if (onPrimaryCareers) {
-                return highlightRow ? "primary.light" : "inherit"
+                return highlightRow ? (darkMode ? blue[900] : 'primary.light') : 'inherit'
             } else {
                 if (highlightRow) {
-                    return "primary.main"
+                    return darkMode ? blue[900] : 'primary.light'
                 } else if (highlightAlternate) {
-                    return "warning.light"
+                    return darkMode ? deepOrange[900] : 'warning.light'
                 }
-                return "inherit"
+                return 'inherit'
             }
         } else {
-            return highlightRow ? "primary.light" : "inherit"
+            return highlightRow ? (darkMode ? blue[900] : 'primary.light') : 'inherit'
         }
     }
 
     function getHover() {
         if (survey) {
             if (onPrimaryCareers) {
-                return highlightRow ? 'primary.main' : 'rgba(0, 0, 0, 0.07)'
+                return highlightRow ? (darkMode ? indigo[900] : 'primary.main') : 'action.focus'
             } else {
                 if (highlightAlternate) {
-                    return 'warning.main'
+                    return darkMode ? brown[400] : 'warning.main'
                 } else if (highlightRow) {
-                    return 'primary.main'
+                    return darkMode ? blue[900] : 'primary.light'
                 }
-                return 'inherit'
+                return 'action.focus'
             }
         } else {
-            return highlightRow ? 'primary.main' : 'rgba(0, 0, 0, 0.07)'
+            return highlightRow ? (darkMode ? indigo[900] : 'primary.main') : 'action.focus'
         }
     }
 

@@ -12,6 +12,7 @@ import AppTextInput from "../../app/components/AppTextInput";
 import AppButton from "../../app/components/AppButton";
 import AppLoadingButton from "../../app/components/AppLoadingButton";
 import AppBackButton from "../../app/components/AppBackButton";
+import AppNumberInput from "../../app/components/AppNumberInput";
 
 interface Props {
     school: School
@@ -80,10 +81,10 @@ export default function ClassroomForm({ school, selectedRoom, cancelEdit }: Prop
 
                         <Grid container item columnSpacing={2} justifyContent="center">
                             <Grid item xs={6} sm={5} md={4}>
-                                <AppTextInput control={control} name="capacity" label="Capacity" />
+                                <AppNumberInput control={control} name="capacity" label="Capacity" />
                             </Grid>
                             <Grid item xs={6} sm={5} md={4}>
-                                <AppTextInput control={control} name="overflow" label="Overflow" />
+                                <AppNumberInput control={control} name="overflow" label="Overflow" />
                             </Grid>
                         </Grid>
 

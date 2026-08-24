@@ -25,8 +25,9 @@ export default function AppTextSearch({ label, stateSearchTerm, setParams, isSma
     const dispatch = useAppDispatch()
     const [searchTerm, setSearchTerm] = useState(stateSearchTerm)
     const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
-
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedSearch = useCallback(
         debounce((event: any) => {
@@ -49,7 +50,15 @@ export default function AppTextSearch({ label, stateSearchTerm, setParams, isSma
                 height: '100%',
                 '& .MuiInputBase-input': {
                     fontSize: DEFAULT_FONT_SIZE
-                }
+                },
+                ...(isMobile && {
+                    '& .MuiInputLabel-root': {
+                        transform: 'translate(14px, 7px) scale(1)',
+                    },
+                    '& .MuiInputLabel-shrink': {
+                        transform: 'translate(14px, -10px) scale(0.75)',
+                    },
+                })
             }}
             onChange={(event: any) => {
                 setSearchTerm(event.target.value)

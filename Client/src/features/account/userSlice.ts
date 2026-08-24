@@ -2,7 +2,7 @@ import { createEntityAdapter, createAsyncThunk, createSlice } from "@reduxjs/too
 import agent from "../../app/api/agent"
 import { MetaData } from "../../app/models/pagination"
 import { User, UserParams } from "../../app/models/user"
-import { RootState } from "../../app/store/configureStore"
+import type { RootState } from "../../app/store/configureStore"
 
 interface UserState {
     usersLoaded: boolean
@@ -54,8 +54,7 @@ export const userSlice = createSlice({
         reloadUsers: (state) => {
             state.usersLoaded = false
         },
-        setPageNumber: (state, action) => {
-            console.log("action: ", action.payload)
+        setPagination: (state, action) => {
             state.usersLoaded = false
             state.userParams = {...state.userParams, ...action.payload}
         },
@@ -83,5 +82,5 @@ export const userSlice = createSlice({
     })
 })
 
-export const {reloadUsers, setPageNumber, setMetaData, setUserParams} = userSlice.actions
+export const {reloadUsers, setPagination, setMetaData, setUserParams} = userSlice.actions
 export const userSelectors = userAdapter.getSelectors((state: RootState) => state.user)

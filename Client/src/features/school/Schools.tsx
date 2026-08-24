@@ -1,6 +1,6 @@
 import { Box, Button, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useAppDispatch } from "../../app/store/configureStore"
-import { reloadSchools, setPageNumber, setSchoolParams } from "./schoolSlice"
+import { reloadSchools, setPagination, setSchoolSearchParams } from "./schoolSlice"
 import { MouseEvent, useState } from "react"
 import { Delete } from "@mui/icons-material"
 import { School } from "../../app/models/school"
@@ -83,17 +83,21 @@ export default function Schools() {
     
     return (
         <>
-            <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
-                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>Schools</Typography>
+            <Box display='flex' alignItems='center' sx={{mb: 2}}>
+                <Box display='flex' justifyContent='flex-start' flex={1}>
+                    <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>Schools</Typography>
+                </Box>
                 <Box>
                     <AppTextSearch label="Search Schools"
-                        stateSearchTerm={schoolParams.searchTerm} setParams={setSchoolParams} />
+                        stateSearchTerm={schoolParams.searchTerm} setParams={setSchoolSearchParams} />
                 </Box>
-                <Button variant="contained" onClick={() => setEditMode(true)}
-                    sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem', lineHeight: isMobile ? 1.2 : 1.7 }}
-                >
-                    New School
-                </Button>
+                <Box display='flex' justifyContent='flex-end' flex={1}>
+                    <Button variant="contained" onClick={() => setEditMode(true)}
+                        sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem', lineHeight: isMobile ? 1.2 : 1.7 }}
+                    >
+                        New School
+                    </Button>
+                </Box>
             </Box>
             <TableContainer component={Paper}>
                 <Table sx={{ '& .MuiTableCell-root': { fontSize: isTablet ? '0.75rem' : '0.875rem' } }}>
@@ -143,7 +147,8 @@ export default function Schools() {
                 {metaData &&
                     <AppPagination
                         metaData={metaData}
-                        onPageChange={(page: number) => dispatch(setPageNumber({ pageNumber: page }))}
+                        onPageChange={(page: number) => dispatch(setPagination({ pageNumber: page }))}
+                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize }))}
                     />
                 }
             </Box>

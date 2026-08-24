@@ -2,8 +2,6 @@ import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 import { User } from "../../app/models/user";
 import { FieldValues } from "react-hook-form";
 import agent from "../../app/api/agent";
-import { router } from "../../app/router/Routes";
-import { toast } from "react-toastify";
 
 interface AccountState {
     user: User | null
@@ -52,7 +50,6 @@ export const accountSlice = createSlice({
         signOut: (state) => {
             state.user = null
             localStorage.removeItem('user')
-            router.navigate('/') //todo where would you navigate to??
         },
         setUser: (state, action) => {
             const claims = JSON.parse(atob(action.payload.token.split('.')[1]))
@@ -64,17 +61,11 @@ export const accountSlice = createSlice({
         builder.addCase(fetchCurrentUser.rejected, (state) => {
             state.user = null
             localStorage.removeItem('user')
-            toast.error('Session expired - please login again')
-            router.navigate('/')
         })
         builder.addMatcher(isAnyOf(signInUser.fulfilled, fetchCurrentUser.fulfilled), (state, action) => {
             const claims = JSON.parse(atob(action.payload.token.split('.')[1]))
             const roles = claims['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
             state.user = {...action.payload, roles: typeof(roles) === 'string' ? [roles] : roles}
-
-        })
-        builder.addMatcher(isAnyOf(signInUser.rejected), (_state, action) => {
-            throw action.payload
         })
     })
 })

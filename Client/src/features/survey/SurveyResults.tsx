@@ -31,6 +31,7 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
     const [editSurvey, setEditSurvey] = useState<Survey | null>(null)
     const isEditing = Boolean(editSurvey)
     const theme = useTheme()
+    const darkMode = theme.palette.mode === 'dark'
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
     const [primaryCounts, setPrimaryCounts] = useState<{
@@ -133,35 +134,38 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
             <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                 <Grid item xs={3} sm={4} sx={{ display: 'flex', justifyContent: 'flex-start' }}></Grid>
                 <Grid item xs={6} sm={4} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
-                        <AppButton onClick={() => {
-                            if (viewOption) setViewOption(!viewOption)
-                            }}
-                        sx={{
-                            variant: viewOption ? '' : 'outlined',
-                                bgcolor: viewOption ? 'lightgray' : 'white',
+                    <Box sx={{ display: 'flex', alignItems: 'center', border: '2px solid', borderColor: 'divider', borderRadius: '8px', overflow: 'hidden' }}>
+                        <AppButton onClick={() => { if (viewOption) setViewOption(prev => !prev) }}
+                            sx={{
+                                bgcolor: viewOption ? 
+                                    (darkMode ? 'background.paper' : 'action.hover') 
+                                    : (darkMode ? 'divider' : 'background.paper'),
                                 width: '120px', borderRadius: '4px 0 0 4px',
                                 transition: 'background-color 0.3s',
                                 '&:hover': {
                                     cursor: viewOption ? 'pointer' : 'default',
-                                    bgcolor: viewOption ? '' : 'white'
+                                    bgcolor: viewOption ?
+                                        'action.disabled'
+                                        : (darkMode ? 'action.hover' : 'background.paper')
                                 }
-                            }}>
+                            }}
+                        >
                             Categories
                         </AppButton>
-                        <AppButton onClick={() => {
-                            if (!viewOption) setViewOption(!viewOption)
+                        <AppButton onClick={() => { if (!viewOption) setViewOption(prev => !prev) }}
+                            sx={{
+                                bgcolor: viewOption ? (darkMode ? 'divider' : 'background.paper')
+                                    : (darkMode ? 'background.paper' : 'action.hover'),
+                                width: '120px', borderRadius: '0 4px 4px 0',
+                                transition: 'background-color 0.3s',
+                                '&:hover': {
+                                    cursor: viewOption ? 'default' : 'pointer',
+                                    bgcolor: viewOption ? 
+                                        (darkMode ? 'action.hover' : 'background.paper')
+                                        : 'action.disabled'
+                                }
                             }}
-                        sx={{
-                            variant: viewOption ? 'outlined' : '',
-                            bgcolor: viewOption ? 'white' : 'lightgray',
-                            width: '120px', borderRadius: '0 4px 4px 0',
-                            transition: 'background-color 0.3s',
-                            '&:hover': {
-                                cursor: viewOption ? 'default' : 'pointer',
-                                bgcolor: viewOption ? 'white' : ''
-                            }
-                        }}>
+                        >
                             Students
                         </AppButton>
                     </Box>
@@ -194,7 +198,7 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                             ))}
                         </Paper>
                     ) : (
-                        <Paper sx={{ px: { xs: 0.5, md: 2 }, mx: { xs: 0, md: 2 }, py: 0, my: 1 }}>
+                        <Paper sx={{ px: { xs: 0.5, md: 2 }, mx: { xs: 0, md: 2 }, py: 0, my: 2 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
                                     <Switch onChange={handleSortOption} color="default" size={isMobile ? "small" : "medium"} />

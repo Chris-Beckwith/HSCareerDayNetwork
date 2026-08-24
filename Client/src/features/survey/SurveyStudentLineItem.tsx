@@ -14,7 +14,7 @@ interface Props {
  */
 export default function SurveyStudentLineItem({ item, showAlternate, onEdit, schoolUser }: Props) {
     return (
-        <Grid container display='flex' alignItems='center' sx={{ my: 0.5, py: 0.2, pl: 0.7, '&:hover': { bgcolor: 'primary.light' } }}>
+        <Grid container display='flex' alignItems='center' sx={{ my: 0.5, py: 0.2, pl: 0.7, '&:hover': { bgcolor: 'primary.light', color: 'primary.contrastText' } }}>
             <Grid item xs={showAlternate ? 6 : 6} sm={showAlternate ? 4 : 3}>
                 <Typography variant="body2" sx={{ fontSize: { xs: '.775rem', sm: '.825rem', md: '.875rem' } }}>
                     {!schoolUser && 
