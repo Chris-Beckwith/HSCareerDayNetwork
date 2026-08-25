@@ -11,16 +11,18 @@ import SurveyHeader from "./SurveyHeader";
 
 function App() {
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
   const location = useLocation()
+  const navigate = useNavigate()
   const isSurvey = location.pathname.includes('/survey')
   const [loading, setLoading] = useState(true)
 
   const initApp = useCallback(async () => {
+    const hadStoredUser = !!localStorage.getItem('user')
+
     try {
       const result = await dispatch(fetchCurrentUser())
 
-      if (fetchCurrentUser.rejected.match(result)) {
+      if (fetchCurrentUser.rejected.match(result) && hadStoredUser) {
         toast.error('Session expired - please login again')
         navigate('/')
       }
