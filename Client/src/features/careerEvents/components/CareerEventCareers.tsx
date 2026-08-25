@@ -6,6 +6,7 @@ import { Speaker } from "../../../app/models/speaker"
 import ConfirmCareerSet from "../../careers/careerSets/ConfirmCareerSet"
 import AppButton from "../../../app/components/AppButton"
 import AppBackButton from "../../../app/components/AppBackButton"
+import { blue } from "@mui/material/colors"
 
 interface Props {
     careerEventName: string
@@ -22,8 +23,10 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
     const [eventCareers, setEventCareers] = useState<Career[]>([])
     const [saveCareerSet, setSaveCareerSet] = useState(false)
     const [openSaveCareerSet, setOpenSaveCareerSet] = useState(false)
-    const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'))
-    const isTablet = useMediaQuery(useTheme().breakpoints.down('md'))
+    const theme = useTheme()
+    const darkMode = theme.palette.mode === 'dark'
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     useEffect(() => {
         setEventCareers(careerEventCareers)
@@ -89,8 +92,8 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
                         </span>
                     </Tooltip>
                 </Box>
-                <Paper sx={{p: isMobile ? 0.4 : 0.7, bgcolor: 'primary.light'}}>
-                    <Typography variant="body1" align="center" >Selected Careers will be highlighted</Typography>
+                <Paper sx={{py: isMobile ? 0.4 : 0.7, px: isMobile ? 0.7 : 1, bgcolor: darkMode ? blue[900] : 'primary.light'}}>
+                    <Typography variant="body1" align="center">Selected Careers will be highlighted</Typography>
                 </Paper>
             </Box>
             <Box display='flex' justifyContent='flex-end' sx={{ mr: -1, my: isMobile ? 1 : 0 }}>
@@ -99,7 +102,7 @@ export default function CareerEventCareers({ careerEventName, careerEventCareers
             </Box>
 
             <CareerList handleSelectCareer={handleSelectCareer} eventCareers={eventCareers} handleSetEventCareers={setEventCareers}
-                hideDescription={true} hideDelete={true} />
+                hideDescription={true} hideDelete={true} hideEdit={true} />
 
             <ConfirmCareerSet open={openSaveCareerSet} handleClose={handleCloseSaveCareerSet}
                     careerSet={eventCareers} />

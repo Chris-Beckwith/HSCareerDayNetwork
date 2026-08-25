@@ -17,6 +17,7 @@ interface Props {
     handleSelectCareer: (career: Career) => void
     hideDescription?: boolean
     hideDelete?: boolean
+    hideEdit?: boolean
     eventCareers?: Career[]
     handleSetEventCareers?: (careers: Career[]) => void
 }
@@ -24,7 +25,7 @@ interface Props {
 /**
  * Component to layout careers and creating career sets.
  */
-export default function CareerList({ handleSelectCareer, hideDescription, hideDelete, eventCareers, handleSetEventCareers }: Props) {
+export default function CareerList({ handleSelectCareer, hideDescription, hideDelete, hideEdit, eventCareers, handleSetEventCareers }: Props) {
     const dispatch = useAppDispatch()
     const { careers, categories, careerSets, careerSetsLoaded } = useCareers()
     const [hiddenCategories, setHiddenCategories] = useState<string[]>([])
@@ -205,12 +206,14 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                             ) : (
                                     <Box display='flex' alignItems='center'>
                                         <Typography variant="h6">{category}</Typography>
-                                        <IconButton color="primary" onClick={() => {
-                                            setEditCategory(category)
-                                            setUpdatedCategoryName(category)
-                                        }}>
-                                            <Edit />
-                                        </IconButton>
+                                        {!hideEdit && (
+                                            <IconButton color="primary" onClick={() => {
+                                                setEditCategory(category)
+                                                setUpdatedCategoryName(category)
+                                            }}>
+                                                <Edit />
+                                            </IconButton>
+                                        )}
                                     </Box>
                             )}
                             <Button onClick={() => hideShowCategory(category)} sx={{ pr: 2 }}>

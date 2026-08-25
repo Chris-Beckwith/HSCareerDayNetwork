@@ -1,6 +1,6 @@
 import { createAsyncThunk, createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import { Speaker, SpeakerParams } from "../../app/models/speaker";
-import { RootState } from "../../app/store/configureStore";
+import type { RootState } from "../../app/store/configureStore";
 import agent from "../../app/api/agent";
 import { MetaData } from "../../app/models/pagination";
 
@@ -65,7 +65,7 @@ export const speakerSlice = createSlice({
         resetSpeakerParams: (state) => {
             state.speakerParams = initParams()
         },
-        setPageNumber: (state, action) => {
+        setPagination: (state, action) => {
             state.speakersLoaded = false
             state.speakerParams = {...state.speakerParams, ...action.payload}
         },
@@ -90,4 +90,4 @@ export const speakerSlice = createSlice({
 })
 
 export const speakerSelectors = speakerAdapter.getSelectors((state: RootState) => state.speakers)
-export const {setSpeaker, reloadSpeakers, setSpeakerSearchParams, setPageNumber, setMetaData} = speakerSlice.actions
+export const {setSpeaker, reloadSpeakers, setSpeakerSearchParams, setPagination, setMetaData} = speakerSlice.actions

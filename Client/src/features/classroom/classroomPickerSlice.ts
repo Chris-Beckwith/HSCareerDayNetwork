@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Classroom, ClassroomParams } from "../../app/models/classroom";
 import { MetaData } from "../../app/models/pagination";
-import { RootState } from "../../app/store/configureStore";
+import type { RootState } from "../../app/store/configureStore";
 import agent from "../../app/api/agent";
 
 interface ClassroomPickerState {

@@ -34,6 +34,7 @@ export default function Survey() {
     const [primaryCareers, setPrimaryCareers] = useState<Career[]>([])
     const [alternateCareers, setAlternateCareers] = useState<Career[]>([])
     const [onPrimaryCareers, setOnPrimaryCareers] = useState(true)
+    const [hiddenCategories, setHiddenCategories] = useState<string[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [eventError, setEventError] = useState('')
@@ -66,6 +67,19 @@ export default function Survey() {
         }
     }, [eventHash])
 
+    useEffect(() => {
+        if (event?.careers && event?.careers.length > 0) {
+            setHiddenCategories(
+                Array.from(new Set(
+                    event.careers.map(c => c.category)
+                ))
+            )
+        }
+    }, [event?.careers])
+
+    useEffect(() => {
+        window.scrollTo({ top: 250, behavior: 'smooth'})
+    },[activeStep, onPrimaryCareers])
 
     const getStepContent = (step: number) => {
         switch (step) {
@@ -76,6 +90,7 @@ export default function Survey() {
             case 2:
                 return <CareerSelection careers={event?.careers}
                     updateSelectedCareer={updateSelectedCareer} onPrimaryCareers={onPrimaryCareers}
+                    hiddenCategories={hiddenCategories} setHiddenCategories={setHiddenCategories}
                     primaryCareers={primaryCareers} alternateCareers={alternateCareers} />
             case 3:
                 return <ReviewAndSubmit student={student}
@@ -147,10 +162,8 @@ export default function Survey() {
                 }
                 if (onPrimaryCareers) {
                     setOnPrimaryCareers(false)
-                    window.scrollTo({ top: 250, behavior: 'smooth'})
                 } else {
                     setActiveStep(activeStep + 1)
-                    window.scrollTo({ top: 250, behavior: 'smooth'})
                 }
             } else if (activeStep === 3) {  //Survey Submitted
                 const studentId = student?.id
@@ -171,8 +184,10 @@ export default function Survey() {
     }
 
     const handleBack = () => {
-        if (activeStep === 2 && !onPrimaryCareers) setOnPrimaryCareers(true)
-        else setActiveStep(activeStep - 1)
+        if (activeStep === 2 && !onPrimaryCareers)
+            setOnPrimaryCareers(true)
+        else
+            setActiveStep(activeStep - 1)
     }
 
     if (loading) return <LoadingComponent message="Loading Survey..." />

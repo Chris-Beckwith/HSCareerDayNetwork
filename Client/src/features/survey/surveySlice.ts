@@ -1,7 +1,7 @@
 import { createAsyncThunk, createEntityAdapter, createSlice } from "@reduxjs/toolkit"
 import { Survey } from "../../app/models/survey"
 import agent from "../../app/api/agent"
-import { RootState } from "../../app/store/configureStore"
+import type { RootState } from "../../app/store/configureStore"
 
 interface SurveyState {
     surveyResultsLoaded: boolean

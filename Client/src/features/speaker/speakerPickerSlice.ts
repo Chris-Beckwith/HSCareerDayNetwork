@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Speaker, SpeakerParams } from "../../app/models/speaker";
 import agent from "../../app/api/agent";
-import { RootState } from "../../app/store/configureStore";
+import type { RootState } from "../../app/store/configureStore";
 import { MetaData } from "../../app/models/pagination";
 
 interface SpeakerPickerState {

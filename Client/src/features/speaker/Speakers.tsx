@@ -1,7 +1,7 @@
 import { Box, Button, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { MouseEvent, useState } from "react"
 import { useAppDispatch } from "../../app/store/configureStore"
-import { reloadSpeakers, setPageNumber, setSpeakerSearchParams } from "./speakerSlice"
+import { reloadSpeakers, setPagination, setSpeakerSearchParams } from "./speakerSlice"
 import { Speaker } from "../../app/models/speaker"
 import SpeakerForm from "./SpeakerForm"
 import { Delete } from "@mui/icons-material"
@@ -115,17 +115,21 @@ export default function Speakers() {
 
     return (
         <>
-            <Box display='flex' justifyContent='space-between' alignItems='center' sx={{mb: 2}}>
-                <Typography variant={isTablet ? "h4" : "h3"}>Speakers</Typography>
+            <Box display='flex' alignItems='center' sx={{mb: 2}}>
+                <Box display='flex' justifyContent='flex-start' flex={1}>
+                    <Typography variant={isTablet ? "h4" : "h3"}>Speakers</Typography>
+                </Box>
                 <Box>
                     <AppTextSearch label="Search Speakers"
                         stateSearchTerm={speakerParams.searchTerm} setParams={setSpeakerSearchParams} />
                 </Box>
-                <Button variant="contained" onClick={() => setEditMode(true)}
-                    sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}
-                >
-                    New Speaker
-                </Button>
+                <Box display='flex' justifyContent='flex-end' flex={1}>
+                    <Button variant="contained" onClick={() => setEditMode(true)}
+                        sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}
+                    >
+                        New Speaker
+                    </Button>
+                </Box>
             </Box>
             <TableContainer component={Paper}>
                 <Table sx={{ '& .MuiTableCell-root': { fontSize: isTablet ? '0.75rem' : '0.875rem' } }}>
@@ -188,7 +192,8 @@ export default function Speakers() {
                 {metaData &&
                     <AppPagination
                         metaData={metaData}
-                        onPageChange={(page: number) => dispatch(setPageNumber({ pageNumber: page }))}
+                        onPageChange={(page: number) => dispatch(setPagination({ pageNumber: page }))}
+                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize }))}
                     />
                 }
             </Box>

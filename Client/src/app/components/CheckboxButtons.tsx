@@ -1,5 +1,6 @@
 import { Checkbox, FormControlLabel, FormGroup, FormLabel, useMediaQuery, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
+import { DEFAULT_FONT_SIZE } from "../util/constants";
 
 interface Props {
     label: string
@@ -44,7 +45,7 @@ export default function CheckboxButtons({label, items, checked, onChange}: Props
                     label={item}
                     key={item}
                     componentsProps={{ typography: { sx: { lineHeight: 1.2 } } }}
-                    sx={{ mr: 0, pb: '4px', '.MuiFormControlLabel-label': { fontSize: isMobile ? '0.8rem' : '1rem' } }}
+                    sx={{ mr: 0, pb: '4px', '.MuiFormControlLabel-label': { fontSize: DEFAULT_FONT_SIZE } }}
                 />
             ))}
         </FormGroup>
