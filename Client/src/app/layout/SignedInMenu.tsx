@@ -35,6 +35,11 @@ export default function SignedInMenu() {
         navigate('/schoolAdmins')
         handleClose()
     }
+    
+    const handleSignOut = () => {
+        dispatch(signOut())
+        navigate('/')
+    }
 
     return (
         <>
@@ -58,7 +63,7 @@ export default function SignedInMenu() {
                         <MenuItem key="2" onClick={handleSchoolAdmins}>School Admins</MenuItem>
                     ]
                 )}
-                <MenuItem onClick={() => dispatch(signOut())}>Logout</MenuItem>
+                <MenuItem onClick={handleSignOut}>Logout</MenuItem>
             </Menu>
         </>
     );

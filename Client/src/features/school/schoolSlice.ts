@@ -1,7 +1,7 @@
 import { createAsyncThunk, createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import { School, SchoolParams } from "../../app/models/school";
 import agent from "../../app/api/agent";
-import { RootState } from "../../app/store/configureStore";
+import type { RootState } from "../../app/store/configureStore";
 import { MetaData } from "../../app/models/pagination";
 
 interface SchoolState {
@@ -65,14 +65,14 @@ export const schoolSlice = createSlice({
         reloadSchools: (state) => {
             state.schoolsLoaded = false
         },
-        setPageNumber: (state, action) => {
+        setPagination: (state, action) => {
             state.schoolsLoaded = false
             state.schoolParams = {...state.schoolParams, ...action.payload}
         },
         setMetaData: (state, action) => {
             state.metaData = action.payload
         },
-        setSchoolParams: (state, action) => {
+        setSchoolSearchParams: (state, action) => {
             state.schoolsLoaded = false
             state.schoolParams = {...state.schoolParams, ...action.payload, pageNumber: 1}
         }
@@ -104,5 +104,5 @@ export const schoolSlice = createSlice({
     })
 })
 
-export const {reloadSchools, setPageNumber, setMetaData, setSchoolParams} = schoolSlice.actions
+export const {reloadSchools, setPagination, setMetaData, setSchoolSearchParams} = schoolSlice.actions
 export const schoolSelectors = schoolAdapter.getSelectors((state: RootState) => state.schools)

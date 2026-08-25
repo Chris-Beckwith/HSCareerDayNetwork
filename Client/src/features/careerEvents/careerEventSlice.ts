@@ -91,7 +91,7 @@ export const careerEventSlice = createSlice({
             state.careerEventsLoaded = false
             state.eventParams = {...state.eventParams, ...action.payload, pageNumber: 1}
         },
-        setPageNumber: (state, action) => {
+        setPagination: (state, action) => {
             state.careerEventsLoaded = false
             state.eventParams = {...state.eventParams, ...action.payload}
         },
@@ -116,7 +116,7 @@ export const careerEventSlice = createSlice({
             state.status = 'idle'
         })
         builder.addCase(fetchAllCareerEventsAsync.rejected, (state, action) => {
-            console.log(action.payload)
+            console.log("Get all career events rejected:", action.payload)
             state.status = 'idle'
         })
         builder.addCase(fetchCareerEventAsync.pending, (state) => {
@@ -146,4 +146,4 @@ export const careerEventSlice = createSlice({
 })
 
 export const careerEventSelectors = careerEventAdapter.getSelectors((state: RootState) => state.careerEvents)
-export const {setEventParams, setPageNumber, resetEventParams, setMetaData, reloadEvents} = careerEventSlice.actions
+export const {setEventParams, setPagination, resetEventParams, setMetaData, reloadEvents} = careerEventSlice.actions

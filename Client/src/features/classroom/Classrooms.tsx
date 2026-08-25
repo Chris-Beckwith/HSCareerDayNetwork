@@ -7,7 +7,7 @@ import ClassroomSkeleton from "./ClassroomSkeleton";
 import { Delete } from "@mui/icons-material";
 import { Classroom } from "../../app/models/classroom";
 import agent from "../../app/api/agent";
-import { reloadClassrooms, setClassroomParams, setPageNumber } from "./classroomSlice";
+import { reloadClassrooms, setClassroomParams, setPagination } from "./classroomSlice";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { LoadingButton } from "@mui/lab";
 import AppTextSearch from "../../app/components/AppTextSearch";
@@ -138,7 +138,8 @@ export default function Classrooms({ school, back }: Props) {
                 {metaData &&
                     <AppPagination
                         metaData={metaData}
-                        onPageChange={(page: number) => dispatch(setPageNumber({ pageNumber: page }))}
+                        onPageChange={(page: number) => dispatch(setPagination({ pageNumber: page }))}
+                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize }))}
                     />
                 }
             </Box>

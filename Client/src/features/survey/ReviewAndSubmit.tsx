@@ -62,7 +62,7 @@ export default function ReviewAndSubmit({ student, primaryCareers, alternateCare
           
           <Grid item xs={12} md={6} display='flex' justifyContent='center'>
             <TableContainer>
-              <Typography variant="h6" component="div">Primary Career Choices</Typography>
+              <Typography variant="h6" component="div" pl={1}>Primary Career Choices</Typography>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -84,7 +84,7 @@ export default function ReviewAndSubmit({ student, primaryCareers, alternateCare
 
           <Grid item xs={12} md={6} display='flex' justifyContent='center'>
             <TableContainer>
-              <Typography variant="h6" component="div">Alternate Career Choices</Typography>
+              <Typography variant="h6" component="div" pl={1}>Alternate Career Choices</Typography>
               <Table>
                 <TableHead>
                   <TableRow>

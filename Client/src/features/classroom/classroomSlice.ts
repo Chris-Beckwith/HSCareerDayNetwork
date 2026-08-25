@@ -2,7 +2,7 @@ import { createAsyncThunk, createEntityAdapter, createSlice } from "@reduxjs/too
 import { Classroom, ClassroomParams } from "../../app/models/classroom"
 import { MetaData } from "../../app/models/pagination"
 import agent from "../../app/api/agent"
-import { RootState } from "../../app/store/configureStore"
+import type { RootState } from "../../app/store/configureStore"
 
 interface ClassroomState {
     classroomsLoaded: boolean
@@ -39,7 +39,7 @@ export const getAllRoomsBySchoolAsync = createAsyncThunk<Classroom[], number, {s
 function initParams() {
     return {
         pageNumber: 1,
-        pageSize: 30
+        pageSize: 10
     }
 }
 
@@ -55,7 +55,7 @@ export const classroomSlice = createSlice({
         reloadClassrooms: (state) => {
             state.classroomsLoaded = false
         },
-        setPageNumber: (state, action) => {
+        setPagination: (state, action) => {
             state.classroomsLoaded = false
             state.classroomParams = {...state.classroomParams, ...action.payload}
         },
@@ -83,5 +83,5 @@ export const classroomSlice = createSlice({
     })
 })
 
-export const {reloadClassrooms, setPageNumber, setMetaData, setClassroomParams} = classroomSlice.actions
+export const {reloadClassrooms, setPagination, setMetaData, setClassroomParams} = classroomSlice.actions
 export const classroomSelectors = classroomAdapter.getSelectors((state: RootState) => state.classrooms)

@@ -63,11 +63,11 @@ export default function ImportStudents({ open, eventId, setResponse, setIncomple
             aria-describedby="alert-dialog-description"
         >
             <DialogTitle id="alert-dialog-title">
-                Import Students
+                Upload Students
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    Drag or Select file to import, file type must be .xlsx or .xls
+                    Drag or Select file to upload, file type must be .xlsx or .xls
                 </DialogContentText>
                 <Box sx={{ mt: 2 }}>
                     <input style={{ width: 450 }} type="file" accept=".xlsx, .xls" onChange={(event) => onFileChange(event)} />
@@ -81,7 +81,7 @@ export default function ImportStudents({ open, eventId, setResponse, setIncomple
             <DialogActions>
                 <Button onClick={handleOnCancel}>Cancel</Button>
                 <LoadingButton onClick={onImport} disabled={!file} loading={loading} autoFocus>
-                    Import Students
+                    Upload Students
                 </LoadingButton>
             </DialogActions>
         </Dialog>

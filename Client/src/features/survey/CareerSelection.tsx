@@ -1,23 +1,26 @@
 import { Typography, Button, Grid, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ButtonBase, useTheme, useMediaQuery, Divider, keyframes } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { Career } from '../../app/models/career';
 import CareerCard from '../careers/CareerCard';
 import { toast } from 'react-toastify';
 import { ArrowBack } from '@mui/icons-material';
+import { blue, deepOrange } from '@mui/material/colors';
 
 interface Props {
     careers: Career[] | undefined
     primaryCareers: Career[]
+    hiddenCategories: string[]
+    setHiddenCategories: Dispatch<SetStateAction<string[]>>
     alternateCareers: Career[]
     onPrimaryCareers: boolean
     updateSelectedCareer: (career: Career, isPrimary: boolean, isAdd: boolean) => void
 }
 
-export default function CareerSelection({ careers, primaryCareers, alternateCareers, onPrimaryCareers,
-                                                updateSelectedCareer }: Props) {
+export default function CareerSelection({ careers, primaryCareers, hiddenCategories, setHiddenCategories, 
+        alternateCareers, onPrimaryCareers, updateSelectedCareer }: Props) {
     const [categories, setCategories] = useState<string[]>([])
-    const [hiddenCategories, setHiddenCategories] = useState<string[]>([])
     const theme = useTheme()
+    const darkMode = theme.palette.mode === 'dark'
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [isFlashing, setIsFlashing] = useState(true)
     const [showHelperText, setShowHelperText] = useState(true)
@@ -48,11 +51,6 @@ export default function CareerSelection({ careers, primaryCareers, alternateCare
     useEffect(() => {
         if (careers && careers.length > 0) {
             setCategories(
-                Array.from(new Set(
-                    careers.map(c => c.category)
-                ))
-            )
-            setHiddenCategories(
                 Array.from(new Set(
                     careers.map(c => c.category)
                 ))
@@ -112,11 +110,11 @@ export default function CareerSelection({ careers, primaryCareers, alternateCare
                     </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: onPrimaryCareers ? 'center' : 'flex-start'}}>
-                    <Paper sx={{p: 0.7, bgcolor: 'primary.light', mb: !onPrimaryCareers ? 1 : 0, alignContent: 'center' }}>
-                        <Typography variant='body1'>Primary Selection</Typography>
+                    <Paper sx={{p: 0.7, bgcolor: darkMode ? blue[900] : 'primary.light', mb: !onPrimaryCareers ? 1 : 0, alignContent: 'center' }}>
+                        <Typography variant='body1' textAlign='center'>Primary Selection</Typography>
                     </Paper>
-                    {!onPrimaryCareers && <Paper sx={{p: 0.7, bgcolor: 'warning.light', mb: 1}}>
-                        <Typography variant='body1'>Alternate Selection</Typography>
+                    {!onPrimaryCareers && <Paper sx={{p: 0.7, bgcolor: darkMode ? deepOrange[900] : 'warning.light', mb: 1}}>
+                        <Typography variant='body1' textAlign='center'>Alternate Selection</Typography>
                     </Paper>}
                 </Box>
             </Grid>

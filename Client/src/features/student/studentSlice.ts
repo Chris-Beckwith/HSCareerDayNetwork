@@ -2,7 +2,7 @@ import { createAsyncThunk, createEntityAdapter, createSlice } from "@reduxjs/too
 import { MetaData } from "../../app/models/pagination"
 import { Student, StudentParams } from "../../app/models/student"
 import agent from "../../app/api/agent"
-import { RootState } from "../../app/store/configureStore"
+import type { RootState } from "../../app/store/configureStore"
 
 interface StudentState {
     studentsLoaded: boolean

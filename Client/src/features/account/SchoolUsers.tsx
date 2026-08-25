@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Box, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
 import AppPagination from "../../app/components/AppPagination"
 import AppTextSearch from "../../app/components/AppTextSearch"
-import { getSchoolUsersAsync, reloadUsers, setPageNumber, setUserParams, userSelectors } from "./userSlice"
+import { getSchoolUsersAsync, reloadUsers, setPagination, setUserParams, userSelectors } from "./userSlice"
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
 import SchoolUserSkeleton from "./SchoolUserSkeleton"
 import { AddCircleOutline, Edit, Save } from "@mui/icons-material"
@@ -151,7 +151,8 @@ export default function SchoolUsers() {
                 {metaData &&
                     <AppPagination
                         metaData={metaData}
-                        onPageChange={(page: number) => dispatch(setPageNumber({ pageNumber: page }))}
+                        onPageChange={(page: number) => dispatch(setPagination({ pageNumber: page }))}
+                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize }))}
                     />
                 }
             </Box>

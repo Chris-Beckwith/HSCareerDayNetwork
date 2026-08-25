@@ -86,10 +86,10 @@ export default function Careers() {
                 }
             </Box>
 
-            {status.includes('pending') ? 
-                <LoadingComponent message="Loading Careers..." /> :
-                <CareerList handleSelectCareer={handleSelectCareer} eventCareers={newCareerSetMode ? careerSet : undefined}
-                    hideDelete={newCareerSetMode} hideDescription={newCareerSetMode} handleSetEventCareers={setCareerSet} />
+            {status.includes('pending') ? <LoadingComponent message="Loading Careers..." />
+                : <CareerList handleSelectCareer={handleSelectCareer} eventCareers={newCareerSetMode ? careerSet : undefined}
+                    hideDelete={newCareerSetMode} hideDescription={newCareerSetMode} hideEdit={newCareerSetMode}
+                    handleSetEventCareers={setCareerSet} />
             }
 
             <ConfirmCareerSet open={openSaveCareerSet} handleClose={handleClose}

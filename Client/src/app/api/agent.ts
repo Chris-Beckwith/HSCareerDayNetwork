@@ -1,6 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { toast } from "react-toastify";
-import { router } from "../router/Routes";
 import { PaginatedResponse } from "../models/pagination";
 import { store } from "../store/configureStore";
 import { ExcelResponse } from "../models/excelExport";
@@ -42,6 +41,10 @@ axios.interceptors.response.use(async response => {
     
     return response
 }, async (error: AxiosError) => {
+    if (!error.response) {
+        toast.error("Unable to connect to the server.")
+        return Promise.reject(error)
+    }
     let {data} = error.response as AxiosResponse
     const {status} = error.response as AxiosResponse
 
@@ -77,7 +80,7 @@ axios.interceptors.response.use(async response => {
             toast.error(data.message)
             break;
         case 500:
-            router.navigate('/server-error', {state: {error: data}})
+            toast.error("An unexpected server error occurred. Please try again.")
             break;
         default:
             break;

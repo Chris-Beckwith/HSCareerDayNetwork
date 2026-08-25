@@ -167,7 +167,7 @@ export default function Students({ event, back, schoolUser }: Props) {
                         Survey Results
                     </AppButton>
                 :
-                <Box sx={{ minHeight: isTablet ? isMobile ? 32 : 40 : 51 }}>
+                    <Box sx={{ minHeight: isTablet ? isMobile ? 32 : 40 : 51 }}>
                         <AppBackButton onClick={back} sx={{ left: 20, pt: isMobile ? "6px" : 1 }}/>
                     </Box>
                 }
@@ -191,7 +191,7 @@ export default function Students({ event, back, schoolUser }: Props) {
                         stateSearchTerm={studentParams.searchTerm} setParams={setStudentParams} />
                 </Paper>
                 <Paper sx={{ mb: 2, p: 1 }}>
-                    <Grid item sx={{ color: 'rgba(0,0,0,0.6)', fontSize: isMobile ? '0.9rem' : '1rem', pl: 1 }} >Gender</Grid>
+                    <Grid item sx={{ color: 'text.secondary', fontSize: isMobile ? '0.9rem' : '1rem', pl: 1 }} >Gender</Grid>
                     <RadioButtonGroup
                         selectedValue={studentParams.gender}
                         options={genderOptions}
@@ -207,7 +207,7 @@ export default function Students({ event, back, schoolUser }: Props) {
                     />
                 </Paper>
                 <Paper sx={{ mb: 2, p: 1}}>
-                    <Grid item sx={{ color: 'rgba(0,0,0,0.6)', fontSize: isMobile ? '0.9rem' : '1rem', pl: 1 }}>Survey Complete</Grid>
+                    <Grid item sx={{ color: 'text.secondary', fontSize: isMobile ? '0.9rem' : '1rem', pl: 1 }}>Survey Complete</Grid>
                     <RadioButtonGroup
                         selectedValue={studentParams.surveyComplete ? studentParams.surveyComplete.toString() : ''}
                         options={surveyOptions}
