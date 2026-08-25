@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Container, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 import Header from "./Header";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { useAppDispatch } from "../store/configureStore";
@@ -12,6 +12,7 @@ import SurveyHeader from "./SurveyHeader";
 function App() {
   const dispatch = useAppDispatch()
   const location = useLocation()
+  const navigate = useNavigate()
   const isSurvey = location.pathname.includes('/survey')
   const [loading, setLoading] = useState(true)
 
@@ -23,11 +24,12 @@ function App() {
 
       if (fetchCurrentUser.rejected.match(result) && hadStoredUser) {
         toast.error('Session expired - please login again')
+        navigate('/')
       }
     } catch (error) {
       console.log(error)
     }
-  }, [dispatch])
+  }, [dispatch, navigate])
 
   useEffect(() => {
     initApp().then(() => setLoading(false))
