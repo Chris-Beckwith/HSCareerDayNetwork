@@ -1,8 +1,8 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
-import { Session } from "../../app/models/session";
-import { Classroom } from "../../app/models/classroom";
-import { getClassroomText } from "../../app/util/displayUtil";
-import { DEFAULT_FONT_SIZE } from "../../app/util/constants";
+import { Session } from "../../../app/models/session";
+import { Classroom } from "../../../app/models/classroom";
+import { getClassroomText } from "../../../app/util/displayUtil";
+import { DEFAULT_FONT_SIZE } from "../../../app/util/constants";
 
 interface Props {
     open: boolean

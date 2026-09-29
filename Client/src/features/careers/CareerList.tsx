@@ -1,7 +1,7 @@
 import { Box, Button, FormControl, Grid, IconButton, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { Career } from "../../app/models/career"
 import CareerCard from "./CareerCard"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import useCareers from "../../app/hooks/useCareers"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "react-toastify"
@@ -12,45 +12,51 @@ import agent from "../../app/api/agent"
 import { useAppDispatch } from "../../app/store/configureStore"
 import { reloadCareers, reloadCareerSets } from "./careerSlice"
 import { LoadingButton } from "@mui/lab"
+import { CareerSet } from "../../app/models/careerSet"
 
 interface Props {
     handleSelectCareer: (career: Career) => void
-    hideDescription?: boolean
-    hideDelete?: boolean
-    hideEdit?: boolean
-    eventCareers?: Career[]
-    handleSetEventCareers?: (careers: Career[]) => void
+    hideDescription: boolean
+    hideDelete: boolean
+    hideEdit: boolean
+    blockUpdate?: boolean
+    selectedCareers?: Career[]
+    handleSetCareerSet: (careerSet: CareerSet | undefined) => void
+    selectedCareerSetId: number | undefined
 }
 
 /**
  * Component to layout careers and creating career sets.
  */
-export default function CareerList({ handleSelectCareer, hideDescription, hideDelete, hideEdit, eventCareers, handleSetEventCareers }: Props) {
+export default function CareerList({ handleSelectCareer, hideDescription, hideDelete, hideEdit, blockUpdate,
+        selectedCareers, handleSetCareerSet, selectedCareerSetId }: Props) {
     const dispatch = useAppDispatch()
     const { careers, categories, careerSets, careerSetsLoaded } = useCareers()
     const [hiddenCategories, setHiddenCategories] = useState<string[]>([])
-    const [selectedCareerSet, setSelectedCareerSet] = useState<number>()
-    const [selectedCareerSetName, setSelectedCareerSetName] = useState<string | undefined>('')
     const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [editCategory, setEditCategory] = useState('')
     const [updatedCategoryName, setUpdatedCategoryName] = useState('')
+    const [careerSetName, setCareerSetName] = useState<string | undefined>('')
     const [loading, setLoading] = useState(false)
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-    const { control, reset } = useForm({
+    const newCareerSet = { id: 0, name: 'New Career Set', careers: []}
+    const careerSetsWithNew = [newCareerSet, ...careerSets]
+    
+    const { control, reset, getValues } = useForm({
         defaultValues: {
-            careerSets: ''
+            careerSets: selectedCareerSetId || newCareerSet.id
         }
     })
-
+    
     useEffect(() => {
-        if (eventCareers?.length === 0) {
+        if (selectedCareers?.length === 0) {
             reset({
-                careerSets: ''
+                careerSets: newCareerSet.id
             })
         }
-    }, [reset, eventCareers])
+    }, [selectedCareers?.length, reset, newCareerSet.id])
 
     const hideShowCategory = (category: string) => {
         if (hiddenCategories.includes(category))
@@ -71,39 +77,37 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
     async function confirmDeleteCareerSet() {
         setConfirmDeleteLoading(true)
         try {
-            if (selectedCareerSet) {
-                await agent.CareerSet.delete(selectedCareerSet)
+            if (getValues("careerSets") !== 0) {
+                await agent.CareerSet.delete(getValues("careerSets"))
                 dispatch(reloadCareerSets())
             }
         } catch (error) {
             console.log(error)
         }
         setShowDeletePopup(false)
-        setSelectedCareerSet(undefined)
-        setSelectedCareerSetName(undefined)
+        reset()
         setConfirmDeleteLoading(false)
-        if (handleSetEventCareers)
-            handleSetEventCareers([])
+        if (handleSetCareerSet)
+            handleSetCareerSet(newCareerSet)
     }
 
-    const matchesSelectCareerSet = () => {
-        if (eventCareers && selectedCareerSet) {
-            const cs = careerSets.find(cs => cs.id === selectedCareerSet)
-            return cs?.careers.length === eventCareers.length
-                && cs.careers.every(c => eventCareers.some(ec => ec.id === c.id))
-                && eventCareers.every(ec => cs.careers.some(c => c.id === ec.id))
+    const matchesSelectCareerSet = useMemo(() => {
+        if (selectedCareers) {
+            const cs = careerSets.find(cs => cs.id === getValues("careerSets"))
+            return cs?.careers.length === selectedCareers.length
+                && cs.careers.every(c => selectedCareers.some(ec => ec.id === c.id))
+                && selectedCareers.every(ec => cs.careers.some(c => c.id === ec.id))
         }
         return false
-    }
+    }, [careerSets, getValues, selectedCareers])
 
-    const handleCareerSetChange = (event: SelectChangeEvent<string>, onChange: (...event: any[]) => void) => {
-        if (careerSets && handleSetEventCareers) {
-            const careerSet = careerSets.find(c => c.name == event.target.value)
-            setSelectedCareerSet(careerSet?.id)
-            setSelectedCareerSetName(careerSet?.name)
+    const handleCareerSetChange = (event: SelectChangeEvent<number>, onChange: (...event: any[]) => void) => {
+        if (careerSetsWithNew && handleSetCareerSet) {
+            const careerSet = careerSetsWithNew.find(c => c.id === event.target.value)
+            setCareerSetName(careerSet?.name)
+            handleSetCareerSet(careerSet)
             if (careerSet?.careers) {
-                handleSetEventCareers(careerSet.careers)
-                onChange(event)
+                onChange(event.target.value)
             } else {
                 toast.error("Unable to find careers associated to career set")
             }
@@ -147,14 +151,14 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
 
                 <Grid container item xs={8} sm={6} md={4}>
                     <Grid item xs={1} display='flex' justifyItems='center'>
-                        {selectedCareerSet && matchesSelectCareerSet() &&
+                        {getValues("careerSets") !== 0 && matchesSelectCareerSet &&
                             <IconButton size="small" color="error" onClick={() => setShowDeletePopup(true)}>
                                 <Delete fontSize="small" />
                             </IconButton>
                         }
                     </Grid>
                     <Grid item xs={11}>
-                        {eventCareers &&
+                        {selectedCareers &&
                             <FormControl fullWidth size="small">
                                 <InputLabel>Career Sets</InputLabel>
                                 <Controller
@@ -163,12 +167,14 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                                     render={({ field }) => (
                                         <Select label="Career Sets"
                                             {...field}
-                                            value={field.value || ''}
+                                            value={field.value ?? 0}
                                             fullWidth
                                             onChange={(event) => handleCareerSetChange(event, field.onChange)}
                                         >
-                                            {careerSets && careerSets.map(careerSet => (
-                                                <MenuItem key={careerSet.id} value={careerSet.name}>
+                                            {careerSetsWithNew?.map((careerSet, index) => (
+                                                <MenuItem key={careerSet.id} value={careerSet.id} 
+                                                    sx={{ fontStyle: index === 0 ? 'italic' : 'normal' }}
+                                                >
                                                     {careerSet.name}
                                                 </MenuItem>
                                             ))}
@@ -236,9 +242,9 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                                 <TableBody>
                                     {careers?.filter(career => career.category == category).map(career => (
                                         <CareerCard key={career.id} career={career}
-                                            handleSelectCareer={handleSelectCareer}
+                                            handleSelectCareer={handleSelectCareer} blockUpdate={blockUpdate}
                                             hideDescription={hideDescription} hideDelete={hideDelete}
-                                            highlightRow={ eventCareers?.some(c => c.id == career.id) }
+                                            highlightRow={ selectedCareers?.some(c => c.id == career.id) }
                                         />
                                     ))}
                                 </TableBody>
@@ -248,8 +254,8 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                 </Grid>
             ))}
             
-            <ConfirmDelete open={showDeletePopup} itemType="Career Set" itemName={selectedCareerSetName || ''}
-                        handleClose={handleCloseDelete} confirmDelete={confirmDeleteCareerSet} loading={confirmDeleteLoading} />
+            <ConfirmDelete open={showDeletePopup} itemType="Career Set" itemName={careerSetName || ''}
+                handleClose={handleCloseDelete} confirmDelete={confirmDeleteCareerSet} loading={confirmDeleteLoading} />
         </Grid>
     )
 }

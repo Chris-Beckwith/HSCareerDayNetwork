@@ -139,7 +139,9 @@ export default function CareerEventSpeakers({careerEvent, updateCareerEvent, bac
         <>
             <Grid container item xs={12} display='flex' justifyContent='center' position='relative' alignItems='center'>
                 <AppBackButton onClick={back} />
-                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} display='flex' justifyContent='center'>{careerEventName}</Typography>
+                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} display='flex' justifyContent='center' align='center' maxWidth='86%'>
+                    {careerEventName}
+                </Typography>
             </Grid>
 
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ m: 1 }}>

@@ -1,16 +1,16 @@
 import { Dialog, DialogTitle, DialogContent, DialogContentText, TextField, DialogActions, Button } from "@mui/material";
-import { Career } from "../../../app/models/career";
 import agent from "../../../app/api/agent";
 import { reloadCareerSets } from "../careerSlice";
 import { useAppDispatch } from "../../../app/store/configureStore";
 import { LoadingButton } from "@mui/lab";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useCareers from "../../../app/hooks/useCareers";
+import { CareerSet } from "../../../app/models/careerSet";
 
 interface Props {
     open: boolean
-    careerSet: Career[]
     handleClose: () => void
+    careerSet: CareerSet | undefined
 }
 
 /**
@@ -22,6 +22,15 @@ export default function ConfirmCareerSet({ open, handleClose, careerSet }: Props
     const [name, setName] = useState('')
     const [error, setError] = useState(false)
     const [loading, setLoading] = useState(false)
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        if (open) {
+            setName("")
+            setError(false)
+            setTimeout(() => inputRef.current?.focus(), 0)
+        }
+    }, [open])
 
     const handleChange = (value: string) => {
         setName(value)
@@ -44,36 +53,49 @@ export default function ConfirmCareerSet({ open, handleClose, careerSet }: Props
                     const formData = new FormData(event.currentTarget)
                     const formJson = Object.fromEntries((formData as any).entries())
                     const name = formJson.name
-                    await agent.CareerSet.create({name: name, careers: careerSet})
-                    dispatch(reloadCareerSets())
-                    setLoading(false)
-                    handleClose()
+                    try {
+                        if (careerSet?.id !== 0) {
+                            const careerIds = careerSet?.careers.map(c => c.id)
+                            await agent.CareerSet.update({id: careerSet?.id, name: careerSet?.name, careerIds: careerIds})
+                        } else {
+                            await agent.CareerSet.create({name: name, careers: careerSet.careers})
+                        }
+                    } catch (error) {
+                        console.log(error)
+                    } finally {
+                        dispatch(reloadCareerSets())
+                        setLoading(false)
+                        handleClose()
+                    }
                 },
             }}
         >
-            <DialogTitle>Save Career Set</DialogTitle>
-            <DialogContent>
-                <DialogContentText>
-                    Please Enter a Name for the Career Set
-                </DialogContentText>
-                <TextField
-                    autoFocus
-                    required
-                    margin="dense"
-                    id="name"
-                    name="name"
-                    label="Name"
-                    fullWidth
-                    variant="standard"
-                    value={name}
-                    onChange={(e) => handleChange(e.target.value)}
-                    error={error}
-                    helperText={error ? "Career Set name must be unique" : ""}
-                />
-            </DialogContent>
+            <DialogTitle>{careerSet?.id !== 0 ? 'Update' : 'Save'} Career Set</DialogTitle>
+            {careerSet?.id === 0 &&
+                <DialogContent>
+                    <DialogContentText>
+                        Please Enter a Name for the Career Set
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        inputRef={inputRef}
+                        required
+                        margin="dense"
+                        id="name"
+                        name="name"
+                        label="Name"
+                        fullWidth
+                        variant="standard"
+                        value={name}
+                        onChange={(e) => handleChange(e.target.value)}
+                        error={error}
+                        helperText={error ? "Career Set name must be unique" : ""}
+                    />
+                </DialogContent>
+            }
             <DialogActions>
                 <Button onClick={handleClose}>Cancel</Button>
-                <LoadingButton loading={loading} type="submit">Save Career Set</LoadingButton>
+                <LoadingButton loading={loading} type="submit">{careerSet?.id ? 'Update' : 'Save'} Career Set</LoadingButton>
             </DialogActions>
         </Dialog>
     )

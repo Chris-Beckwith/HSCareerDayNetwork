@@ -1,8 +1,9 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Paper, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Paper, Typography, useTheme } from "@mui/material";
 import { UnplacedStudent } from "./SessionView";
 import { Session } from "../../app/models/session";
 import { useEffect, useState } from "react";
 import { ScheduleParams } from "../../app/models/scheduleParams";
+import { blue } from "@mui/material/colors";
 
 interface Props {
     placementStudent: UnplacedStudent | undefined
@@ -18,6 +19,7 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
     const [placedSessions, setPlacedSessions] = useState<Session[]>([])
     const [noAltMatch, setNoAltMatch] = useState(false)
     const [selectedSession, setSelectedSession] = useState<Session>()
+    const darkMode = useTheme().palette.mode === 'dark'
 
     useEffect(() => {
         if (placementStudent) {
@@ -115,9 +117,9 @@ export default function PlacementDialog({ placementStudent, sessions, unplacedSt
                                 onClick={() => handleSelectSession(s)}
                                 sx={{ 
                                     p: 1, width: '100%', 
-                                    cursor: selectedSession === undefined || selectedSession === s ? 'pointer' : 'default',
-                                    bgcolor: selectedSession === s ? 'primary.light' : undefined,
-                                    '&:hover': selectedSession === undefined || selectedSession === s ? { bgcolor: 'lightgray' } : {}
+                                    cursor: 'pointer',
+                                    bgcolor: selectedSession === s ? (darkMode ? blue[900] : 'primary.light' ) : undefined,
+                                    '&:hover': { bgcolor: 'action.focus' }
                                 }}
                             >
                                 <Grid item xs={12}>

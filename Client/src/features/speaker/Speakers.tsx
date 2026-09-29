@@ -94,13 +94,20 @@ export default function Speakers() {
     {
         setLoading(true)
 
-        const params = {
-            searchTerm: filterSpeakers ? speakerParams.searchTerm : "",
-            includeLastSchool: lastSchool,
-            includePortrait: portrait,
-            includeSubjects: subjects,
-            includeAddress: address
-        }
+        const today = new Date()
+        const mm = String(today.getMonth() + 1).padStart(2, '0')
+        const dd = String(today.getDate()).padStart(2, '0')
+        const yyyy = today.getFullYear()
+        const localDate = `${mm}_${dd}_${yyyy}`
+
+        const params = new URLSearchParams()
+
+        params.append('searchTerm', (filterSpeakers && speakerParams.searchTerm) ? speakerParams.searchTerm : "")
+        params.append('includeLastSchool', lastSchool.toString())
+        params.append('includePortrait', portrait.toString())
+        params.append('includeSubjects', subjects.toString())
+        params.append('includeAddress', address.toString())
+        params.append('dateString', localDate)
 
         await agent.Export.exportSpeakers(params)
             .then(response => downloadExcel(response))

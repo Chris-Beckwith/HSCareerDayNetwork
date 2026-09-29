@@ -1,43 +1,72 @@
-import { Box, Button, Grid, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Grid, Typography, useMediaQuery, useTheme } from "@mui/material";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import CareerList from "./CareerList";
 import useCareers from "../../app/hooks/useCareers";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Career } from "../../app/models/career";
 import CareerForm from "./CareerForm";
 import ConfirmCareerSet from "./careerSets/ConfirmCareerSet";
+import { CareerSet } from "../../app/models/careerSet";
+import agent from "../../app/api/agent";
+import AppButton from "../../app/components/AppButton";
+import AppLoadingButton from "../../app/components/AppLoadingButton";
+import { useAppDispatch } from "../../app/store/configureStore";
+import { reloadCareerSets } from "./careerSlice";
 
 /**
  * Display list of careers.
  */
 export default function Careers() {
     const { status } = useCareers()
+    const dispatch = useAppDispatch()
     const [editMode, setEditMode] = useState(false)
-    const [careerSet, setCareerSet] = useState<Career[]>([])
+    const [loading, setLoading] = useState(false)
+    const [careerSet, setCareerSet] = useState<CareerSet | undefined>(undefined)
+    const [initialCareerSet, setInitialCareerSet] = useState<CareerSet | undefined>(undefined)
     const [newCareerSetMode, setNewCareerSetMode] = useState(false)
     const [openSaveCareerSet, setOpenSaveCareerSet] = useState(false)
     const [selectedCareer, setSelectedCareer] = useState<Career | undefined>(undefined)
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const newCareerSet = { id: 0, name: 'New Career Set', careers: []}
+    
+    const hasChanges = useMemo(() => {
+        return JSON.stringify(careerSet) !== JSON.stringify(initialCareerSet)
+    },[careerSet, initialCareerSet])
 
     const handleAddCareer = (career: Career) => {
-        const newCareerSet = [...careerSet, career]
-        setCareerSet(newCareerSet)
+        if (!careerSet) return
+
+        setCareerSet(({
+            ...careerSet,
+            careers: [...careerSet.careers, career]
+        }))
     }
 
     const handleRemoveCareer = (career: Career) => {
-        const newEventCareers = careerSet.filter(c => c.id !== career.id)
-        setCareerSet(newEventCareers)
-    }
+        if (!careerSet) return
 
-    const handleClose = () => {
-        setOpenSaveCareerSet(false)
-        setNewCareerSetMode(false)
+        const newCareers = careerSet.careers.filter(c => c.id !== career.id)
+        if (newCareers.length === 0 ) {
+            setCareerSet(newCareerSet)
+            setInitialCareerSet(newCareerSet)
+        } else {
+            setCareerSet({
+                ...careerSet,
+                careers: newCareers
+            })
+        }
     }
 
     const handleCreateCareerSet = () => {
         setNewCareerSetMode(true)
-        setCareerSet([])
+        setCareerSet(newCareerSet)
+        setInitialCareerSet(newCareerSet)
+    }
+
+    const handleSelectCareerSet = (careerSet: CareerSet | undefined) => {
+        setCareerSet(careerSet)
+        setInitialCareerSet(careerSet)
     }
 
     function handleSelectCareer(career: Career) {
@@ -45,9 +74,17 @@ export default function Careers() {
             setSelectedCareer(career)
             setEditMode(true)
         } else {
-            if (careerSet.some(c => c.id == career.id)) handleRemoveCareer(career)
+            if (careerSet?.careers.some(c => c.id == career.id)) handleRemoveCareer(career)
             else handleAddCareer(career)
         }
+    }
+
+    async function updateCareerSet() {
+        setLoading(true)
+        const careerIds = careerSet?.careers.map(c => c.id)
+        await agent.CareerSet.update({id: careerSet?.id, name: careerSet?.name, careerIds: careerIds})
+        dispatch(reloadCareerSets())
+        setLoading(false)
     }
 
     function cancelEdit() {
@@ -63,37 +100,46 @@ export default function Careers() {
                 <Typography variant={isMobile ? "h4" : "h3"}>Careers</Typography>
                 {newCareerSetMode ?
                     <Grid item>
-                        <Button variant="contained" color="inherit" sx={{ ml: 2 }} onClick={() => setNewCareerSetMode(false)}
+                        <AppButton variant="contained" color="inherit" sx={{ ml: 2 }} onClick={() => setNewCareerSetMode(false)}
                             size={isMobile ? "small" : "medium"}
                         >
                             Cancel
-                        </Button>
-                        <Button variant="contained" sx={{ ml: 2 }} onClick={() => setOpenSaveCareerSet(true)}
-                            size={isMobile ? "small" : "medium"}
+                        </AppButton>
+                        <AppLoadingButton loading={loading} variant="contained" sx={{ ml: 2 }} onClick={() => {
+                            if (careerSet?.id === 0) {
+                                setOpenSaveCareerSet(true)
+                            } else {
+                                updateCareerSet()
+                            }
+                        }}
+                            size={isMobile ? "small" : "medium"} disabled={!hasChanges}
                         >
-                            Save Career Set
-                        </Button>
+                            {careerSet?.id === 0 ? 'Save' : 'Update'} Career Set
+                        </AppLoadingButton>
                     </Grid>
                     :
                     <Grid item>
-                        <Button variant="contained" sx={{ ml: 2 }} onClick={() => setEditMode(true)} size={isMobile ? "small" : "medium"}>
+                        <AppButton variant="contained" sx={{ ml: 2 }} onClick={() => setEditMode(true)} size={isMobile ? "small" : "medium"}>
                             New Career
-                        </Button>
-                        <Button variant="contained" sx={{ ml: 2 }} onClick={handleCreateCareerSet} size={isMobile ? "small" : "medium"}>
-                            Create Career Set
-                        </Button>
+                        </AppButton>
+                        <AppButton variant="contained" sx={{ ml: 2 }} onClick={handleCreateCareerSet} size={isMobile ? "small" : "medium"}>
+                            Career Sets
+                        </AppButton>
                     </Grid>
                 }
             </Box>
 
             {status.includes('pending') ? <LoadingComponent message="Loading Careers..." />
-                : <CareerList handleSelectCareer={handleSelectCareer} eventCareers={newCareerSetMode ? careerSet : undefined}
-                    hideDelete={newCareerSetMode} hideDescription={newCareerSetMode} hideEdit={newCareerSetMode}
-                    handleSetEventCareers={setCareerSet} />
+                : <CareerList handleSelectCareer={handleSelectCareer} selectedCareers={newCareerSetMode ? (careerSet ? careerSet?.careers : []) : undefined}
+                    handleSetCareerSet={handleSelectCareerSet} selectedCareerSetId={careerSet?.id}
+                    hideDelete={newCareerSetMode} hideDescription={newCareerSetMode} hideEdit={newCareerSetMode} />
             }
 
-            <ConfirmCareerSet open={openSaveCareerSet} handleClose={handleClose}
-                careerSet={careerSet} />
+            <ConfirmCareerSet open={openSaveCareerSet} careerSet={careerSet} handleClose={() => {
+                    setOpenSaveCareerSet(false)
+                    setNewCareerSetMode(false)
+                }}
+            />
         </>
 
     )

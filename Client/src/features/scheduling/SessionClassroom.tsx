@@ -4,14 +4,14 @@ import { Session } from "../../app/models/session";
 import { getClassroomText } from "../../app/util/displayUtil";
 import { Delete } from "@mui/icons-material";
 import { useCallback, useRef, useState } from "react";
-import PropagateRoomAssign from "./PropagateRoomAssign";
+import PropagateRoomAssign from "./components/PropagateRoomAssign";
 import AppTextSearch from "../../app/components/AppTextSearch";
 import { setClassroomPickerSearchTerm } from "../classroom/classroomPickerSlice";
 
 interface Props {
     session: Session
     availableClassrooms: Classroom[]
-    updateClassroom: (session: Session, classroom: Classroom, propagate: boolean) => void
+    updateClassroom: (session: Session, classroom: Classroom | undefined, propagate: boolean) => void
     triggerRefresh: () => void
     open: boolean
     handleClose: () => void
@@ -31,7 +31,7 @@ export default function SessionClassroom({ session, availableClassrooms, updateC
     const [showPropConfirm, setShowPropConfirm] = useState(false)
 
     const removeClassroom = () => {
-        session.classroom = undefined
+        updateClassroom(session, undefined, false)
         setCurrentRoom(undefined)
     }
 

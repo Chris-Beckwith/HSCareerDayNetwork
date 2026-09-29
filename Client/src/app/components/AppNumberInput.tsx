@@ -35,7 +35,7 @@ export default function AppNumberInput(props: Props) {
 
         //Min/Max value check
         if (props.min !== undefined && Number(value) < props.min) return
-        if (props.max !== undefined && Number(value) > props.max) return
+        if (props.max !== undefined && Number(value) > props.max) value = props.max.toString()
 
         // Add commas
         if (value) value = Number(value).toLocaleString("en-US")
@@ -150,6 +150,9 @@ export default function AppNumberInput(props: Props) {
                     height: '100%',
                     '& .MuiInputBase-input': {
                         fontSize: DEFAULT_FONT_SIZE
+                    },
+                    '& .MuiInputBase-root': {
+                        pr: { xs: '7px' , sm: '14px' }
                     },
                     ...(isMobile && {
                         '& .MuiInputLabel-root': {

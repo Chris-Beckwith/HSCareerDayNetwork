@@ -61,7 +61,7 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
         typography: isTablet ? 'subtitle2' : 'h6',
         fontSize: isTablet ? '1.05rem' : '1.25rem',
         '&:hover': { color: 'grey.500' },
-        '&.active': { color: 'text.secondary' }
+        '&.active': { color: 'text.secondary', cursor: 'default' }
     }
 
     return (

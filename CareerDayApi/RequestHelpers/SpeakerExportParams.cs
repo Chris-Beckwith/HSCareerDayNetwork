@@ -8,5 +8,6 @@ namespace CareerDayApi.RequestHelpers
         public Boolean IncludePortrait { get; set; }
         public Boolean IncludeSubjects { get; set; }
         public Boolean IncludeAddress { get; set; }
+        public string DateString { get; set; }
     }
 }

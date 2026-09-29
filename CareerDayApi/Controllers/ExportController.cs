@@ -383,16 +383,22 @@ namespace CareerDayApi.Controllers
 
             if (speakerExportParams.EventId != null)
             {
-                string eventName = await _context.Events
+                Event careerEvent = await _context.Events
                     .Where(e => e.Id == speakerExportParams.EventId)
-                    .Select(e => e.Name)
                     .FirstOrDefaultAsync();
 
-                fileName = $"{eventName}_Event_Speakers.xlsx";
+                fileName = $"{careerEvent.Name}_Event_Speakers_{careerEvent.EventDate.ToString("MM-dd-yyy")}.xlsx";
             }
             else
             {
-                fileName = $"Speakers_Export_{DateTime.Today.ToString("MM-dd-yyyy")}.xlsx";
+                if (speakerExportParams.DateString != null)
+                {
+                    fileName = $"Speakers_Export_{speakerExportParams.DateString}.xlsx";
+                }
+                else
+                {
+                    fileName = $"Speakers_Export_{DateTime.Today.ToString("MM-dd-yyyy")}.xlsx";
+                }
             }
 
             var stream = await _excelService
