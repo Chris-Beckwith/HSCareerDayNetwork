@@ -1,13 +1,13 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Paper, Typography } from "@mui/material";
-import { Student } from "../../app/models/student";
-import { Session } from "../../app/models/session";
+import { Student } from "../../../app/models/student";
+import { Session } from "../../../app/models/session";
 import { useEffect, useState } from "react";
-import { Survey } from "../../app/models/survey";
-import SessionDisplay from "./components/SessionDisplay";
-import ConfirmLessSwap from "./components/ComfirmLessSwap";
-import ConfirmSwap from "./components/ConfirmSwap";
-import { UnplacedStudent } from "./SessionView";
-import { ScheduleParams } from "../../app/models/scheduleParams";
+import { Survey } from "../../../app/models/survey";
+import SessionDisplay from "./SessionDisplay";
+import ConfirmLessSwap from "./ComfirmLessSwap";
+import ConfirmSwap from "./ConfirmSwap";
+import { UnplacedStudent } from "../SessionView";
+import { ScheduleParams } from "../../../app/models/scheduleParams";
 
 interface Props {
     swapStudent: Student | undefined

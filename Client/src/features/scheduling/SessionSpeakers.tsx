@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react"
 import { Session } from "../../app/models/session"
 import { Speaker } from "../../app/models/speaker"
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, InputAdornment, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from "@mui/material"
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, InputAdornment, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from "@mui/material"
 import { Delete, Search } from "@mui/icons-material"
-import PropagateSpeakerAssign from "./PropagateSpeakerAssign"
+import PropagateSpeakerAssign from "./components/PropagateSpeakerAssign"
 
 interface Props {
     session: Session
@@ -27,9 +27,16 @@ export default function SessionSpeakers({ session, availableSpeakers, updateSpea
         setCurrentSpeakers(prev => [...prev, speaker])
     }
 
+    const isSaveDisabled = useMemo(() => {
+        return currentSpeakers.length === session.speakers.length &&
+            currentSpeakers.every((speaker, index) => speaker.id === session.speakers[index].id)
+    }, [currentSpeakers, session.speakers])
+
     const saveSpeakers = (propagate: boolean) => {
         updateSpeakers(session, currentSpeakers, propagate)
-        if (propagate) triggerRefresh()
+        triggerRefresh()
+        setShowPropConfirm(false)
+        handleClose()
     }
 
     const cancel = () => {
@@ -54,8 +61,10 @@ export default function SessionSpeakers({ session, availableSpeakers, updateSpea
     const filterSpeakers = useMemo(() => {
         const speakers = availableSpeakers.filter(s => !currentSpeakers.some(sp => sp.id === s.id))
 
+        speakers.push(...session.speakers.filter(s => !currentSpeakers.some(sp => sp.id === s.id)))
+
         return searchEventQuery ? runFilter(speakers, searchEventQuery) : speakers
-    },[availableSpeakers, currentSpeakers, searchEventQuery])
+    },[availableSpeakers, currentSpeakers, searchEventQuery, session.speakers])
 
     return (
         <>
@@ -67,9 +76,13 @@ export default function SessionSpeakers({ session, availableSpeakers, updateSpea
                     <Box>
                         <Typography sx={{ fontStyle: 'italic', textDecoration: 'underline' }}>Current Speakers:</Typography>
                         {currentSpeakers.map(s => 
-                            <Typography key={s.id} sx={{ pl: 1 }}>
-                                {s.firstName} {s.middleName} {s.lastName} 
-                                <Button startIcon={<Delete />} color="error" sx={{ p: 0 }} onClick={() => removeSpeaker(s)} />
+                            <Typography key={s.id} sx={{ pl: 1, display: 'flex', alignItems: 'center' }}>
+                                {s.firstName} {s.middleName} {s.lastName}
+                                <IconButton color="error" size="small" sx={{ pl: 1 }}
+                                    onClick={() => removeSpeaker(s)}
+                                >
+                                    <Delete fontSize="small" />
+                                </IconButton>
                             </Typography>
                         )}
                     </Box>
@@ -110,7 +123,14 @@ export default function SessionSpeakers({ session, availableSpeakers, updateSpea
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={cancel}>Cancel</Button>
-                    <Button onClick={() => setShowPropConfirm(true)}>Save</Button>
+                    <Button disabled={isSaveDisabled} onClick={() => {
+                        if (currentSpeakers.length > 0)
+                            setShowPropConfirm(true)
+                        else
+                            saveSpeakers(false)
+                    }}>
+                        Save
+                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -118,10 +138,7 @@ export default function SessionSpeakers({ session, availableSpeakers, updateSpea
                 currentSpeakers={currentSpeakers}
                 session={session}
                 handleClose={(propagate: boolean) => {
-                    triggerRefresh()
-                    setShowPropConfirm(false)
                     saveSpeakers(propagate)
-                    handleClose()
                 }}
             />
         </>

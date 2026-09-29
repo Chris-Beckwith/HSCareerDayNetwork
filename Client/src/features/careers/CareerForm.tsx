@@ -68,7 +68,7 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
     }
 
     const handleCategoryChange = (event: SelectChangeEvent, onChange: { (...event: any[]): void; (arg0: SelectChangeEvent): void; }) => {
-        if (category == addNewCategory) setCategory('')
+        if (category === addNewCategory) setCategory('')
         else setCategory(event.target.value as string)
         onChange(event)
     }

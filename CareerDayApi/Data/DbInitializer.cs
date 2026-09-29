@@ -161,13 +161,11 @@ namespace CareerDayApi.Data
 
             var eventPhases = new List<EventPhase>
             {
-                new() { PhaseName = "Created" },
+                new() { PhaseName = "Setup" },
                 new() { PhaseName = "Survey In Progress" },
                 new() { PhaseName = "Survey Closed" },
-                new() { PhaseName = "Sessions Generated" },
-                new() { PhaseName = "Rooms Assigned" },
-                new() { PhaseName = "Speakers Assigned" },
-                new() { PhaseName = "Ready for Schedule Export" },
+                new() { PhaseName = "Schedule Generated" },
+                new() { PhaseName = "Schedule Locked" },
                 new() { PhaseName = "Completed" },
                 new() { PhaseName = "Cancelled" },
             };

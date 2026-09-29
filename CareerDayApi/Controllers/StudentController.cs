@@ -433,42 +433,125 @@ namespace CareerDayApi.Controllers
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var worksheet = package.Workbook.Worksheets[0];
 
-            // ******** TODO ********* Probably need to make this better/looser/more options
-            if (!worksheet.Cells[1, 1].Text.ToLower().Contains("school")
-                || (!worksheet.Cells[1, 2].Text.ToLower().Equals("student_number") && !worksheet.Cells[1, 2].Text.ToLower().Equals("id"))
-                || !worksheet.Cells[1, 3].Text.ToLower().Equals("lastfirst")
-                || !worksheet.Cells[1, 4].Text.ToLower().Contains("last")
-                || !worksheet.Cells[1, 5].Text.ToLower().Contains("first")
-                || !worksheet.Cells[1, 6].Text.ToLower().Contains("gender")
-                || !worksheet.Cells[1, 7].Text.ToLower().Contains("grade")
-                || !worksheet.Cells[1, 8].Text.ToLower().Equals("student email")
-                || !worksheet.Cells[1, 9].Text.ToLower().Contains("teacher")
-                // || !worksheet.Cells[1, 10].Text.ToLower().Equals("course name")
-                || !worksheet.Cells[1, 11].Text.ToLower().Contains("room"))
+            var studentNumberColumn = 0;
+            var lastFirstColumn = 0;
+            var lastNameColumn = 0;
+            var firstNameColumn = 0;
+            var genderColumn = 0;
+            var gradeColumn = 0;
+            var emailColumn = 0;
+            var teacherColumn = 0;
+            var roomColumn = 0;
+
+            for (int col = 1; col <= worksheet.Dimension.Columns; col++)
             {
-                return (false, "Invalid column headers", null, null);
+                var header = worksheet.Cells[1, col].Text
+                    .Trim().ToLower()
+                    .Replace("_", " ")
+                    .Replace("-", " ");
+
+                if (header.Contains("number") || header.Contains("id"))
+                {
+                    if (studentNumberColumn != 0)
+                    {
+                        return DuplicateColumnError("Number/Id");
+                    }
+                    studentNumberColumn = col;
+                }
+                else if (header.Contains("last") && header.Contains("first"))
+                {
+                    if (lastFirstColumn != 0)
+                    {
+                        return DuplicateColumnError("LastFirst Name");
+                    }
+                    lastFirstColumn = col;
+                }
+                else if (header.Contains("last"))
+                {
+                    if (lastNameColumn != 0)
+                    {
+                        return DuplicateColumnError("Last Name");
+                    }
+                    lastNameColumn = col;
+                }
+                else if (header.Contains("first"))
+                {
+                    if (firstNameColumn != 0)
+                    {
+                        return DuplicateColumnError("First Name");
+                    }
+                    firstNameColumn = col;
+                }
+                else if (header.Contains("gender") || header.Contains("sex"))
+                {
+                    if (genderColumn != 0)
+                    {
+                        return DuplicateColumnError("Gender");
+                    }
+                    genderColumn = col;
+                }
+                else if (header.Contains("grade"))
+                {
+                    if (gradeColumn != 0)
+                    {
+                        return DuplicateColumnError("Grade");
+                    }
+                    gradeColumn = col;
+                }
+                else if (header.Contains("email") || header.Contains("e mail"))
+                {
+                    if (emailColumn != 0)
+                    {
+                        return DuplicateColumnError("Email");
+                    }
+                    emailColumn = col;
+                }
+                else if (header.Contains("teacher"))
+                {
+                    if (teacherColumn != 0)
+                    {
+                        return DuplicateColumnError("Teacher");
+                    }
+                    teacherColumn = col;
+                }
+                else if (header.Contains("room"))
+                {
+                    if (roomColumn != 0)
+                    {
+                        return DuplicateColumnError("Room");
+                    }
+                    roomColumn = col;
+                }
+            }
+
+            if (studentNumberColumn == 0 || lastFirstColumn == 0 || lastNameColumn == 0 || firstNameColumn == 0
+                || genderColumn == 0 || gradeColumn == 0 || emailColumn == 0 || teacherColumn == 0 || roomColumn == 0)
+            {
+                return (false, "Invalid column headers, required headers: " +
+                    "Number/Id, LastFirst, Last, First, Gender, Grade, Email, Teacher, Room/Homeroom", null, null);
             }
 
             var school = await _context.Schools.FindAsync(careerEvent.School.Id);
 
             for (int row = 2; row <= worksheet.Dimension.Rows; row++)
             {
-                if (string.IsNullOrEmpty(worksheet.Cells[row, 2].Text.Trim()))
+                if (string.IsNullOrWhiteSpace(worksheet.Cells[row, studentNumberColumn].Text))
                 {
                     continue;
                 }
+
                 var student = new Student
                 {
                     School = school,
-                    StudentNumber = worksheet.Cells[row, 2].Text,
-                    LastFirstName = worksheet.Cells[row, 3].Text,
-                    LastName = worksheet.Cells[row, 4].Text,
-                    FirstName = worksheet.Cells[row, 5].Text,
-                    Gender = worksheet.Cells[row, 6].Text,
-                    Grade = Int32.Parse(worksheet.Cells[row, 7].Text),
-                    Email = worksheet.Cells[row, 8].Text,
-                    HomeroomTeacher = worksheet.Cells[row, 9].Text,
-                    HomeroomNumber = worksheet.Cells[row, 11].Text,
+                    StudentNumber = worksheet.Cells[row, studentNumberColumn].Text,
+                    LastFirstName = worksheet.Cells[row, lastFirstColumn].Text,
+                    LastName = worksheet.Cells[row, lastNameColumn].Text,
+                    FirstName = worksheet.Cells[row, firstNameColumn].Text,
+                    Gender = worksheet.Cells[row, genderColumn].Text,
+                    Grade = Int32.Parse(worksheet.Cells[row, gradeColumn].Text),
+                    Email = worksheet.Cells[row, emailColumn].Text,
+                    HomeroomTeacher = worksheet.Cells[row, teacherColumn].Text,
+                    HomeroomNumber = worksheet.Cells[row, roomColumn].Text,
                     Event = careerEvent
                 };
 
@@ -486,6 +569,11 @@ namespace CareerDayApi.Controllers
             }
 
             return (true, error, incompleteStudents, students);
+        }
+
+        private (bool isValid, string error, List<Student>, List<Student>) DuplicateColumnError(string columnType)
+        {
+            return (false, $"Multiple {columnType} columns found", null, null);
         }
 
         private async Task<bool> IsDuplicateStudentAsync(string studentNumber, Event careerEvent, List<Student> batch)

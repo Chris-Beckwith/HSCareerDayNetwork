@@ -297,6 +297,7 @@ namespace CareerDayApi.Controllers
                 existing.PeriodCount = scheduleParams.PeriodCount;
                 existing.RequiredPeriodForCareerList = scheduleParams.RequiredPeriodForCareerList;
                 existing.SameSpeakersForCareerList = scheduleParams.SameSpeakersForCareerList;
+                existing.CareerMaxClassSizeList = scheduleParams.CareerMaxClassSizeList;
 
                 _context.ScheduleParams.Update(existing);
             } else {
@@ -309,8 +310,6 @@ namespace CareerDayApi.Controllers
 
             return BadRequest(new ProblemDetails { Title = "Problem saving schedule paramters" });
         }
-
-        //TODO UpdateScheduleParams
 
         [HttpGet("scheduleParams/{id}", Name = "getScheduleParams")]
         public async Task<ActionResult<GenerateScheduleParamsDto>> GetScheduleParams(int id)

@@ -13,7 +13,7 @@ interface Props {
 export default function UnplacedStudentList({ unplacedStudents, placeStudent, open, handleClose }: Props) {
     const darkMode = useTheme().palette.mode === 'dark'
     return (
-        <Dialog open={open}>
+        <Dialog open={open} onClose={handleClose}>
             <DialogTitle>
                 <Typography variant="body1" gutterBottom>Unplaced Students - {unplacedStudents.length}</Typography>
             </DialogTitle>

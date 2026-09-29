@@ -168,11 +168,13 @@ export default function Students({ event, back, schoolUser }: Props) {
                     </AppButton>
                 :
                     <Box sx={{ minHeight: isTablet ? isMobile ? 32 : 40 : 51 }}>
-                        <AppBackButton onClick={back} sx={{ left: 20, pt: isMobile ? "6px" : 1 }}/>
+                        <AppBackButton onClick={back} sx={{ left: 20, pt: isMobile ? "8px" : 1 }}/>
                     </Box>
                 }
 
-                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} sx={{ display: 'flex', alignContent: 'center' }}>
+                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} align="center"
+                    sx={{ display: 'flex', alignContent: 'center', maxWidth: '77%' }}
+                >
                     {event.name}
                 </Typography>
 
@@ -185,8 +187,15 @@ export default function Students({ event, back, schoolUser }: Props) {
                     <AppExportButton title="Download Students" onClick={handleExportStudents} />
                 </Grid>
             </Grid>
-            <Grid item xs={3} sm={2}>
-                <Paper sx={{ my: 2 }}>
+            <Grid item xs={12} display='flex' justifyContent='center' mb={2}>
+                <Typography align="center" variant={isMobile ? "h6" : "h5"} sx={{ color: 'primary.main' }}>{responseMsg}</Typography>
+                {incompleteStudents.length > 0 && 
+                    <AppButton variant="outlined" size="small" sx={{ ml: 2 }} onClick={() => setViewIncompleteStudents(true)}>view</AppButton>
+                }
+            </Grid>
+
+            <Grid item xs={3} sm={2} mb={2}>
+                <Paper sx={{ mb: 2 }}>
                     <AppTextSearch label="Search Students" 
                         stateSearchTerm={studentParams.searchTerm} setParams={setStudentParams} />
                 </Paper>
@@ -220,15 +229,6 @@ export default function Students({ event, back, schoolUser }: Props) {
             </Grid>
 
             <Grid item xs={9} sm={10}>
-                <Box sx={{ mb: 2 }}>
-                    <Typography align="center" variant={isMobile ? "h6" : "h5"} sx={{ color: 'primary.main' }}>{responseMsg}</Typography>
-                    {incompleteStudents.length > 0 && 
-                        <Box sx={{ textAlign: 'center' }}>
-                            <AppButton variant="outlined" size="small" onClick={() => setViewIncompleteStudents(true)}>view</AppButton>
-                        </Box>
-                    }
-                </Box>
-
                 <Paper sx={{ width: '100%', height: "68vh", mb: 2 }}>
                     <DataGrid
                         rows={rows}
@@ -246,16 +246,24 @@ export default function Students({ event, back, schoolUser }: Props) {
                                 fontSize: isMobile ? '.8rem' : '.9rem'
                             }
                         }}
+                        slots={{
+                            noRowsOverlay: () => (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                    <Tooltip title="Upload Students">
+                                        <IconButton aria-label="Upload" size="large" color="primary" onClick={() => setOpenImport(true)}>
+                                            <Upload sx={{ fontSize: 64 }} />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
+                            )
+                        }}
                     />
                 </Paper>
                 
                 {!schoolUser &&
                     <Grid item display='flex' justifyContent='space-between' sx={{ my: 2 }}>
                         <AppButton variant="contained" color="success" onClick={() => setAddStudent(true)}>Add Student</AppButton>
-                        <AppButton variant="contained" color="error" 
-                            onClick={() => setOpenDelete(true)}>
-                            Delete All Students
-                        </AppButton>
+                        <AppButton variant="contained" color="error" onClick={() => setOpenDelete(true)}>Delete All Students</AppButton>
                     </Grid>
                 }
             </Grid>

@@ -32,20 +32,17 @@ export default function ClassroomForm({ school, selectedRoom, cancelEdit }: Prop
 
     useEffect(() => {
         if (selectedRoom && !isDirty) {
-            reset(selectedRoom)
+            reset({...selectedRoom,
+                capacity: selectedRoom.capacity.toLocaleString(),
+                overflow: selectedRoom.overflow.toLocaleString()
+            })
         }
     }, [selectedRoom, isDirty, reset])
 
     async function handleAddClassroom(data: FieldValues) {
         data.school = school
-        try {
-            if (Number.isNaN(parseInt(data.overflow))) {
-                data.overflow = 0
-            }
-        } catch (error) {
-            console.log(error)
-            data.overflow = 0
-        }
+        data.capacity = data.capacity.replace(/,/g, "")
+        data.overflow = data.overflow?.replace(/,/g, "")
         try {
             if (selectedRoom) {
                 await agent.Classroom.update(data)
@@ -72,19 +69,19 @@ export default function ClassroomForm({ school, selectedRoom, cancelEdit }: Prop
                     <Grid container rowSpacing={2} sx={{ mt: 2 }}>
                         <Grid container item columnSpacing={2} justifyContent="center">
                             <Grid item xs={6} sm={5} md={4}>
-                                <AppTextInput control={control} name="building" label="Building" />
+                                <AppTextInput control={control} name="building" label="Building" inputProps={{ maxLength: 24 }} />
                             </Grid>
                             <Grid item xs={6} sm={5} md={4}>
-                                <AppTextInput control={control} name="roomNumber" label="Room Number" />
+                                <AppTextInput control={control} name="roomNumber" label="Room Number" inputProps={{ maxLength: 24 }} />
                             </Grid>
                         </Grid>
 
                         <Grid container item columnSpacing={2} justifyContent="center">
                             <Grid item xs={6} sm={5} md={4}>
-                                <AppNumberInput control={control} name="capacity" label="Capacity" />
+                                <AppNumberInput control={control} name="capacity" label="Capacity" max={200000}/>
                             </Grid>
                             <Grid item xs={6} sm={5} md={4}>
-                                <AppNumberInput control={control} name="overflow" label="Overflow" />
+                                <AppNumberInput control={control} name="overflow" label="Overflow" max={20000} />
                             </Grid>
                         </Grid>
 

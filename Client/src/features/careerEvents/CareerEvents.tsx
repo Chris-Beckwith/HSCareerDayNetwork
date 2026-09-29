@@ -18,7 +18,7 @@ import agent from "../../app/api/agent";
 import { Speaker } from "../../app/models/speaker";
 import { Career } from "../../app/models/career";
 import CareerEventCareers from "./components/CareerEventCareers";
-import { EVENT_PANEL_BUTTON, EVENT_PHASES } from "../../app/util/constants";
+import { EVENT_PANEL_BUTTON } from "../../app/util/constants";
 import AppTextSearch from "../../app/components/AppTextSearch";
 import Students from "../student/Students";
 import { reloadStudents } from "../student/studentSlice";
@@ -32,7 +32,7 @@ const sortOptions = [
 ]
 
 /**
- * Component to display career events as well as the search and filter parameters.
+ * Component to display career event cards as well as the search and filter parameters.
  */
 export default function CareerEvents() {
     const { careerEvents, careerEventsLoaded, eventPhases, eventPhasesLoaded, eventParams, metaData } = useEvents()
@@ -65,6 +65,7 @@ export default function CareerEvents() {
     }
 
     const handleEventCardClick = (event: CareerEvent, button: string) => {
+        setSelectedEvent(event)
         switch(button) {
             case EVENT_PANEL_BUTTON.CAREERS: setCareerMode(true)
                 break;
@@ -74,22 +75,6 @@ export default function CareerEvents() {
                 break;
             case EVENT_PANEL_BUTTON.EDIT: setEditMode(true)
                 break;
-        }
-        setSelectedEvent(event)
-    }
-
-    function allowUpdate() {
-        switch (selectedEvent?.eventPhase.phaseName) {
-            case EVENT_PHASES.CREATED:
-            case EVENT_PHASES.CANCELLED: return true
-            case EVENT_PHASES.SURVEYINPROGRESS: 
-            case EVENT_PHASES.SURVEYCLOSED: 
-            case EVENT_PHASES.SESSIONSGENERATED: 
-            case EVENT_PHASES.ROOMSASSIGNED: 
-            case EVENT_PHASES.SPEAKERSASSIGNED: 
-            case EVENT_PHASES.SCHEDULEEXPORT: 
-            case EVENT_PHASES.COMPLETED: return false
-            default: return true
         }
     }
 
@@ -128,17 +113,13 @@ export default function CareerEvents() {
 
     if (!eventPhasesLoaded) return <LoadingComponent message="Loading Career Events.." />
 
-    if (viewMode) return <CareerEventDetails careerEvent={selectedEvent!}
-                            cancelView={cancelView} 
-                            updateCareerEvent={updateCareerEvent} />
+    if (viewMode) return <CareerEventDetails careerEvent={selectedEvent!} cancelView={cancelView} updateCareerEvent={updateCareerEvent} />
 
     if (editMode) return <CareerEventForm selectedEvent={selectedEvent} cancelEdit={cancelEdit} saveEdit={cancelEdit} />
 
     if (studentMode && selectedEvent) return <Students event={selectedEvent} back={back} />
 
-    if (careerMode) return <CareerEventCareers careerEventName={selectedEvent!.name}
-                                careerEventCareers={selectedEvent!.careers} 
-                                updateCareerEvent={updateCareerEvent} allowUpdate={allowUpdate()} back={back} />
+    if (careerMode) return <CareerEventCareers careerEvent={selectedEvent!} updateCareerEvent={updateCareerEvent} back={back} />
 
     return (
         <Grid container columnSpacing={4}>
