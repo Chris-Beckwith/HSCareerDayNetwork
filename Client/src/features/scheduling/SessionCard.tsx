@@ -14,7 +14,7 @@ import { DEFAULT_FONT_SIZE } from "../../app/util/constants";
 interface Props {
     session: Session
     availableClassrooms: Classroom[]
-    updateClassroom: (session: Session, classroom: Classroom, propagate: boolean) => void
+    updateClassroom: (session: Session, classroom: Classroom | undefined, propagate: boolean) => void
     availableSpeakers: Speaker[]
     updateSpeakers: (session: Session, speakers: Speaker[], propagate: boolean) => void
     triggerRefresh: () => void
@@ -93,7 +93,7 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                         </Box>
                     </Box>
                 </CardContent>
-                <CardActions sx={{ py: 0, px: 1, display: 'flex', justifyContent: 'space-evenly' }}>
+                <CardActions sx={{ pt: 0, pb: 1, px: 1, display: 'flex', justifyContent: 'space-evenly' }}>
                     <Button size="small" onClick={() => setShowRooms(true)}>
                         Assign Room
                     </Button>

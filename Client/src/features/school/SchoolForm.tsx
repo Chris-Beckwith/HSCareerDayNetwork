@@ -36,7 +36,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
         if (school && !isDirty) {
             const normalizeSchool = {
                 ...school,
-                estimatedNumOfStudents: school.estimatedNumOfStudents?.toString() ?? ''
+                estimatedNumOfStudents: school.estimatedNumOfStudents?.toLocaleString() ?? ''
             }
             reset(normalizeSchool)
         }

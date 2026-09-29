@@ -12,7 +12,7 @@ export default function AppBackButton(props: Props) {
 
     return (
         <IconButton onClick={props.onClick} aria-label="Back" title="Back"
-            sx={{ position: 'absolute', left: 4, ...props.sx,
+            sx={{ position: 'absolute', left: 4, top: 0, ...props.sx,
                 '& svg': {
                     transform: 'translateX(-1.5px)',
                 }

@@ -130,7 +130,7 @@ export default function Schools() {
                                         <TableCell>{school.contactName}</TableCell>
                                         <TableCell>{school.contactPhone}</TableCell>
                                         <TableCell>{school.contactEmail}</TableCell>
-                                        <TableCell>{school.estimatedNumOfStudents}</TableCell>
+                                        <TableCell>{school.estimatedNumOfStudents?.toLocaleString()}</TableCell>
                                         <TableCell align="right">
                                             <IconButton color='error' size='small' onClick={(e) => handleShowConfirmDelete(e, school)}>
                                                 <Delete fontSize="small" />

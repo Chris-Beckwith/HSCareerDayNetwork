@@ -1,4 +1,4 @@
-import { Box, Button, Grid, IconButton, Link, MenuItem, Paper, Popover, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Button, Grid, IconButton, Link, MenuItem, Paper, Popover, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
 import NotFound from "../../app/errors/NotFound";
 import { CareerEvent } from "../../app/models/event";
 import LinearProgressWithLabel from "../../app/components/LinearProgressWithLabel";
@@ -8,7 +8,7 @@ import agent from "../../app/api/agent";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { reloadEvents } from "./careerEventSlice";
 import CareerEventForm from "./CareerEventForm";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useEvents from "../../app/hooks/useEvents";
 import ConfirmDelete from "../../app/components/ConfirmDelete";
 import CareerEventSpeakers from "./components/CareerEventSpeakers";
@@ -61,7 +61,6 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const [confirmCloseSurvey, setConfirmCloseSurvey] = useState(false)
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [confirmCompleteLoading, setConfirmCompleteLoading] = useState(false)
-    const [eventPhaseName, setEventPhaseName] = useState('')
     const [prevEventPhaseName, setPrevEventPhaseName] = useState('')
     const [confirmPrevMessage, setConfirmPrevMessage] = useState('')
     const [loading, setLoading] = useState(false)
@@ -80,10 +79,6 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
     
-    useEffect(() => {
-        setEventPhaseName(careerEvent.eventPhase.phaseName)
-    }, [careerEvent.eventPhase])
-
     useEffect(() => {
         localStorage.setItem("isPinned", String(isPinned))
     }, [isPinned])
@@ -105,6 +100,14 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         else if (!isPinned)
             setAnchorEl(null)
     }
+    
+    const isScheduleAvailable = useMemo(() => {
+        return [EVENT_PHASES.SCHEDULEGENERATED,
+            EVENT_PHASES.SCHEDULELOCKED,
+            EVENT_PHASES.COMPLETED,
+            EVENT_PHASES.CANCELLED]
+                .includes(careerEvent.eventPhase.phaseName)
+    }, [careerEvent.eventPhase.phaseName])
 
     const cancelEdit = () => {
         setAnchorEl(null)
@@ -181,15 +184,9 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
 
     if (editMode) return <CareerEventForm selectedEvent={careerEvent} cancelEdit={cancelEdit} saveEdit={saveEdit} />
 
-    if (speakerMode) return <CareerEventSpeakers
-        careerEvent={careerEvent}
-        updateCareerEvent={updateCareerEvent} back={back} />
+    if (speakerMode) return <CareerEventSpeakers careerEvent={careerEvent} updateCareerEvent={updateCareerEvent} back={back} />
 
-    if (careerMode) return <CareerEventCareers
-        careerEventName={careerEvent.name}
-        careerEventCareers={careerEvent.careers}
-        allowUpdate={!showSurveyResultsButton()}
-        updateCareerEvent={updateCareerEvent} back={back} />
+    if (careerMode) return <CareerEventCareers careerEvent={careerEvent} updateCareerEvent={updateCareerEvent} back={back} />
 
     if (studentMode) return <Students event={careerEvent} back={back} />
 
@@ -200,24 +197,23 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     if (scheduleMode) return <SchedulingTool event={careerEvent} back={back} />
 
     const nextEventPhaseText = () => {
-        switch (eventPhaseName) {
-            case EVENT_PHASES.CREATED: return "Open Survey"
+        switch (careerEvent.eventPhase.phaseName) {
+            case EVENT_PHASES.SETUP: return "Open Survey"
             case EVENT_PHASES.SURVEYINPROGRESS: return "Close Survey"
-            case EVENT_PHASES.SURVEYCLOSED: return "Scheduling Tool"
-            case EVENT_PHASES.SESSIONSGENERATED: return "View Schedule"
-            case EVENT_PHASES.COMPLETED:
-            case EVENT_PHASES.CANCELLED: return "Re-open Event"
+            case EVENT_PHASES.SURVEYCLOSED: return "Generate Sessions"
+            case EVENT_PHASES.SCHEDULEGENERATED: return "Lock Schedule"
+            case EVENT_PHASES.SCHEDULELOCKED: return "Event Completed"
         }
     }
 
     const prevEventPhaseText = () => {
-        switch (eventPhaseName) {
-            case EVENT_PHASES.SURVEYINPROGRESS: return "Previous Phase"
-            case EVENT_PHASES.SURVEYCLOSED: return "Re-open Survey"
-            case EVENT_PHASES.SESSIONSGENERATED: 
-            case EVENT_PHASES.SCHEDULEEXPORT: return "Previous Phase"
+        switch (careerEvent.eventPhase.phaseName) {
+            case EVENT_PHASES.SURVEYINPROGRESS: return "Back to Setup"
+            case EVENT_PHASES.SURVEYCLOSED: 
+            case EVENT_PHASES.SCHEDULEGENERATED: return "Reopen Survey"
+            case EVENT_PHASES.SCHEDULELOCKED: return "Unlock Schedule"
             case EVENT_PHASES.COMPLETED:
-            case EVENT_PHASES.CANCELLED: return "Re-open Event"
+            case EVENT_PHASES.CANCELLED: return "Reopen Event"
         }
     }
 
@@ -226,8 +222,8 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
 
         toggleMenu()
 
-        switch (eventPhaseName) {
-            case EVENT_PHASES.CREATED:
+        switch (careerEvent.eventPhase.phaseName) {
+            case EVENT_PHASES.SETUP:
                 if (careerEvent.careers.length < 5)
                     return toast.error("You do not have the minimum 5 required careers")
                 break;
@@ -237,30 +233,47 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     return toast.error("Survey is still under 5% complete")
                 break;
             case EVENT_PHASES.SURVEYCLOSED: setScheduleMode(true); return;
-            case EVENT_PHASES.SESSIONSGENERATED: setScheduleMode(true); return;
-            case EVENT_PHASES.COMPLETED:
-            case EVENT_PHASES.CANCELLED: return "Reopen Event"
+            case EVENT_PHASES.SCHEDULEGENERATED: 
+                //Is there any check or popup dialog needed?
+                break;
+            case EVENT_PHASES.SCHEDULELOCKED:
+                //Mark event as complete..
+                break;
         }
 
         setLoading(true)
-        const eventPhaseId = findNextEventPhaseId(eventPhases, eventPhaseName)
+        const eventPhaseId = findNextEventPhaseId(eventPhases, careerEvent.eventPhase.phaseName)
         await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
         dispatch(reloadEvents())
         setLoading(false)
     }
 
     const handlePreviousPhaseConfirm = () => {
-        const prevEventPhase = eventPhases.find(e => e.id === findPrevEventPhaseId(eventPhases, eventPhaseName))
+        const prevEventPhase = eventPhases.find(e => e.id === findPrevEventPhaseId(eventPhases, careerEvent.eventPhase.phaseName))
         toggleMenu()
 
         if (prevEventPhase) {
             setPrevEventPhaseName(prevEventPhase.phaseName)
+            //This is the phase that the event will transition to.
             switch (prevEventPhase.phaseName) {
-                case EVENT_PHASES.SURVEYINPROGRESS:
-                    setConfirmPrevMessage("Are you sure you want to re-open the survey?")
+                case EVENT_PHASES.SETUP:
+                    //Current Phase: Survey in progress
+                    setConfirmPrevMessage("Would you like to close the survey and return to setup?")
                     break;
-                case EVENT_PHASES.SESSIONSGENERATED:
-                    setConfirmPrevMessage("Would you like to re-open this event?")
+                case EVENT_PHASES.SURVEYINPROGRESS:
+                    //Current Phase: Schedule Generated or Survey Closed
+                    if (careerEvent.eventPhase.phaseName === EVENT_PHASES.SCHEDULEGENERATED)
+                        setConfirmPrevMessage("Are you sure you want to reopen the survey? This will delete the schedule.")
+                    else
+                        setConfirmPrevMessage("Are you sure you want to reopen the survey?")
+                    break;
+                case EVENT_PHASES.SCHEDULEGENERATED:
+                    //Current phase: Schedule Locked
+                    setConfirmPrevMessage("Would you like to unlock the schedule?")
+                    break;
+                case EVENT_PHASES.SCHEDULELOCKED:
+                    //Current phase: Completed or Cancelled
+                    setConfirmPrevMessage("Would you like to reopen event?")
                     break;
             }
             setConfirmPreviousPhase(true)
@@ -271,30 +284,18 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         if (!careerEvent) return;
 
         setLoading(true)
-        switch (eventPhaseName) {
-            case EVENT_PHASES.SESSIONSGENERATED:
+        switch (careerEvent.eventPhase.phaseName) {
+            case EVENT_PHASES.SCHEDULEGENERATED:
                 await agent.Schedule.deleteSessions(careerEvent.id)
                     .catch(error => console.log(error))
                 break;
         }
         
-        const eventPhaseId = findPrevEventPhaseId(eventPhases, eventPhaseName)
+        const eventPhaseId = findPrevEventPhaseId(eventPhases, careerEvent.eventPhase.phaseName)
         await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
         dispatch(reloadEvents())
         setLoading(false)
         setConfirmPreviousPhase(false)
-    }
-
-    function showSurveyResultsButton() {
-        switch (eventPhaseName) {
-            case EVENT_PHASES.CREATED:
-            case EVENT_PHASES.CANCELLED: return false
-            case EVENT_PHASES.SURVEYINPROGRESS: 
-            case EVENT_PHASES.SURVEYCLOSED: 
-            case EVENT_PHASES.SESSIONSGENERATED:
-            case EVENT_PHASES.SCHEDULEEXPORT: 
-            case EVENT_PHASES.COMPLETED: return true
-        }
     }
 
     const menuItemSx = {
@@ -311,20 +312,29 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             }}>
                 Edit Event
             </MenuItem>
-            {careerEvent.eventPhase.phaseName != EVENT_PHASES.CREATED &&
-                <MenuItem sx={menuItemSx} onClick={handlePreviousPhaseConfirm}>
-                    {prevEventPhaseText()}
+            {careerEvent.eventPhase.phaseName != EVENT_PHASES.SETUP &&
+                <Tooltip title="Previous Phase" placement="left">
+                    <MenuItem sx={menuItemSx} onClick={handlePreviousPhaseConfirm}>
+                        {prevEventPhaseText()}
+                    </MenuItem>
+                </Tooltip>
+            }
+            {careerEvent.eventPhase.phaseName != (EVENT_PHASES.COMPLETED || EVENT_PHASES.CANCELLED) &&
+                <Tooltip title="Next Phase" placement="left">
+                    <MenuItem sx={menuItemSx} onClick={careerEvent.eventPhase.phaseName === EVENT_PHASES.SURVEYINPROGRESS
+                        ? () => setConfirmCloseSurvey(true)
+                        : progressEventPhaseAction
+                    }>
+                        {nextEventPhaseText()}
+                    </MenuItem>
+                </Tooltip>
+            }
+            {isScheduleAvailable &&
+                <MenuItem sx={menuItemSx} onClick={() => setScheduleMode(true)}>
+                    View Schedule
                 </MenuItem>
             }
-            {careerEvent.eventPhase.phaseName != EVENT_PHASES.COMPLETED &&
-                <MenuItem sx={menuItemSx} onClick={ careerEvent.eventPhase.phaseName === EVENT_PHASES.SURVEYINPROGRESS
-                    ? () => setConfirmCloseSurvey(true)
-                    : progressEventPhaseAction
-                }>
-                    {nextEventPhaseText()}
-                </MenuItem>
-            }
-            {careerEvent.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED &&
+            {isScheduleAvailable &&
                 <MenuItem sx={menuItemSx} onClick={() => {
                     setExportMode(true)
                     toggleMenu()
@@ -332,20 +342,12 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     Export Schedules
                 </MenuItem>
             }
-            {showSurveyResultsButton() &&
+            {careerEvent.eventPhase.phaseName != EVENT_PHASES.SETUP &&
                 <MenuItem sx={menuItemSx} onClick={() => {
                     setSurveyMode(true)
                     toggleMenu()
                 }}>
                     Survey Results
-                </MenuItem>
-            }
-            {careerEvent.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED &&
-                <MenuItem sx={menuItemSx} onClick={() => {
-                    setCompleteMode(true)
-                    toggleMenu()
-                }}>
-                    Event Completed
                 </MenuItem>
             }
             <MenuItem sx={{ ...menuItemSx,
@@ -367,7 +369,9 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         <Grid container>
             <Grid container item xs={12} display='flex' justifyContent='center' position='relative' alignItems='center'>
                 <AppBackButton onClick={cancelView} />
-                <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{careerEvent.name}</Typography>
+                <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} sx={{ maxWidth: isMobile ? '65%' : '77%' }}>
+                    {careerEvent.name}
+                </Typography>
                 <Grid item xs={12} position='absolute' sx={{ right: 4 }}>
 
                     {open && 
@@ -420,7 +424,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                 </Grid>
             }
             {location.pathname === '/testData' && 
-                eventPhaseName === EVENT_PHASES.SURVEYINPROGRESS && careerEvent.surveyCompletePercent < 100 &&
+                careerEvent.eventPhase.phaseName === EVENT_PHASES.SURVEYINPROGRESS && careerEvent.surveyCompletePercent < 100 &&
                 <Grid item xs={12} display='flex' justifyContent='center'>
                     <AppLoadingButton variant="contained" loading={testDataLoading} onClick={generateTestSurveys}>
                         Generate Test Survey Data
@@ -517,6 +521,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     </Grid>
                 </Grid>
             </Grid>
+            
             <ConfirmPreviousPhase open={confirmPreviousPhase} previousPhase={prevEventPhaseName} 
                 message={confirmPrevMessage} loading={loading}
                 handleClose={() => setConfirmPreviousPhase(false)}

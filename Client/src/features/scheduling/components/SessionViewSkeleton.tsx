@@ -1,17 +1,9 @@
 import { Grid, Typography, Button } from "@mui/material"
-import { CareerEvent } from "../../app/models/event"
 import SessionCardSkeleton from "./SessionCardSkeleton"
 
-interface Props {
-    event: CareerEvent
-}
-
-export default function SessionViewSkeleton({ event }: Props) {
+export default function SessionViewSkeleton() {
     return (
         <Grid container item xs={12}>
-            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                <Typography variant="h4">{event.name} - Session View</Typography>
-            </Grid>
             <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                 <Button sx={{ fontSize: '0.74rem', mb: 1 }} variant="outlined">
                     Unplaced Students

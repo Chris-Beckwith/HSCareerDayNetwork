@@ -125,7 +125,9 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
                 :
                     <AppBackButton onClick={back}  />
                 }
-                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} textAlign='center' flexGrow={1}>{event.school.name}</Typography>
+                <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} textAlign='center' flexGrow={1} maxWidth='86%'>
+                    {event.name}
+                </Typography>
             </Grid>
             <Grid item xs={12}>
                 <Typography variant={isTablet ? isMobile ? "h6" : "h5" : "h4"} textAlign='center'>Survey Results</Typography>

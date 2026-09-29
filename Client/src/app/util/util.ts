@@ -28,25 +28,19 @@ export function downloadExcel(response: any) {
 export function findNextEventPhaseId(eventPhases: EventPhase[], phaseName: string) {
     let eventPhase;
     switch (phaseName) {
-        case EVENT_PHASES.CREATED:
+        case EVENT_PHASES.SETUP:
             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYINPROGRESS)
             break;
         case EVENT_PHASES.SURVEYINPROGRESS:
             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYCLOSED)
             break;
         case EVENT_PHASES.SURVEYCLOSED:
-            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
+            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULEGENERATED)
             break;
-        case EVENT_PHASES.SESSIONSGENERATED:
-            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULEEXPORT)
+        case EVENT_PHASES.SCHEDULEGENERATED:
+            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULELOCKED)
             break;
-        // case EVENT_PHASES.ROOMSASSIGNED:
-        //     eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SPEAKERSASSIGNED)
-        //     break;
-        // case EVENT_PHASES.SPEAKERSASSIGNED:
-        //     eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULEEXPORT)
-        //     break;
-        case EVENT_PHASES.SCHEDULEEXPORT:
+        case EVENT_PHASES.SCHEDULELOCKED:
         case EVENT_PHASES.COMPLETED:
             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.COMPLETED)
             break;
@@ -54,7 +48,7 @@ export function findNextEventPhaseId(eventPhases: EventPhase[], phaseName: strin
             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CANCELLED)
             break;
         default:
-            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
+            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SETUP)
     }
     if (eventPhase === undefined) return -1
     return eventPhase.id
@@ -64,28 +58,21 @@ export function findPrevEventPhaseId(eventPhases: EventPhase[], phaseName: strin
     let eventPhase;
     switch (phaseName) {
         case EVENT_PHASES.SURVEYINPROGRESS:
-            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
+            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SETUP)
             break;
         case EVENT_PHASES.SURVEYCLOSED:
+        case EVENT_PHASES.SCHEDULEGENERATED:
             eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYINPROGRESS)
             break;
-        case EVENT_PHASES.SESSIONSGENERATED:
-            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYCLOSED)
-            break;
-        // case EVENT_PHASES.ROOMSASSIGNED:
-        //     eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
-        //     break;
-        // case EVENT_PHASES.SPEAKERSASSIGNED:
-        //     eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.ROOMSASSIGNED)
-        //     break;
-        case EVENT_PHASES.SCHEDULEEXPORT:
-            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
+        case EVENT_PHASES.SCHEDULELOCKED:
+            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULEGENERATED)
             break;
         case EVENT_PHASES.COMPLETED:
-            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SESSIONSGENERATED)
+        case EVENT_PHASES.CANCELLED:
+            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SCHEDULELOCKED)
             break;
         default:
-            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.CREATED)
+            eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SETUP)
     }
     if (eventPhase === undefined) return -1
     return eventPhase.id

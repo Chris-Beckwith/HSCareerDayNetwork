@@ -49,8 +49,30 @@ namespace CareerDayApi.Controllers
         [HttpPut]
         public async Task<ActionResult<CareerSet>> UpdateCareerSet([FromForm] UpdateCareerSetDto careerSetDto)
         {
-            var careerSet = await _context.CareerSets.FindAsync(careerSetDto.Id);
+            var careerSet = await _context.CareerSets
+                .Include(cs => cs.Careers)
+                .FirstOrDefaultAsync(cs => cs.Id == careerSetDto.Id);
             if (careerSet == null) return NotFound();
+
+            // Update Careers
+            List<Career> careers = await _context.Careers.Where(c => careerSetDto.CareerIds.Any(id => id == c.Id)).ToListAsync();
+
+            if (careers == null)
+            {
+                return BadRequest(new ProblemDetails { Title = "Problem updating career set: Careers not found" });
+            }
+
+            var careersToRemove = careerSet.Careers.Except(careers).ToList();
+            foreach (var career in careersToRemove)
+            {
+                careerSet.Careers.Remove(career);
+            }
+
+            var careersToAdd = careers.Except(careerSet.Careers).ToList();
+            foreach (var career in careersToAdd)
+            {
+                careerSet.Careers.Add(career);
+            }
 
             _mapper.Map(careerSetDto, careerSet);
 

@@ -11,6 +11,7 @@ import { blue, brown, deepOrange, indigo } from "@mui/material/colors"
 interface Props {
     career: Career
     handleSelectCareer: (career: Career) => void
+    blockUpdate?: boolean
     hideDescription?: boolean
     hideDelete?: boolean
     highlightRow?: boolean
@@ -26,7 +27,7 @@ interface Props {
  * highlightAlternate - Only for survey, set of alternate careers selected
  * onPrimaryCareers - Only for survey to denote if selecting primary or alternate careers
  */
-export default function CareerCard({ career, handleSelectCareer, hideDescription, hideDelete, 
+export default function CareerCard({ career, handleSelectCareer, blockUpdate, hideDescription, hideDelete, 
         highlightRow, highlightAlternate, onPrimaryCareers, survey }: Props) {
     const [loading, setLoading] = useState(false)
     const [showDeletePopup, setShowDeletePopup] = useState(false)
@@ -99,6 +100,8 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
     function handleOnClick(career: Career) {
         if (survey && !onPrimaryCareers && highlightRow) {
             return;
+        } else if (blockUpdate) {
+            return;
         } else {
             handleSelectCareer(career)
         }
@@ -110,7 +113,8 @@ export default function CareerCard({ career, handleSelectCareer, hideDescription
                 onClick={() => handleOnClick(career)}
                 hover
                 sx={{
-                    cursor: survey ? (!onPrimaryCareers && highlightRow ? "inherit" : "pointer") : "pointer",
+                    cursor: survey ? (!onPrimaryCareers && highlightRow ? "inherit" : "pointer") 
+                        : blockUpdate ? "inherit" : "pointer",
                     bgcolor: getHighlight(),
                     '&.MuiTableRow-root:hover': {
                         bgcolor: getHover(),

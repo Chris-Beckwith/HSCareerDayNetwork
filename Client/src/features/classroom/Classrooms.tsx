@@ -72,7 +72,9 @@ export default function Classrooms({ school, back }: Props) {
         <>
             <Grid container item xs={12} display='flex' justifyContent='center' position='relative' alignItems='center'>
                 <AppBackButton onClick={back} />
-                <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{school.name}</Typography>
+                <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} maxWidth="80%">
+                    {school.name}
+                </Typography>
             </Grid>
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{m: 2}}>
                 <Typography variant={isMobile ? "h6" : "h5"}>Classrooms</Typography>
@@ -107,8 +109,8 @@ export default function Classrooms({ school, back }: Props) {
                                     <>
                                         <TableCell>{classroom.building}</TableCell>
                                         <TableCell>{classroom.roomNumber}</TableCell>
-                                        <TableCell>{classroom.capacity}</TableCell>
-                                        <TableCell>{classroom.overflow}</TableCell>
+                                        <TableCell>{classroom.capacity.toLocaleString()}</TableCell>
+                                        <TableCell>{classroom.overflow.toLocaleString()}</TableCell>
                                         <TableCell align="right">
                                             <LoadingButton
                                                 loading={loading}

@@ -605,6 +605,19 @@ namespace CareerDayApi.Controllers
                     }
                 }
             }
+
+            foreach(var session in allSessions)
+            {
+                if (session.Period == 0)
+                {
+                    var leastSessionsIndex = periods
+                        .Select((period, index) => new { period, index })
+                        .OrderBy(x => x.period.Count)
+                        .First()
+                        .index;
+                    session.Period = leastSessionsIndex + 1;
+                }
+            }
             
             var result = new ScheduleResultDto
             {

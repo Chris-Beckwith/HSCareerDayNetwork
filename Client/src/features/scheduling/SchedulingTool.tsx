@@ -1,27 +1,24 @@
-import { Checkbox, Grid, IconButton, Switch, TextField, Typography } from "@mui/material"
+import { Box, Checkbox, Grid, IconButton, InputAdornment, Switch, TextField, Typography } from "@mui/material"
 import { CareerEvent } from "../../app/models/event"
-import { useEffect, useState } from "react"
-import SessionView, { UnplacedStudent } from "./SessionView"
+import { useEffect, useMemo, useState } from "react"
+import SessionView from "./SessionView"
 import { FieldValues, useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { schedulingValidationSchema } from "./schedulingValidation"
-import { Session } from "../../app/models/session"
 import agent from "../../app/api/agent"
 import { Career } from "../../app/models/career"
 import { findNextEventPhaseId } from "../../app/util/util"
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
 import { reloadEvents } from "../careerEvents/careerEventSlice"
 import { DEFAULT_FONT_SIZE, EVENT_PHASES } from "../../app/util/constants"
-import { reloadClassrooms } from "../classroom/classroomSlice"
-import SessionViewSkeleton from "./SessionViewSkeleton" 
 import TriStateCheckbox from "./components/TriStateCheckbox"
-import { ScheduleParams } from "../../app/models/scheduleParams"
-import { ExpandMore, ExpandLess } from "@mui/icons-material"
+import { ExpandMore, ExpandLess, ArrowDropDown, ArrowDropUp, Delete } from "@mui/icons-material"
 import AppButton from "../../app/components/AppButton"
 import AppLoadingButton from "../../app/components/AppLoadingButton"
 import { Classroom } from "../../app/models/classroom"
 import AppBackButton from "../../app/components/AppBackButton"
 import AppNumberInput from "../../app/components/AppNumberInput"
+import OverrideScheduleDialog from "./components/OverrideScheduleDialog"
 
 interface Props {
     event: CareerEvent
@@ -38,11 +35,9 @@ interface CheckedState {
 export default function SchedulingTool({ event, back }: Props) {
     const dispatch = useAppDispatch()
     const [loading, setLoading] = useState(false)
-    const [loadingSessions, setLoadingSessions] = useState(false)
-    const [activeStep, setActiveStep] = useState(0)
-    const [sessions, setSessions] = useState<Session[]>([])
-    const [unplacedStudents, setUnplacedStudents] = useState<UnplacedStudent[]>([])
-    const [scheduleParams, setScheduleParams] = useState<ScheduleParams>()
+    const [showParamsOverride, setShowParmsOverride] = useState(false)
+    const [showOverrideConfirm, setShowOverrideConfirm] = useState(false)
+    const [fieldValues, setFieldValues] = useState<FieldValues>([])
     const [selectCareers, setSelectCareers] = useState(false)
     const [totalClassrooms, setTotalClassrooms] = useState(0)
     const [largeRooms, setLargeRooms] = useState<Classroom[]>([])
@@ -51,47 +46,66 @@ export default function SchedulingTool({ event, back }: Props) {
     const [sameSpeakersIndex, setSameSpeakersIndex] = useState(0)
     const [showCareerMaxSize, setShowCareerMaxSize] = useState(false)
     const [careerMaxClassSizeList, setCareerMaxClassSizeList] = useState<Record<number, number>>({})
+    const [initialSameSpeakers, setInitialSameSpeakers] = useState<Career[][]>([])
+    const [initialCareerMaxClassSizeList, setInitialCareerMaxClassSizeList] = useState<Record<number, number>>({})
+    const [initialCheckedState, setInitialCheckedState] = useState<CheckedState>({})
 
     const { eventPhases } = useAppSelector(state => state.careerEvents)
 
-    useEffect(() => {
-        if (event.eventPhase.phaseName === EVENT_PHASES.SESSIONSGENERATED) {
-            setLoadingSessions(true)
-            setActiveStep(1)
-            agent.Schedule.getSessionsAndUnplaced(event.id)
-                .then(response => {
-                    setSessions(response.allSessions)
-                    setUnplacedStudents(response.unplacedStudents)
-                })
-                .catch(error => console.log(error))
-                .finally(() => {
-                    reloadClassrooms()
-                    setLoadingSessions(false)
-                })
-            agent.Event.getScheduleParams(event.id)
-                .then(response => {
-                    setScheduleParams(response)
-                })
-        }
-    }, [event.eventPhase.phaseName, event.id])
-
-    const { control, handleSubmit, watch } = useForm({
+    const { control, handleSubmit, watch, reset, formState: { isDirty } } = useForm({
         resolver: yupResolver<any>(schedulingValidationSchema),
         defaultValues: {
             sessionCount: 3
         }
     })
-    
+
     const maxClassSizeValue = watch('maxClassSize') || 0
     const sessionCountValue = watch('sessionCount') || 3
+    
+    const [checkedState, setCheckedState] = useState<CheckedState>(
+        event.careers.reduce((acc: CheckedState, career) => {
+            acc[career.id] = Array(sessionCountValue).fill(0);
+            return acc;
+        }, {} as CheckedState)
+    )
 
+    useEffect(() => {
+        if (showParamsOverride) {
+            agent.Event.getScheduleParams(event.id)
+                .then(response => {
+                    reset({
+                        ...response,
+                        maxClassSize: response.maxClassSize?.toLocaleString() ?? '',
+                        minClassSize: response.minClassSize?.toLocaleString() ?? ''
+                    })
+
+                    setSameSpeakers(response.sameSpeakersForCareerList)
+                    setInitialSameSpeakers(response.sameSpeakersForCareerList)
+                    setCareerMaxClassSizeList(response.careerMaxClassSizeList)
+                    setInitialCareerMaxClassSizeList(response.careerMaxClassSizeList)
+                    setCheckedState(response.requiredPeriodForCareerList)
+                    setInitialCheckedState(response.requiredPeriodForCareerList)
+                })
+                .catch(error => console.log(error))
+        }
+    }, [event.id, reset, showParamsOverride])
+
+    const hasChanges = useMemo(() => {
+        return (
+            JSON.stringify(sameSpeakers) !== JSON.stringify(initialSameSpeakers) ||
+            JSON.stringify(careerMaxClassSizeList) !== JSON.stringify(initialCareerMaxClassSizeList) ||
+            JSON.stringify(checkedState) !== JSON.stringify(initialCheckedState)
+        )
+    }, [sameSpeakers, initialSameSpeakers, careerMaxClassSizeList, initialCareerMaxClassSizeList, checkedState, initialCheckedState])    
+
+    //Get Large Rooms when max class size changes
     useEffect(() => {
         if (maxClassSizeValue <= 0 || maxClassSizeValue === null) {
             setLargeRooms([])
         } else {
             const params = new URLSearchParams()
             params.append('schoolId', event.school.id.toString())
-            params.append('maxClassSize', maxClassSizeValue.toString())
+            params.append('maxClassSize', maxClassSizeValue.toString().replace(/,/g, ""))
 
             agent.Classroom.largeRoomsBySchool(params)
                 .then(response => {
@@ -112,13 +126,6 @@ export default function SchedulingTool({ event, back }: Props) {
             return updated
         })
     }
-    
-    const [checkedState, setCheckedState] = useState<CheckedState>(
-        event.careers.reduce((acc: CheckedState, career) => {
-            acc[career.id] = Array(sessionCountValue).fill(0);
-            return acc;
-        }, {} as CheckedState)
-    )
 
     const handleAddSameSpeaker = (career: Career) => {
         setSameSpeakers(prevState => {
@@ -153,6 +160,11 @@ export default function SchedulingTool({ event, back }: Props) {
         }
     }
 
+    const removeSameSpeakers = (index: number) => {
+        setSameSpeakers(prev => prev.filter((_, i) => i !== index))
+        setSameSpeakersIndex(sameSpeakersIndex - 1)
+    }
+
     const handleCheckboxChange = (careerId: number, index: number) => {
         setCheckedState(prevState => {
             const currentState = prevState[careerId]
@@ -179,124 +191,103 @@ export default function SchedulingTool({ event, back }: Props) {
         })
     }
 
+    function handleFormSubmit(data: FieldValues) {
+        if (showParamsOverride) {
+            setFieldValues(data)
+            setShowOverrideConfirm(true)
+            return
+        }
+
+        generateSchedule(data)
+    }
+
     async function generateSchedule(data: FieldValues) {
         setLoading(true)
 
-        const generationParams = {
-            eventId: event.id,
-            maxClassSize: data.maxClassSize,
-            minClassSize: data.minClassSize,
-            periodCount: sessionCountValue,
-            requiredPeriodForCareerList: checkedState,
-            sameSpeakersForCareerList: sameSpeakers,
-            careerMaxClassSizeList: careerMaxClassSizeList
-        }
-
         try {
-            agent.Schedule.generateSessions(generationParams)
-                .then(response => {
-                    setSessions(response.allSessions)
-                    setUnplacedStudents(response.unplacedStudents)
-                    setScheduleParams(generationParams)
-                    setActiveStep(activeStep + 1)
-                })
-                .catch(error => console.log(error))
-                .finally(() => setLoading(false))
-        } catch (error) {
-            console.log(error)
-        }
-    }
-
-    async function SaveSchedule() {
-        setLoading(true)
-
-        const isSave = event.eventPhase.phaseName === EVENT_PHASES.SURVEYCLOSED
-
-        try {
-            if (isSave)
-                await agent.Schedule.saveSessions(sessions)
-            else
-                await agent.Schedule.updateSessions(sessions)
-                
-            try {
-                if (isSave) {
-                    await agent.Event.updatePhase(event.id, 
-                        findNextEventPhaseId(eventPhases, event.eventPhase.phaseName))
-                    if (scheduleParams !== undefined)
-                        await agent.Event.saveScheduleParams(scheduleParams)
-                }
-                //Else, update Schedule params ************ TODO
-            } catch (error) {
-                console.log(error)
-            } finally {
-                dispatch(reloadEvents())
+            if (event.eventPhase.phaseName === EVENT_PHASES.SCHEDULEGENERATED) {
+                await agent.Schedule.deleteSessions(event.id)
+                    .catch(error => console.log(error))
             }
-            back()
+
+            const generationParams = {
+                eventId: event.id,
+                maxClassSize: Number(data.maxClassSize.replace(/,/g, "")),
+                minClassSize: Number(data.minClassSize.replace(/,/g, "")),
+                periodCount: sessionCountValue,
+                requiredPeriodForCareerList: checkedState,
+                sameSpeakersForCareerList: sameSpeakers,
+                careerMaxClassSizeList: careerMaxClassSizeList
+            }
+
+            const response = await agent.Schedule.generateSessions(generationParams)
+            
+            await agent.Schedule.saveSessions(response.allSessions)
+            await agent.Event.saveScheduleParams(generationParams)
+            if (showParamsOverride)
+                setShowParmsOverride(false)
+            else
+                await agent.Event.updatePhase(event.id, findNextEventPhaseId(eventPhases, event.eventPhase.phaseName))
         } catch (error) {
             console.log(error)
-        }
-
-        setLoading(false)
-    }
-
-    const getStepContent = (step: number) => {
-        switch (step) {
-            case 0: return;
-            case 1: 
-                if (loadingSessions)
-                    return <SessionViewSkeleton event={event} />
-                else
-                    return <SessionView event={event} sessions={sessions} unplacedStudents={unplacedStudents} scheduleParams={scheduleParams} />
-            default:
-                throw new Error('Unknown step')
+        } finally {
+            dispatch(reloadEvents())
+            setLoading(false)
         }
     }
 
     return (
         <Grid container>
-            <Grid container item xs={12} spacing={2}>
+            <Grid container item xs={12} spacing={2} position='relative'>
 
                 <Grid container item xs={6} sx={{ alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                    <AppBackButton onClick={back} sx={{ left: {xs: 20, sm: 28}, mt: { xs:'-2px', sm: '1px', md: '3px'} }} />
+                    <AppBackButton sx={{ left: 20, top: 16}} onClick={showParamsOverride ? () => {
+                        setShowParmsOverride(false)
+                        setSelectCareers(false)
+                        setShowCareerMaxSize(false)
+                    } : back}  />
                 </Grid>
-
-                {activeStep === 1 &&
-                    <Grid container item xs={6} sx={{ alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                        <AppLoadingButton loading={loading} variant="contained" onClick={SaveSchedule}>Save Schedule</AppLoadingButton>
-                    </Grid>
-                }
-
-                <Grid container item xs={12}>
-                    <Grid item xs={12}>
-                        {activeStep === 0 ?
-                            (
-                                <form onSubmit={handleSubmit(generateSchedule)}>
-                                    <Grid container spacing={2}>
-                                        <Grid container item xs={12} spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                            <Grid item xs={4} sm={3}>
-                                                <AppNumberInput min={1} control={control} label="Max Class Size" name="maxClassSize" />
-                                            </Grid>
-                                            <Grid item xs={4} sm={3}>
-                                                <AppNumberInput min={0} control={control} label="Min Class Size" name="minClassSize" />
+                    {event.eventPhase.phaseName === EVENT_PHASES.SURVEYCLOSED || showParamsOverride ?
+                        <Grid item xs={12}>
+                            {showParamsOverride &&
+                                <Grid item xs={12} display='flex' pb={4} justifyContent="center">
+                                    <Typography color="error" fontWeight="700" align="center" variant="h6" maxWidth="86%">
+                                        Submitting new parameters will override the current schedule
+                                    </Typography>
+                                </Grid>
+                            }
+                            <form onSubmit={handleSubmit(handleFormSubmit)}>
+                                <Grid container spacing={2}>
+                                    <Grid container item xs={12} spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                        <Grid item xs={5} sm={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Grid item xs={9}>
+                                                <AppNumberInput min={1} max={200000} control={control} label="Max Class Size" name="maxClassSize" />
                                             </Grid>
                                         </Grid>
-
-                                        <Grid container item xs={12} spacing={2} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                            <Grid item xs={4} sm={3}>
-                                                <Typography variant="body1"
-                                                    sx={{ fontSize: DEFAULT_FONT_SIZE, fontWeight: '500' }}>
-                                                    Number of Sessions: {sessionCountValue}
-                                                </Typography>
+                                        <Grid item xs={5} sm={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Grid item xs={9}>
+                                                <AppNumberInput min={0} max={200000} control={control} label="Min Class Size" name="minClassSize" />
                                             </Grid>
                                         </Grid>
+                                    </Grid>
 
-                                        <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                            <Grid container item xs={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                                <Typography variant="h6" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
-                                                    Total Rooms: {totalClassrooms}
-                                                </Typography>
-                                            </Grid>
-                                            <Grid container item xs={3} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                    <Grid container item xs={12} spacing={2} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <Grid item xs={5} sm={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Typography variant="body1"
+                                                sx={{ fontSize: DEFAULT_FONT_SIZE, fontWeight: '500' }}>
+                                                Number of Sessions: {sessionCountValue}
+                                            </Typography>
+                                        </Grid>
+                                        <Grid item xs={5} sm={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Typography variant="h6" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
+                                                Total Rooms: {totalClassrooms}
+                                            </Typography>
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                        <Grid container item xs={9}>
+                                            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
                                                 <Typography variant="h6" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
                                                     Larger Rooms:
                                                     {largeRooms.length > 0 &&
@@ -307,158 +298,209 @@ export default function SchedulingTool({ event, back }: Props) {
                                                         </>
                                                     }
                                                 </Typography>
+                                            </Grid>
                                                 {showLargeRooms && largeRooms.map(c => (
-                                                    <Typography key={c.building + "-" + c.roomNumber} 
-                                                        sx={{ display: 'flex', alignItems: 'center', mx: 1, fontSize: DEFAULT_FONT_SIZE }}>
-                                                        {c.building} - {c.roomNumber} - Size: {c.capacity}
-                                                    </Typography>
+                                                    <Grid key={c.building + "-" + c.roomNumber} item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                                        <Typography sx={{ display: 'flex', mx: 1, fontSize: DEFAULT_FONT_SIZE, textAlign: 'center' }}>
+                                                            {c.building} - {c.roomNumber} - Size: {c.capacity}
+                                                        </Typography>
+                                                    </Grid>
                                                 ))}
-                                            </Grid>
                                         </Grid>
-                                        
-                                        <Grid container item xs={12} rowGap={2} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                            <Typography variant="body1" align="center" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
-                                                Click Same Speakers to allow careers to use the same speakers.  This will combine classes for the selected careers.
-                                            </Typography>
-                                            {selectCareers && 
-                                                <Typography align="center" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
-                                                    Click save to add same speaker grouping.  You may add another group after saving a group.
-                                                </Typography>
+                                    </Grid>
+
+                                    <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                        <Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                            <AppButton sx={{ alignSelf: 'center' }} variant="contained" onClick={handleSetSameSpeaker}
+                                                title={selectCareers ? "You may add additional groups after saving"
+                                                    : "Combining Careers allows you to count them as one career when scheduling"}
+                                            >
+                                                {selectCareers ? 'Save' : 'Combine Careers'}
+                                            </AppButton>
+                                        </Grid>
+                                        <Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-end'}}>
+                                            <Typography sx={{ display: 'flex', alignItems: 'center', fontSize: DEFAULT_FONT_SIZE }}>Change career max class size</Typography>
+                                            <Switch checked={showCareerMaxSize} onChange={() => setShowCareerMaxSize(!showCareerMaxSize)}/>
+                                        </Grid>
+                                        <Grid item xs={8} sx={{ justifyContent: 'flex-start', mt: 1 }}>
+                                            {sameSpeakers.length > 0 &&
+                                                <Typography sx={{ fontSize: DEFAULT_FONT_SIZE, pl: 4, textDecoration: 'underline' }}>Combined Careers</Typography>
                                             }
-                                        </Grid>
-
-                                        <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                            <Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                                                <AppButton variant="contained" onClick={handleSetSameSpeaker}>
-                                                    {selectCareers ? 'Save' : 'Same Speakers'}
-                                                </AppButton>
-                                            </Grid>
-                                            <Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-end'}}>
-                                                <Typography sx={{ display: 'flex', alignItems: 'center' }}>Change career max class size</Typography>
-                                                <Switch checked={showCareerMaxSize} onChange={() => setShowCareerMaxSize(!showCareerMaxSize)}/>
-                                            </Grid>
-                                            <Grid item xs={8} sx={{ justifyContent: 'flex-start' }}>
-                                                {sameSpeakers.map((c, outIndex) => (
-                                                    <Grid item key={outIndex} xs={12}>
-                                                        <Typography component="span" sx={{ fontSize: DEFAULT_FONT_SIZE }}>{outIndex + 1}.</Typography>
-                                                        {c.map((cc, index) => (
-                                                            <span key={cc.id}>
-                                                                <Typography key={cc.id} 
-                                                                    sx={{ display: 'inline', pl: 1, fontSize: DEFAULT_FONT_SIZE }}>
-                                                                        {cc.name}
-                                                                </Typography>
-                                                                {index !== c.length - 1 && <Typography sx={{ display: 'inline', px: 1 }}>-</Typography>}
-                                                            </span>
-                                                        ))}
-                                                    </Grid>
-                                                ))}
-                                            </Grid>
-                                        </Grid>
-
-                                        <Grid container item xs={12}>
-                                            <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center'}}>
-                                                <Typography sx={{ display: 'flex', width: '400px', fontSize: DEFAULT_FONT_SIZE }}>
-                                                    <Checkbox defaultChecked disabled size="small" sx={{ p: 0, '&.Mui-disabled': { color: 'primary.main' } }} />
-                                                    Select sessions you want to force a career to be in
-                                                </Typography>
-                                            </Grid>
-                                            <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center'}}>
-                                                <Typography sx={{ display: 'flex', width: '400px', fontSize: DEFAULT_FONT_SIZE }}>
-                                                    <Checkbox defaultChecked disabled size="small" sx={{ p: 0, '&.Mui-disabled': { color: 'error.main' } }} />
-                                                    Select sessions you want to a career NOT to be in
-                                                </Typography>
-                                            </Grid>
-                                        </Grid>
-
-                                        <Grid container item xs={12}>
-                                            {showCareerMaxSize ?
-                                                <Grid container>
-                                                    <Grid item xs={4} sx={{ pl: "16px", height: '24px' }}>
-                                                        <Typography>Max</Typography>
-                                                    </Grid>
-                                                    <Grid item xs={4} sx={{ pl: "16px", height: '24px' }}>
-                                                        <Typography>Max</Typography>
-                                                    </Grid>
-                                                    <Grid item xs={4} sx={{ pl: "16px", height: '24px' }}>
-                                                        <Typography>Max</Typography>
-                                                    </Grid>
-                                                </Grid>
-                                            : <Grid container>
-                                                <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
-                                                    {[...Array(sessionCountValue)].map((_, index) => (
-                                                        <Typography key={index} 
-                                                            sx={{ width: '20px', display: 'flex', justifyContent: 'center', fontSize: DEFAULT_FONT_SIZE }}>
-                                                            {index + 1}
-                                                        </Typography>
-                                                    ))}
-                                                </Grid>
-                                                <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
-                                                    {[...Array(sessionCountValue)].map((_, index) => (
-                                                        <Typography key={index} 
-                                                            sx={{ width: '20px', display: 'flex', justifyContent: 'center', fontSize: DEFAULT_FONT_SIZE }}>
-                                                            {index + 1}
-                                                        </Typography>
-                                                    ))}
-                                                </Grid>
-                                                <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
-                                                    {[...Array(sessionCountValue)].map((_, index) => (
-                                                        <Typography key={index} 
-                                                            sx={{ width: '20px', display: 'flex', justifyContent: 'center', fontSize: DEFAULT_FONT_SIZE }}>
-                                                            {index + 1}
-                                                        </Typography>
-                                                    ))}
-                                                </Grid>
-                                            </Grid>}
-                                            {event.careers.map(career => (
-                                                <Grid item xs={4} key={career.id} sx={{ display: 'flex', alignItems: 'center', mb: 1}}>
-                                                    {showCareerMaxSize && 
-                                                        <TextField type="number" name="max class size" size="small"
-                                                            sx={{ width: 50, height: 20, ml: "10px", "& .MuiOutlinedInput-input": {
-                                                                    p: "0 1px",
-                                                                    textAlign: "center",
-                                                                }
-                                                            }}
-                                                            value={careerMaxClassSizeList[career.id] ?? ""}
-                                                            onChange={(e) => updateCareerMaxSize(career.id, e.target.value)}
-                                                        />
-                                                    }
-                                                    {!showCareerMaxSize && [...Array(sessionCountValue)].map((_, index) => (
-                                                        <TriStateCheckbox key={index}
-                                                            value={checkedState[career.id][index]}
-                                                            handleChange={() => handleCheckboxChange(career.id, index)} />
-                                                    ))}
-                                                        <Typography variant="body2" 
-                                                            sx={{ ml: 1, cursor: selectCareers ? 'pointer' : 'default', 
-                                                                '&:hover': {
-                                                                    bgcolor: selectCareers ? 'lightgray' : 'transparent'
-                                                                },
-                                                                fontSize: DEFAULT_FONT_SIZE }}
-                                                            onClick={selectCareers ? () => handleAddSameSpeaker(career) : undefined}
+                                            {sameSpeakers.map((c, outIndex) => (
+                                                <Grid item key={outIndex} xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
+                                                        <IconButton disabled={selectCareers} size="small" onClick={() => removeSameSpeakers(outIndex)} 
+                                                            sx={{ pb: '6px', visibility: selectCareers ? 'hidden' : 'visible' }}
                                                         >
-                                                            {career.name}
-                                                        </Typography>
+                                                            <Delete fontSize="small" color="error" />
+                                                        </IconButton>
+                                                    <Typography component="span" sx={{ fontSize: DEFAULT_FONT_SIZE }}>{outIndex + 1}.</Typography>
+                                                    {c.map((cc, index) => (
+                                                        <span key={cc.id}>
+                                                            <Typography key={cc.id} 
+                                                                sx={{ display: 'inline', pl: 1, fontSize: DEFAULT_FONT_SIZE }}>
+                                                                    {cc.name}
+                                                            </Typography>
+                                                            {index !== c.length - 1 && <Typography sx={{ display: 'inline', px: 1 }}>-</Typography>}
+                                                        </span>
+                                                    ))}
                                                 </Grid>
                                             ))}
                                         </Grid>
+                                    </Grid>
+                                    
+                                    <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'left', ml: 1 }}>
+                                        {selectCareers && 
+                                            <Typography align="center" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
+                                                Please select the set of careers to combine from the list below.
+                                            </Typography>
+                                        }
+                                    </Grid>
 
-                                        <Grid container item xs={12}>
-                                            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', pb: 2 }}>
-                                                <AppLoadingButton loading={loading} type="submit" variant="contained">
-                                                    Generate Schedule
-                                                </AppLoadingButton>
-                                            </Grid>
+                                    <Grid container item xs={12}>
+                                        <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center'}}>
+                                            <Typography sx={{ display: 'flex', width: '400px', fontSize: DEFAULT_FONT_SIZE }}>
+                                                <Checkbox defaultChecked disabled size="small" sx={{ p: 0, '&.Mui-disabled': { color: 'primary.main' } }} />
+                                                Select sessions you want to force a career to be in
+                                            </Typography>
+                                        </Grid>
+                                        <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'center'}}>
+                                            <Typography sx={{ display: 'flex', width: '400px', fontSize: DEFAULT_FONT_SIZE }}>
+                                                <Checkbox defaultChecked disabled size="small" sx={{ p: 0, '&.Mui-disabled': { color: 'error.main' } }} />
+                                                Select sessions you want to a career NOT to be in
+                                            </Typography>
                                         </Grid>
                                     </Grid>
-                                </form>
-                            ) : (
-                                <>
-                                    {getStepContent(activeStep)}
-                                </>
-                            )}
-                    </Grid>
-                </Grid>
 
+                                    <Grid container item xs={12}>
+                                        {showCareerMaxSize ?
+                                            <Grid container>
+                                                <Grid item xs={4} sx={{ pl: "16px", height: '24px' }}>
+                                                    <Typography fontSize={DEFAULT_FONT_SIZE}>Max</Typography>
+                                                </Grid>
+                                                <Grid item xs={4} sx={{ pl: "16px", height: '24px' }}>
+                                                    <Typography fontSize={DEFAULT_FONT_SIZE}>Max</Typography>
+                                                </Grid>
+                                                <Grid item xs={4} sx={{ pl: "16px", height: '24px' }}>
+                                                    <Typography fontSize={DEFAULT_FONT_SIZE}>Max</Typography>
+                                                </Grid>
+                                            </Grid>
+                                        : <Grid container>
+                                            <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
+                                                {[...Array(sessionCountValue)].map((_, index) => (
+                                                    <Typography key={index} 
+                                                        sx={{ width: '20px', display: 'flex', justifyContent: 'center', fontSize: DEFAULT_FONT_SIZE }}>
+                                                        {index + 1}
+                                                    </Typography>
+                                                ))}
+                                            </Grid>
+                                            <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
+                                                {[...Array(sessionCountValue)].map((_, index) => (
+                                                    <Typography key={index} 
+                                                        sx={{ width: '20px', display: 'flex', justifyContent: 'center', fontSize: DEFAULT_FONT_SIZE }}>
+                                                        {index + 1}
+                                                    </Typography>
+                                                ))}
+                                            </Grid>
+                                            <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'row'}}>
+                                                {[...Array(sessionCountValue)].map((_, index) => (
+                                                    <Typography key={index} 
+                                                        sx={{ width: '20px', display: 'flex', justifyContent: 'center', fontSize: DEFAULT_FONT_SIZE }}>
+                                                        {index + 1}
+                                                    </Typography>
+                                                ))}
+                                            </Grid>
+                                        </Grid>}
+                                        {event.careers.map(career => (
+                                            <Grid item xs={4} key={career.id} sx={{ display: 'flex', alignItems: 'center', mb: 1}}>
+                                                {showCareerMaxSize && 
+                                                    <TextField type="text" name="max class size" size="small"
+                                                        sx={{ minWidth: 50, width: 50, minHeight: 20, height: 20, ml: "10px",
+                                                            "& .MuiOutlinedInput-input": {
+                                                                p: "0 1px",
+                                                                textAlign: "center",
+                                                            },
+                                                            '& .MuiInputBase-input': {
+                                                                fontSize: DEFAULT_FONT_SIZE
+                                                            },
+                                                        }}
+                                                        value={careerMaxClassSizeList[career.id] ?? ""}
+                                                        onChange={(e) =>
+                                                            updateCareerMaxSize(
+                                                                career.id,
+                                                                e.target.value.replace(/[^0-9]/g, "")
+                                                            )
+                                                        }
+                                                        inputProps={{ inputMode: "numeric" }}
+                                                        InputProps={{
+                                                            endAdornment: (
+                                                                <InputAdornment position="end" sx={{ m: 0, mr: "-10px" }}>
+                                                                    <Box sx={{
+                                                                            display: "flex",
+                                                                            flexDirection: "column",
+                                                                            alignItems: "center",
+                                                                            lineHeight: 1,
+                                                                        }}
+                                                                    >
+                                                                        <IconButton sx={{ p: 0, width: 12, height: 10 }}
+                                                                            onClick={() => {
+                                                                                const currentValue = Number(careerMaxClassSizeList[career.id] ?? 0)
+                                                                                updateCareerMaxSize(career.id, String(currentValue + 1))
+                                                                            }}
+                                                                        >
+                                                                            <ArrowDropUp sx={{ fontSize: 20 }} />
+                                                                        </IconButton>
+                                                                        <IconButton sx={{ p: 0, width: 12, height: 10 }}
+                                                                            onClick={() => {
+                                                                                const currentValue = Number(careerMaxClassSizeList[career.id] ?? 0)
+                                                                                if (currentValue > 0) {
+                                                                                    updateCareerMaxSize(career.id, String(currentValue - 1))
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            <ArrowDropDown sx={{ fontSize: 20 }} />
+                                                                        </IconButton>
+                                                                    </Box>
+                                                                </InputAdornment>
+                                                            )
+                                                        }}
+                                                    />
+                                                }
+                                                {!showCareerMaxSize && [...Array(sessionCountValue)].map((_, index) => (
+                                                    <TriStateCheckbox key={index}
+                                                        value={checkedState[career.id][index]}
+                                                        handleChange={() => handleCheckboxChange(career.id, index)} />
+                                                ))}
+                                                    <Typography variant="body2" 
+                                                        sx={{ ml: 1, cursor: selectCareers ? 'pointer' : 'default', 
+                                                            '&:hover': {
+                                                                bgcolor: selectCareers ? 'action.focus' : 'transparent'
+                                                            },
+                                                            fontSize: DEFAULT_FONT_SIZE }}
+                                                        onClick={selectCareers ? () => handleAddSameSpeaker(career) : undefined}
+                                                    >
+                                                        {career.name}
+                                                    </Typography>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+
+                                    <Grid container item xs={12}>
+                                        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', pb: 2 }}>
+                                            <AppLoadingButton disabled={!isDirty && !hasChanges} loading={loading} type="submit" variant="contained">
+                                                Generate {showParamsOverride && "New"} Schedule
+                                            </AppLoadingButton>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </form>
+                        </Grid>
+                :
+                    <SessionView event={event} setShowParamsOverride={setShowParmsOverride} />
+                }
             </Grid>
+            <OverrideScheduleDialog data={fieldValues} generateSchedule={generateSchedule}
+                open={showOverrideConfirm} handleClose={() =>setShowOverrideConfirm(false)} />
         </Grid>
+
     )
 }

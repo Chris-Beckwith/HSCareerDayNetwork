@@ -1,11 +1,9 @@
 export const EVENT_PHASES = {
-    CREATED: 'Created',
+    SETUP: 'Setup',
     SURVEYINPROGRESS: 'Survey In Progress',
     SURVEYCLOSED: 'Survey Closed',
-    SESSIONSGENERATED: 'Sessions Generated',
-    ROOMSASSIGNED: 'Rooms Assigned',
-    SPEAKERSASSIGNED: 'Speakers Assigned',
-    SCHEDULEEXPORT: 'Ready for Schedule Export',
+    SCHEDULEGENERATED: 'Schedule Generated',
+    SCHEDULELOCKED: 'Schedule Locked',
     COMPLETED: 'Completed',
     CANCELLED: 'Cancelled'
 }
