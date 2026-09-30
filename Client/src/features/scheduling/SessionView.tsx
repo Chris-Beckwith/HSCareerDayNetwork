@@ -22,6 +22,7 @@ import AppLoadingButton from "../../app/components/AppLoadingButton"
 import { useAppDispatch } from "../../app/store/configureStore"
 import SessionViewSkeleton from "./components/SessionViewSkeleton"
 import AppButton from "../../app/components/AppButton"
+import { isScheduleAvailable } from "../../app/util/util"
 
 export interface UnplacedStudent {
     student: Student
@@ -44,7 +45,7 @@ export default function SessionView({ event, setShowParamsOverride }: Props) {
     const [sessions, setSessions] = useState<Session[]>([])
     const [unplacedStudents, setUnplacedStudents] = useState<UnplacedStudent[]>([])
     const [scheduleParams, setScheduleParams] = useState<ScheduleParams>()
-    const [initialSessions, setInitialSessions] = useState("")
+    const [initialSessions, setInitialSessions] = useState<Session[]>([])
 
     const [refreshKey, setRefreshKey] = useState(0)
     const [showUnplacedStudents, setShowUnplacedStudents] = useState(false)
@@ -60,15 +61,15 @@ export default function SessionView({ event, setShowParamsOverride }: Props) {
     
     const periods = Array.from(new Set(sessions.map(s => s.period))).sort((a, b) => a - b)
 
-    //For Schedule/Session View
+    //Get Schedule
     useEffect(() => {
-        if (event.eventPhase.phaseName === EVENT_PHASES.SCHEDULEGENERATED) {
+        if (isScheduleAvailable(event.eventPhase.phaseName)) {
             setLoadingSessions(true)
             agent.Schedule.getSessionsAndUnplaced(event.id)
                 .then(response => {
                     setSessions(response.allSessions)
                     setUnplacedStudents(response.unplacedStudents)
-                    setInitialSessions(JSON.stringify(response.allSessions))
+                    setInitialSessions(response.allSessions)
                 })
                 .catch(error => console.log(error))
                 .finally(() => {
@@ -82,7 +83,19 @@ export default function SessionView({ event, setShowParamsOverride }: Props) {
         }
     }, [event.eventPhase.phaseName, event.id])
 
-    const hasScheduleChanged = JSON.stringify(sessions) !== initialSessions
+    const canEditSchedule = event.eventPhase.phaseName === EVENT_PHASES.SCHEDULEGENERATED
+    
+    const hasScheduleChanged = sessions.some((session, index) => {
+        const initial = initialSessions[index]
+
+        return (
+            session.classroom?.id !== initial.classroom?.id ||
+            session.period !== initial.period ||
+            session.subject !== initial.subject ||
+            session.speakers.map(s => s.id).join(",") !== initial.speakers.map(s => s.id).join(",") ||
+            session.students.map(s => s.id).join(",") !== initial.students.map(s => s.id).join(",")
+        )
+    })
 
     async function SaveSchedule() {
         setLoading(true)
@@ -205,7 +218,9 @@ export default function SessionView({ event, setShowParamsOverride }: Props) {
                         </Grid>
                     </Grid>
                     <Grid item xs={12} display='flex' justifyContent='left' ml={2}>
-                        <AppButton variant="contained" onClick={() => setShowParamsOverride(true)}>Edit Parameters</AppButton>
+                        <AppButton variant="contained" disabled={!canEditSchedule} onClick={() => setShowParamsOverride(true)}>
+                            Edit Parameters
+                        </AppButton>
                     </Grid>
                 </Grid>
                 <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end'}}>
@@ -232,10 +247,12 @@ export default function SessionView({ event, setShowParamsOverride }: Props) {
                                         .map((session, index) => {
                                             return (
                                                 <Grid item key={index} sx={{ my: 2 }}>
-                                                    <SessionCard session={session} availableClassrooms={availableClassrooms[p]} updateClassroom={updateClassroom} 
-                                                        availableSpeakers={availableSpeakers[p]} updateSpeakers={updateSpeakers} triggerRefresh={triggerRefresh}
-                                                        onSwapStudent={onSwapStudent} status={status} hasMore={hasMore} loadMore={loadMore} classroomParams={classroomParams}
-                                                        />
+                                                    <SessionCard session={session} classroomParams={classroomParams}
+                                                        availableClassrooms={availableClassrooms[p]} updateClassroom={updateClassroom}
+                                                        availableSpeakers={availableSpeakers[p]} updateSpeakers={updateSpeakers} 
+                                                        triggerRefresh={triggerRefresh} onSwapStudent={onSwapStudent} 
+                                                        status={status} hasMore={hasMore} loadMore={loadMore} canEditSchedule={canEditSchedule}
+                                                    />
                                                 </Grid>
                                             )
                                         })}

@@ -23,10 +23,11 @@ interface Props {
     hasMore: boolean
     loadMore: () => void
     classroomParams: ClassroomParams
+    canEditSchedule: boolean
 }
 
 export default function SessionCard({ session, availableClassrooms, updateClassroom, availableSpeakers, updateSpeakers,
-        triggerRefresh, onSwapStudent, status, hasMore, loadMore, classroomParams }: Props) {
+        triggerRefresh, onSwapStudent, status, hasMore, loadMore, classroomParams, canEditSchedule }: Props) {
     const [showStudents, setShowStudents] = useState(false)
     const [showRooms, setShowRooms] = useState(false)
     const [showSpeakers, setShowSpeakers] = useState(false)
@@ -94,16 +95,16 @@ export default function SessionCard({ session, availableClassrooms, updateClassr
                     </Box>
                 </CardContent>
                 <CardActions sx={{ pt: 0, pb: 1, px: 1, display: 'flex', justifyContent: 'space-evenly' }}>
-                    <Button size="small" onClick={() => setShowRooms(true)}>
+                    <Button size="small" disabled={!canEditSchedule} onClick={() => setShowRooms(true)}>
                         Assign Room
                     </Button>
-                    <Button size="small" onClick={() => setShowSpeakers(true)}>
+                    <Button size="small" disabled={!canEditSchedule} onClick={() => setShowSpeakers(true)}>
                         Assign Speakers
                     </Button>
                 </CardActions>
             </Card>
 
-            <SessionStudentView session={session} onSwapStudent={onSwapStudent}
+            <SessionStudentView session={session} onSwapStudent={onSwapStudent} canEditSchedule={canEditSchedule}
                 open={showStudents} handleClose={() => setShowStudents(false)} />
             <SessionClassroom session={session} availableClassrooms={availableClassrooms} updateClassroom={updateClassroom}
                 triggerRefresh={triggerRefresh} open={showRooms} handleClose={() => setShowRooms(false)}
