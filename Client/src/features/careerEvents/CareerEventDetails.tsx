@@ -100,14 +100,6 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         else if (!isPinned)
             setAnchorEl(null)
     }
-    
-    // const isScheduleAvailable = useMemo(() => {
-    //     return [EVENT_PHASES.SCHEDULEGENERATED,
-    //         EVENT_PHASES.SCHEDULELOCKED,
-    //         EVENT_PHASES.COMPLETED,
-    //         EVENT_PHASES.CANCELLED]
-    //             .includes(careerEvent.eventPhase.phaseName)
-    // }, [careerEvent.eventPhase.phaseName])
 
     const cancelEdit = () => {
         setAnchorEl(null)

@@ -125,7 +125,14 @@ export default function SwapDialog({ swapStudent, swapSurvey, sessions, unplaced
     return (
         <>
             <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth={true}>
-                <DialogTitle>Swap Sessions for {swapStudent?.lastFirstName}</DialogTitle>
+                <DialogTitle>
+                    <Typography component="span" fontSize="1.25rem">
+                        Swap Sessions for:{" "}
+                    </Typography>
+                    <Typography component="span" fontWeight="bold" fontSize="1.25rem">
+                        {swapStudent?.lastFirstName}
+                    </Typography>
+                </DialogTitle>
 
                 <DialogContent>
                     <Grid container>
