@@ -1,7 +1,9 @@
-import { Grid, Typography, Paper } from "@mui/material";
+import { Grid, Typography, Paper, useTheme, Tooltip } from "@mui/material";
 import { Session } from "../../../app/models/session";
 import { Career } from "../../../app/models/career";
 import { ScheduleParams } from "../../../app/models/scheduleParams";
+import { blue, deepOrange } from "@mui/material/colors";
+import { DEFAULT_FONT_SIZE } from "../../../app/util/constants";
 
 interface Props {
     title: string
@@ -15,9 +17,27 @@ interface Props {
 }
 
 export default function SessionDisplay({title, selectedSessions, handleSelectSession, periods, sessions, alternateCareers, isAlt, scheduleParams}: Props) {
+    const darkMode = useTheme().palette.mode === 'dark'
+
+    function getBgColor(s: Session) {
+        return selectedSessions.some(ss => ss.id === s.id)
+            ? isAlt || alternateCareers?.some(ac => ac.id === s.subject.id) 
+                ? darkMode ? deepOrange[900] : "warning.light" 
+                : darkMode ? blue[900] : "primary.light" 
+            : !scheduleParams || s.students.length < scheduleParams.maxClassSize 
+                ? 'default' 
+                : "action.disabled"
+    }
+
+    function getHover(s: Session) {
+        return !scheduleParams || s.students.length < scheduleParams.maxClassSize
+            ? 'action.focus'
+            : 'default'
+    }
+    
     return (
-        <Grid container item xs={12}>
-            <Grid item xs={12}>
+        <Grid container item xs={12} columnSpacing={2}>
+            <Grid item xs={12} mt={2}>
                 <Typography><strong>{title}</strong></Typography>
             </Grid>
             {periods.map(period => (
@@ -26,30 +46,27 @@ export default function SessionDisplay({title, selectedSessions, handleSelectSes
                         <Grid key={s.id} container item xs={12} sx={{ alignItems: 'flex-start' }}>
                             <Paper elevation={8} 
                                 onClick={!scheduleParams || s.students.length < scheduleParams.maxClassSize ? () => handleSelectSession(s) : undefined}
-                                sx={{ m: 1, p: 1, width: '100%', position: 'relative',
-                                bgcolor: selectedSessions.some(ss => ss.id === s.id)
-                                    ? isAlt || alternateCareers?.some(ac => ac.id === s.subject.id) 
-                                        ? "warning.light" : "primary.light" 
-                                    : !scheduleParams || s.students.length < scheduleParams.maxClassSize 
-                                        ? 'default' : "darkgray",
-                                cursor: !scheduleParams || s.students.length < scheduleParams.maxClassSize
-                                    ? 'pointer'
-                                    : 'not-allowed',
-                                '&:hover': { bgcolor: !scheduleParams || s.students.length < scheduleParams.maxClassSize
-                                    ? 'lightgray'
-                                    : 'default', } }}
+                                sx={{ my: 1, p: 1, width: '100%', position: 'relative', fontSize: DEFAULT_FONT_SIZE,
+                                    bgcolor: getBgColor(s),
+                                    cursor: !scheduleParams || s.students.length < scheduleParams.maxClassSize
+                                        ? 'pointer'
+                                        : 'not-allowed',
+                                    '&:hover': { bgcolor: getHover(s) }
+                                }}
                             >
                                 <Typography variant="subtitle2" sx={{ position: 'absolute', top: 1, left: 4 }}>{period}</Typography>
                                 <Grid item xs={12} sx={{ pl: 1 }}>
-                                    <Typography color={
-                                        selectedSessions.some(ss => ss.id === s.id) ? "default" :
-                                        isAlt || alternateCareers?.some(ac => ac.id === s.subject.id) ? "warning.dark" : "primary.dark"
-                                    } 
-                                        sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                                    >
-                                            <strong>{s.subject.name}</strong>
-                                    </Typography>
-                                    <Typography>Students #: {s.students.length}</Typography>
+                                    <Tooltip title={s.subject.name}>
+                                        <Typography color={
+                                            selectedSessions.some(ss => ss.id === s.id) ? "default" :
+                                            isAlt || alternateCareers?.some(ac => ac.id === s.subject.id) ? "warning.dark" : "primary.dark"
+                                        } 
+                                        sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: DEFAULT_FONT_SIZE }}
+                                        >
+                                                <strong>{s.subject.name}</strong>
+                                        </Typography>
+                                    </Tooltip>
+                                    <Typography sx={{ fontSize: DEFAULT_FONT_SIZE }}>Students #: {s.students.length}</Typography>
                                 </Grid>
                             </Paper>
                         </Grid>

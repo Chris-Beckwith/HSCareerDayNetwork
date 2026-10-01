@@ -1,5 +1,5 @@
 import { Check, ContentCopy } from "@mui/icons-material";
-import { IconButton } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
 import { useState } from "react";
 
 interface Props {
@@ -23,13 +23,17 @@ export default function AppCopyButton({copyText}: Props) {
     return (
         <>
             {copied ?
-                <IconButton disableRipple>
-                    <Check color="primary" />
-                </IconButton>
+                <Tooltip title="Copied">
+                    <IconButton disableRipple>
+                        <Check color="primary" />
+                    </IconButton>
+                </Tooltip>
                 :
-                <IconButton onClick={handleCopy}>
-                    <ContentCopy color="primary" />
-                </IconButton>
+                <Tooltip title="Copy Text">
+                    <IconButton onClick={handleCopy}>
+                        <ContentCopy color="primary" />
+                    </IconButton>
+                </Tooltip>
             }
         </>
     )

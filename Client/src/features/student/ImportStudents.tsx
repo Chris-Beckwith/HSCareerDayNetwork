@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Typography } from "@mui/material";
 import { ChangeEvent, useState } from "react";
 import agent from "../../app/api/agent";
 import { useAppDispatch } from "../../app/store/configureStore";
@@ -59,6 +59,7 @@ export default function ImportStudents({ open, eventId, setResponse, setIncomple
         <Dialog
             open={open}
             onClose={handleClose}
+            maxWidth="lg"
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
@@ -67,10 +68,12 @@ export default function ImportStudents({ open, eventId, setResponse, setIncomple
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    Drag or Select file to upload, file type must be .xlsx or .xls
+                    <Typography>Drag or Select file to upload, file type must be .xlsx or .xls</Typography>
+                    <Typography mt={1}>Please ensure the following headers are included:</Typography>
+                    <Typography mx={2} fontStyle='italic'>Number/Id, LastFirst, Last, First, Gender, Grade, Email, Teacher, Room/Homeroom</Typography>
                 </DialogContentText>
                 <Box sx={{ mt: 2 }}>
-                    <input style={{ width: 450 }} type="file" accept=".xlsx, .xls" onChange={(event) => onFileChange(event)} />
+                    <input style={{ padding: 2, width: 450 }} type="file" accept=".xlsx, .xls" onChange={(event) => onFileChange(event)} />
                 </Box>
                 <Box>
                     {errorMsg &&
