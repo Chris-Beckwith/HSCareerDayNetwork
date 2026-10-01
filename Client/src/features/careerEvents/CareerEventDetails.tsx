@@ -8,7 +8,7 @@ import agent from "../../app/api/agent";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { reloadEvents } from "./careerEventSlice";
 import CareerEventForm from "./CareerEventForm";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import useEvents from "../../app/hooks/useEvents";
 import ConfirmDelete from "../../app/components/ConfirmDelete";
 import CareerEventSpeakers from "./components/CareerEventSpeakers";
@@ -22,7 +22,7 @@ import Classrooms from "../classroom/Classrooms";
 import SurveyResults from "../survey/SurveyResults";
 import ConfirmPreviousPhase from "./components/ConfirmPreviousPhase";
 import SchedulingTool from "../scheduling/SchedulingTool";
-import { findNextEventPhaseId, findPrevEventPhaseId } from "../../app/util/util";
+import { findNextEventPhaseId, findPrevEventPhaseId, isScheduleAvailable } from "../../app/util/util";
 import ExportTool from "./ExportTool";
 import EventCompleted from "./components/EventCompleted";
 import AppButton from "../../app/components/AppButton";
@@ -101,13 +101,13 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
             setAnchorEl(null)
     }
     
-    const isScheduleAvailable = useMemo(() => {
-        return [EVENT_PHASES.SCHEDULEGENERATED,
-            EVENT_PHASES.SCHEDULELOCKED,
-            EVENT_PHASES.COMPLETED,
-            EVENT_PHASES.CANCELLED]
-                .includes(careerEvent.eventPhase.phaseName)
-    }, [careerEvent.eventPhase.phaseName])
+    // const isScheduleAvailable = useMemo(() => {
+    //     return [EVENT_PHASES.SCHEDULEGENERATED,
+    //         EVENT_PHASES.SCHEDULELOCKED,
+    //         EVENT_PHASES.COMPLETED,
+    //         EVENT_PHASES.CANCELLED]
+    //             .includes(careerEvent.eventPhase.phaseName)
+    // }, [careerEvent.eventPhase.phaseName])
 
     const cancelEdit = () => {
         setAnchorEl(null)
@@ -329,12 +329,12 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     </MenuItem>
                 </Tooltip>
             }
-            {isScheduleAvailable &&
+            {isScheduleAvailable(careerEvent.eventPhase.phaseName) &&
                 <MenuItem sx={menuItemSx} onClick={() => setScheduleMode(true)}>
                     View Schedule
                 </MenuItem>
             }
-            {isScheduleAvailable &&
+            {isScheduleAvailable(careerEvent.eventPhase.phaseName) &&
                 <MenuItem sx={menuItemSx} onClick={() => {
                     setExportMode(true)
                     toggleMenu()

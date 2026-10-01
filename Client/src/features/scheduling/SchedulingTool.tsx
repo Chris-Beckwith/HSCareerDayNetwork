@@ -351,7 +351,7 @@ export default function SchedulingTool({ event, back }: Props) {
                                     <Grid container item xs={12} sx={{ display: 'flex', justifyContent: 'left', ml: 1 }}>
                                         {selectCareers && 
                                             <Typography align="center" sx={{ fontSize: DEFAULT_FONT_SIZE }}>
-                                                Please select the set of careers to combine from the list below.
+                                                Please select the set of careers to combine from the list below. You may add additional groups after saving.
                                             </Typography>
                                         }
                                     </Grid>

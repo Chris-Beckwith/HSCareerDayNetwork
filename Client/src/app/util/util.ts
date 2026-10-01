@@ -25,6 +25,14 @@ export function downloadExcel(response: any) {
     document.body.removeChild(link)
 }
 
+export const isScheduleAvailable = (phaseName: string) => {
+    return [EVENT_PHASES.SCHEDULEGENERATED,
+        EVENT_PHASES.SCHEDULELOCKED,
+        EVENT_PHASES.COMPLETED,
+        EVENT_PHASES.CANCELLED]
+            .includes(phaseName)
+}
+
 export function findNextEventPhaseId(eventPhases: EventPhase[], phaseName: string) {
     let eventPhase;
     switch (phaseName) {

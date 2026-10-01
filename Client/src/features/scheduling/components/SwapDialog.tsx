@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Paper, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Paper, Typography, useTheme } from "@mui/material";
 import { Student } from "../../../app/models/student";
 import { Session } from "../../../app/models/session";
 import { useEffect, useState } from "react";
@@ -8,6 +8,8 @@ import ConfirmLessSwap from "./ComfirmLessSwap";
 import ConfirmSwap from "./ConfirmSwap";
 import { UnplacedStudent } from "../SessionView";
 import { ScheduleParams } from "../../../app/models/scheduleParams";
+import { blue, deepOrange } from "@mui/material/colors";
+import { DEFAULT_FONT_SIZE } from "../../../app/util/constants";
 
 interface Props {
     swapStudent: Student | undefined
@@ -27,6 +29,7 @@ export default function SwapDialog({ swapStudent, swapSurvey, sessions, unplaced
     const [selectedSessions, setSelectedSessions] = useState<Session[]>([])
     const [showLessConfirm, setShowLessConfirm] = useState(false)
     const [showSwapConfirm, setShowSwapConfirm] = useState(false)
+    const darkMode = useTheme().palette.mode === 'dark'
 
     useEffect(() => {
         if (swapStudent) {
@@ -128,15 +131,23 @@ export default function SwapDialog({ swapStudent, swapSurvey, sessions, unplaced
                     <Grid container>
                         <Grid container item xs={12}>
                             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', pb: 1 }}>
-                                <Typography sx={{ pr: 1 }}><strong>Primary Choices:</strong></Typography>
+                                <Typography sx={{ pr: 1, textAlign: 'center' }}><strong>Primary Choices:</strong></Typography>
                                 {swapSurvey?.primaryCareers.map(c => (
-                                    <Paper key={c.id} elevation={4} sx={{ px: 1, mr: 1, bgcolor: 'primary.light' }}>{c.name}</Paper>
+                                    <Paper key={c.id} elevation={4} sx={{ px: 1, mr: 1, fontSize: DEFAULT_FONT_SIZE,
+                                        textAlign: 'center', bgcolor: darkMode ? blue[900] : 'primary.light' }}
+                                    >
+                                        {c.name}
+                                    </Paper>
                                 ))}
                             </Grid>
                             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', pb: 1 }}>
-                                <Typography sx={{ pr: 1 }}><strong>Alternate Choices:</strong></Typography>
+                                <Typography sx={{ pr: 1, textAlign: 'center' }}><strong>Alternate Choices:</strong></Typography>
                                 {swapSurvey?.alternateCareers.map(c => (
-                                    <Paper key={c.id} elevation={4} sx={{ px: 1, mr: 1, bgcolor: 'warning.light' }}>{c.name}</Paper>
+                                    <Paper key={c.id} elevation={4} sx={{ px: 1, mr: 1, fontSize: DEFAULT_FONT_SIZE,
+                                        textAlign: 'center', bgcolor: darkMode ? deepOrange[900] : 'warning.light'}}
+                                    >
+                                        {c.name}
+                                    </Paper>
                                 ))}
                             </Grid>
                         </Grid>
