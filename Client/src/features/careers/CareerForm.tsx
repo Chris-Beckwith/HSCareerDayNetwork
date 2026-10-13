@@ -75,7 +75,7 @@ export default function CareerForm({ selectedCareer, cancelEdit }: Props) {
 
     return (
         <Paper variant="outlined" sx={{ my: { xs: 3, md: 4 }, p: { xs: 2, md: 2 } }}>
-            <Grid container xs={12} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+            <Grid container sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                 <AppBackButton onClick={cancelEdit} sx={{ left: isMobile ? 4 : 24 }} />
                 <Typography align="center" variant={isTablet ? isMobile ? "h5" : "h4" : "h3"}>{selectedCareer ? "Edit Career" : "Add Career"}</Typography>
             </Grid>

@@ -19,6 +19,7 @@ import AppButton from "../../app/components/AppButton"
 import IncompleteStudentsDialog from "./IncompleteStudentsDialog"
 import AppBackButton from "../../app/components/AppBackButton"
 import AppExportButton from "../../app/components/AppExportButton"
+import { reloadEvents } from "../careerEvents/careerEventSlice"
 
 interface Props {
     event: CareerEvent
@@ -118,6 +119,7 @@ export default function Students({ event, back, schoolUser }: Props) {
         setConfirmDeleteLoading(true)
         await agent.Student.deleteAll(event.id)
         dispatch(reloadStudents())
+        dispatch(reloadEvents())
         setConfirmDeleteLoading(false)
         setOpenDelete(false)
     }
@@ -126,6 +128,7 @@ export default function Students({ event, back, schoolUser }: Props) {
         setConfirmDeleteLoading(true)
         if (deleteStudent) await agent.Student.delete(deleteStudent.id)
         dispatch(reloadStudents())
+        dispatch(reloadEvents())
         setConfirmDeleteLoading(false)
         setDeleteStudent(undefined)
     }

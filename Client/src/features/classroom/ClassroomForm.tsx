@@ -40,9 +40,9 @@ export default function ClassroomForm({ school, selectedRoom, cancelEdit }: Prop
     }, [selectedRoom, isDirty, reset])
 
     async function handleAddClassroom(data: FieldValues) {
-        data.school = school
+        data.schoolId = school.id
         data.capacity = data.capacity.replace(/,/g, "")
-        data.overflow = data.overflow?.replace(/,/g, "")
+        data.overflow = data.overflow?.replace(/,/g, "") || 0
         try {
             if (selectedRoom) {
                 await agent.Classroom.update(data)

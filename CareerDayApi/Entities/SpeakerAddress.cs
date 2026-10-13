@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace CareerDayApi.Entities
 {
     public class SpeakerAddress : Address

@@ -94,6 +94,9 @@ AutoMapper.Extensions.Microsoft.DependencyInjection  //Might not use this
 CloudinaryDotNet
 EPPlus
 QRCoder
+FluentEmail.Core
+FluentEmail.Smtp
+FluentEmail.Razor
 
 
 Commands to create project

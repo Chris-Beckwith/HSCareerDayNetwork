@@ -125,9 +125,11 @@ export default function CareerEventCareers({ careerEvent, updateCareerEvent, bac
                 <Typography variant={isTablet ? isMobile ? "h5" : "h4" : "h3"} display='flex' justifyContent='center' align='center' maxWidth='86%'>
                     {careerEvent.name}
                 </Typography>
-                <Typography variant="h6" display="flex" maxWidth='86%' color='warning.dark' sx={{ mt: 2 }}>
-                    Survey careers cannot be changed, please return to Setup phase
-                </Typography>
+                { !allowUpdateCareers && 
+                    <Typography variant="h6" display="flex" maxWidth='86%' color='warning.dark' sx={{ mt: 2 }}>
+                        Survey careers cannot be changed, please return to Setup phase
+                    </Typography>
+                }
             </Grid>
             
             <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mt: 2 }}>

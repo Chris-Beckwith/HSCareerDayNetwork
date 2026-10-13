@@ -1,5 +1,6 @@
 namespace CareerDayApi.Entities
 {
+    //License Bound
     public class Speaker
     {
         public int Id { get; set; }
@@ -11,10 +12,12 @@ namespace CareerDayApi.Entities
         public string PortraitUrl { get; set; }
         public School SchoolLastSpokeAt { get; set; }
         public string Email { get; set; }
-        public List<PhoneNumber> PhoneNumbers { get; set; }
+        public List<PhoneNumber> PhoneNumbers { get; set; } = [];
         public SpeakerAddress Address { get; set; }
-        public List<Career> Careers { get; set; }
+        public List<Career> Careers { get; set; } = [];
         public string PublicId { get; set; }
         public List<Session> Sessions { get; set; } = [];
+        public int? LicenseId { get; set; }
+        public License License { get; set; }
     }
 }

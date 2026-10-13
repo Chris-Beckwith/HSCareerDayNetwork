@@ -7,6 +7,7 @@ namespace CareerDayApi.DTOs
         public string Email { get; set; }
         public string UserName { get; set; }
         public Event Event { get; set; }
+        public License License { get; set; }
         public string Token { get; set; }
     }
 }

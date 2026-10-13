@@ -37,7 +37,6 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
     const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const [editCategory, setEditCategory] = useState('')
     const [updatedCategoryName, setUpdatedCategoryName] = useState('')
-    const [careerSetName, setCareerSetName] = useState<string | undefined>('')
     const [loading, setLoading] = useState(false)
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -49,6 +48,10 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
             careerSets: selectedCareerSetId || newCareerSet.id
         }
     })
+
+    const careerSetName = careerSetsWithNew?.find(
+        careerSet => careerSet.id === selectedCareerSetId
+    )?.name;
     
     useEffect(() => {
         if (selectedCareers?.length === 0) {
@@ -104,7 +107,6 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
     const handleCareerSetChange = (event: SelectChangeEvent<number>, onChange: (...event: any[]) => void) => {
         if (careerSetsWithNew && handleSetCareerSet) {
             const careerSet = careerSetsWithNew.find(c => c.id === event.target.value)
-            setCareerSetName(careerSet?.name)
             handleSetCareerSet(careerSet)
             if (careerSet?.careers) {
                 onChange(event.target.value)

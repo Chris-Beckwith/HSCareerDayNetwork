@@ -5,23 +5,29 @@ using CareerDayApi.Entities;
 using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Controllers
 {
-    [Authorize(Roles = "Admin")]
-    public class SchoolsController(CareerDayContext context,
+    [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
+    public class SchoolsController(CareerDayContext context, UserManager<User> userManager,
         IMapper mapper, ILogger<SchoolsController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly IMapper _mapper = mapper;
         private readonly ILogger<SchoolsController> _logger = logger;
 
         [HttpGet]
         public async Task<ActionResult<PagedList<School>>> GetSchools([FromQuery] SchoolParams schoolParams)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
             var query = _context.Schools
+                .Where(s => s.LicenseId == currentLicenseId)
                 .Search(schoolParams.SearchTerm)
                 .Include(a => a.Address);
 
@@ -33,10 +39,19 @@ namespace CareerDayApi.Controllers
             return schools;
         }
 
+        /**
+         * Unused
+         */
         [HttpGet("{id}", Name = "GetSchool")]
         public async Task<ActionResult<School>> GetSchool(int id)
         {
-            return await _context.Schools.Include(a => a.Address).FirstOrDefaultAsync(s => s.Id == id);
+            var school = await _context.Schools.Include(a => a.Address).FirstOrDefaultAsync(s => s.Id == id);
+            if (school == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (school.LicenseId != currentUser.LicenseId) return Forbid();
+
+            return school;
         }
 
         [HttpPost]
@@ -44,6 +59,10 @@ namespace CareerDayApi.Controllers
         {
             try
             {
+                var currentUser = await _userManager.GetUserAsync(User);
+                school.LicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+                school.License = null;
+
                 _context.Schools.Add(school);
 
                 var result = await _context.SaveChangesAsync() > 0;
@@ -67,6 +86,9 @@ namespace CareerDayApi.Controllers
 
                 if (school == null) return NotFound();
 
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (school.LicenseId != currentUser.LicenseId) return Forbid();
+
                 _mapper.Map(schoolDto, school);
 
                 var result = await _context.SaveChangesAsync() > 0;
@@ -85,8 +107,10 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult> DeleteSchool(int id)
         {
             var school = await _context.Schools.FindAsync(id);
-
             if (school == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (school.LicenseId != currentUser.LicenseId) return Forbid();
 
             try
             {

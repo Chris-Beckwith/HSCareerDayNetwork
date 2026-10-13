@@ -222,7 +222,11 @@ export default function SchedulingTool({ event, back }: Props) {
 
             const response = await agent.Schedule.generateSessions(generationParams)
             
-            await agent.Schedule.saveSessions(response.allSessions)
+            const saveParams = {
+                eventId: event.id,
+                sessions: response.allSessions
+            }
+            await agent.Schedule.saveSessions(saveParams)
             await agent.Event.saveScheduleParams(generationParams)
             if (showParamsOverride)
                 setShowParmsOverride(false)

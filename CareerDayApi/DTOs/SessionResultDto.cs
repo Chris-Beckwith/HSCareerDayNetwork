@@ -1,5 +1,3 @@
-using CareerDayApi.Entities;
-
 namespace CareerDayApi.DTOs
 {
     public class SessionResultDto

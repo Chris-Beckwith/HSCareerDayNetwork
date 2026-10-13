@@ -22,3 +22,14 @@ export const DEFAULT_FONT_SIZE = {
 export const PHONE_NUMBER_TYPE = [
     "Mobile", "Work", "Home", "Other"
 ]
+
+export enum LicenseType {
+    Full,
+    SurveyOnly
+}
+
+export enum LicenseStatus {
+    Active,
+    Expired,
+    Cancelled
+}

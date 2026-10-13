@@ -21,6 +21,7 @@ namespace CareerDayApi.Services
         {
             var claims = new List<Claim>
             {
+                new(ClaimTypes.NameIdentifier, user.Id),
                 new(ClaimTypes.Email, user.Email),
                 new(ClaimTypes.Name, user.UserName),
             };

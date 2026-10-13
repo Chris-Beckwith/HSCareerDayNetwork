@@ -25,6 +25,6 @@ namespace CareerDayApi.DTOs
         public List<PhoneNumber> PhoneNumbers { get; set; }
         public SpeakerAddress Address { get; set; }
         public List<int> CareerIds { get; set; }
-        public Boolean RemovePortrait { get; set; }
+        public bool RemovePortrait { get; set; }
     }
 }

@@ -8,7 +8,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { validationSchema } from "./surveyValidation";
 import EnterStudentId from "./EnterStudentId";
 import { useParams } from "react-router-dom";
-import { CareerEvent } from "../../app/models/event";
+import { SurveyEvent } from "../../app/models/event";
 import agent from "../../app/api/agent";
 import LoadingComponent from "../../app/components/LoadingComponent";
 import { Student } from "../../app/models/student";
@@ -29,7 +29,7 @@ export default function Survey() {
     const [activeStep, setActiveStep] = useState(0)
     const currentValidationSchema = validationSchema[activeStep]
     const { eventHash } = useParams()
-    const [event, setEvent] = useState<CareerEvent | undefined>(undefined)
+    const [event, setEvent] = useState<SurveyEvent | undefined>(undefined)
     const [student, setStudent] = useState<Student | undefined>(undefined)
     const [primaryCareers, setPrimaryCareers] = useState<Career[]>([])
     const [alternateCareers, setAlternateCareers] = useState<Career[]>([])
@@ -133,8 +133,8 @@ export default function Survey() {
         setError('')
 
         if (event) {
-            if (activeStep === 0) {  //Student Number
-                await agent.Student.byNumberAndEvent(event.id, data.studentNumber)
+            if (activeStep === 0 && eventHash) {
+                await agent.Student.byNumberAndEvent(eventHash, data.studentNumber)
                     .then(response => {
                         if (response) {
                             if (response.surveyComplete) {
@@ -176,6 +176,7 @@ export default function Survey() {
                 }
 
                 await agent.Student.submitSurvey(dataWithStudent)
+                    .catch(error => console.log(error))
                     .finally(() => setLoadingStep(false))
                 setActiveStep(activeStep + 1)
             }

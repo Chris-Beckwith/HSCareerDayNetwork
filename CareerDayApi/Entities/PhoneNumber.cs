@@ -1,5 +1,6 @@
 namespace CareerDayApi.Entities
 {
+    //Unbound
     public class PhoneNumber
     {
         public int Id { get; set; }

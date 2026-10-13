@@ -14,6 +14,7 @@ import { DEFAULT_FONT_SIZE } from "../../app/util/constants"
 import AppLoadingButton from "../../app/components/AppLoadingButton"
 import AppButton from "../../app/components/AppButton"
 import AppNumberInput from "../../app/components/AppNumberInput"
+import { reloadEvents } from "../careerEvents/careerEventSlice"
 
 interface Props {
     student?: Student
@@ -61,6 +62,7 @@ export default function StudentForm({ student, cancelEdit, event }: Props) {
                 await agent.Student.create(data)
             }
             dispatch(reloadStudents())
+            dispatch(reloadEvents())
             cancelEdit()
         } catch (error) {
             console.log(error)

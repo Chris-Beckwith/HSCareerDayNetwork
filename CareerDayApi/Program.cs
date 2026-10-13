@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Mail;
 using System.Text;
 using CareerDayApi.Data;
 using CareerDayApi.Entities;
@@ -99,6 +101,21 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<ImageService>();
 builder.Services.AddScoped<ExcelService>();
+builder.Services.AddScoped<EmailService>();
+
+var emailSettings = builder.Configuration.GetSection("FluentEmail");
+builder.Services
+    .AddFluentEmail(emailSettings["FromEmail"])
+    .AddRazorRenderer()
+    .AddSmtpSender(new SmtpClient
+    {
+        Host = emailSettings["Host"],
+        Port = emailSettings.GetValue<int>("Port"),
+        EnableSsl = true,
+        Credentials = new NetworkCredential(
+            emailSettings["Username"],
+            emailSettings["Password"])
+    });
 
 var app = builder.Build();
 

@@ -1,9 +1,8 @@
-using CareerDayApi.Entities;
-
 namespace CareerDayApi.DTOs
 {
     public class SessionsDto
     {
-        public List<Session> Sessions { get; set; }
+        public int EventId { get; set; }
+        public List<SessionDto> Sessions { get; set; }
     }
 }

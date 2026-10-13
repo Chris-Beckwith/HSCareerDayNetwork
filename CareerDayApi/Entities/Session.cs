@@ -1,5 +1,6 @@
 namespace CareerDayApi.Entities
 {
+    //Should be tied to event, need to confirm..
     public class Session
     {
         public int Id { get; set; }

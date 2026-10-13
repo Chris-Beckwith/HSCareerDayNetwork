@@ -66,6 +66,7 @@ axios.interceptors.response.use(async response => {
                         modelStateErrors.push(data.errors[key])
                     }
                 }
+                toast.error("Bad Request")
                 throw modelStateErrors.flat()
             }
             toast.error(data.title)
@@ -174,8 +175,8 @@ const Classroom = {
 
 const Student = {
     list: (params: URLSearchParams) => requests.get('student', params),
-    byNumberAndEvent: (eventId: number, studentNumber: string) => 
-        requests.get(`student/${eventId}/${studentNumber}`),
+    byNumberAndEvent: (guid: string, studentNumber: string) => 
+        requests.get(`student/${guid}/${studentNumber}`),
     import: (file: File, eventId: number) => 
         requests.postForm('student/ImportStudents', createFileFormData(file, eventId)),
     export: (params: URLSearchParams) => requests.getBlob('student/export', params),
@@ -210,7 +211,7 @@ const CareerSet = {
 
 const Account = {
     login: (values: any) => requests.post('account/login', values),
-    register: (user: any) => requests.postForm('account/register', createFormData(user)),
+    registerSchoolUser: (user: any) => requests.postForm('account/registerSchoolUser', createFormData(user)),
     update: (user: any) => requests.putForm('account', createFormData(user)),
     currentUser: () => requests.get('account/currentUser'),
     schoolUsers: (params: URLSearchParams) => requests.get('account/schoolUsers', params)
@@ -228,8 +229,8 @@ const Schedule = {
     generateSessions: (generationParams: any) => requests.postForm('scheduling', createFormData(generationParams)),
     // getSessions: (eventId: number) => requests.get(`scheduling/${eventId}`),
     getSessionsAndUnplaced: (eventId: number) => requests.get(`scheduling/${eventId}`),
-    saveSessions: (sessions: any) => requests.postJson('scheduling/save', JSON.stringify({sessions}) ),
-    updateSessions: (sessions: any) => requests.putJson('scheduling', JSON.stringify({sessions}) ),
+    saveSessions: (params: any) => requests.postJson('scheduling/save', params),
+    updateSessions: (params: any) => requests.putJson('scheduling', params),
     deleteSessions: (eventId: number) => requests.delete(`scheduling/${eventId}`)
 }
 

@@ -6,24 +6,30 @@ using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
 using CareerDayApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
     public class SpeakersController(CareerDayContext context, IMapper mapper, ImageService imageService,
-        ILogger<SpeakersController> logger) : BaseApiController
+        UserManager<User> userManager, ILogger<SpeakersController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
         private readonly IMapper _mapper = mapper;
         private readonly ImageService _imageService = imageService;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly ILogger _logger = logger;
 
         [HttpGet]
         public async Task<ActionResult<PagedList<Speaker>>> GetSpeakers([FromQuery]SpeakerParams speakerParams)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
             var query = _context.Speakers
+                .Where(s => s.LicenseId == currentLicenseId)
                 .Search(speakerParams.SearchTerm)
                 .GetSpeakerDetails();
             
@@ -43,12 +49,17 @@ namespace CareerDayApi.Controllers
             return speakers;
         }
 
+        /**
+         * Unused
+         */
         [HttpGet("{id}", Name = "GetSpeaker")]
         public async Task<ActionResult<Speaker>> GetSpeaker(int id)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            
             var speaker = await _context.Speakers
                 .GetSpeakerDetails()
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.Id == id && s.LicenseId == currentUser.LicenseId);
 
             if (speaker == null)
             {
@@ -67,23 +78,27 @@ namespace CareerDayApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Speaker>> CreateSpeaker([FromForm] CreateSpeakerDto speakerDto)
         {
-            List<Career> careers = await _context.Careers.Where(c => speakerDto.CareerIds.Any(id => id == c.Id)).ToListAsync();
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+            
+            List<Career> careers = await _context.Careers
+                .Where(c => speakerDto.CareerIds.Any(id => id == c.Id) && c.LicenseId == currentLicenseId)
+                .ToListAsync();
 
-            if (careers == null)
-            {
+            if (speakerDto.CareerIds != null && careers.Count != speakerDto.CareerIds.Count)
                 return BadRequest(new ProblemDetails { Title = "Problem creating new speaker: Careers not found" });
-            }
 
             var speaker = _mapper.Map<Speaker>(speakerDto);
             speaker.Careers = careers;
+            speaker.LicenseId = currentLicenseId;
 
             if (speakerDto.SchoolLastSpokeAt != null) {
-                School school = await _context.Schools.Where(s => s.Id == speakerDto.SchoolLastSpokeAt.Id).FirstOrDefaultAsync();
+                School school = await _context.Schools
+                    .FirstOrDefaultAsync(s => s.Id == speakerDto.SchoolLastSpokeAt.Id && s.LicenseId == currentLicenseId);
 
                 if (school == null)
-                {
                     return BadRequest(new ProblemDetails { Title = "Problem creating new speaker: School not found "});
-                }
+
                 speaker.SchoolLastSpokeAt = school;
             }
 
@@ -109,30 +124,33 @@ namespace CareerDayApi.Controllers
         [HttpPut]
         public async Task<ActionResult<Speaker>> UpdateSpeaker([FromForm] UpdateSpeakerDto speakerDto)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             var speaker = await _context.Speakers
                 .Include(s => s.Careers)
                 .Include(s => s.Address)
                 .Include(s => s.PhoneNumbers)
-                .FirstOrDefaultAsync(s => s.Id == speakerDto.Id);
+                .FirstOrDefaultAsync(s => s.Id == speakerDto.Id && s.LicenseId == currentUser.LicenseId);
 
             if (speaker == null) return NotFound();
 
             if (speakerDto.SchoolLastSpokeAt != null) {
                 School school = await _context.Schools
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.Id == speakerDto.SchoolLastSpokeAt.Id);
+                    .FirstOrDefaultAsync(s => s.Id == speakerDto.SchoolLastSpokeAt.Id && s.LicenseId == currentUser.LicenseId);
 
                 if (school == null)
-                {
                     return BadRequest(new ProblemDetails { Title = "Problem updating speaker: School not found" });
-                }
+
                 speaker.SchoolLastSpokeAt = school;
             }
 
             // Update Careers
-            List<Career> careers = await _context.Careers.Where(c => speakerDto.CareerIds.Any(id => id == c.Id)).ToListAsync();
+            List<Career> careers = await _context.Careers
+                .Where(c => speakerDto.CareerIds.Any(id => id == c.Id) && c.LicenseId == currentUser.LicenseId)
+                .ToListAsync();
 
-            if (careers == null)
+            if (speakerDto.CareerIds != null && careers.Count != speakerDto.CareerIds.Count)
             {
                 return BadRequest(new ProblemDetails { Title = "Problem updating speaker: Careers not found" });
             }
@@ -151,15 +169,18 @@ namespace CareerDayApi.Controllers
 
             //Update Phone Numbers
             speaker.PhoneNumbers.Clear();
-            foreach(var phoneNumber in speakerDto.PhoneNumbers)
+            if (speakerDto.PhoneNumbers != null)
             {
-                speaker.PhoneNumbers.Add(new PhoneNumber
+                foreach(var phoneNumber in speakerDto.PhoneNumbers)
                 {
-                    Number = phoneNumber.Number,
-                    Ext = phoneNumber.Ext,
-                    Type = phoneNumber.Type,
-                    IsPrimary = phoneNumber.IsPrimary
-                });
+                    speaker.PhoneNumbers.Add(new PhoneNumber
+                    {
+                        Number = phoneNumber.Number,
+                        Ext = phoneNumber.Ext,
+                        Type = phoneNumber.Type,
+                        IsPrimary = phoneNumber.IsPrimary
+                    });
+                }
             }
 
             _mapper.Map(speakerDto, speaker);
@@ -206,6 +227,9 @@ namespace CareerDayApi.Controllers
                 .FirstOrDefaultAsync(s => s.Id  == id);
 
             if (speaker == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (speaker.LicenseId != currentUser.LicenseId) return Forbid();
 
             if (!string.IsNullOrEmpty(speaker.PublicId))
             {
