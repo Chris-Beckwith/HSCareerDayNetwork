@@ -14,7 +14,6 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import AppTextInput from "../../app/components/AppTextInput";
 import LoadingComponent from "../../app/components/LoadingComponent";
-import useEvents from "../../app/hooks/useEvents";
 import { normalizeNewline } from "../../app/util/util";
 import AppLoadingButton from "../../app/components/AppLoadingButton";
 import AppButton from "../../app/components/AppButton";
@@ -32,7 +31,6 @@ interface Props {
 export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }: Props) {
     const dispatch = useAppDispatch()
     const { schools, schoolsLoaded } = useSchools()
-    const { eventPhases } = useEvents()
     const [date, setDate] = useState<Dayjs | null>(null)
     const [prevSchool, setPrevSchool] = useState<number>()
     const { control, reset, handleSubmit, formState: { isDirty, isSubmitting, errors }, setValue, watch } = useForm({
@@ -49,7 +47,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
             setDate(dayjs(selectedEvent.eventDate))
             const sanitizedEvent = {
                 ...selectedEvent,
-                school: selectedEvent.school.id,
+                schoolId: selectedEvent.school.id,
                 description: normalizeNewline(selectedEvent.description)
             }
             reset({
@@ -61,14 +59,11 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
 
     async function handleAddEvent(data: FieldValues) {
         data.eventDate = dayjs(data.eventDate).toISOString()
-        data.school = schools.find(s => s.id === data.school)
         try {
-            if (selectedEvent) {
+            if (selectedEvent)
                 await agent.Event.update(data)
-            } else {
-                data.eventPhase = eventPhases.find(p => p.phaseName === "Created")
+            else 
                 await agent.Event.create(data)
-            }
             dispatch(reloadEvents())
             saveEdit()
         } catch (error) {
@@ -76,7 +71,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
         }
     }
 
-    const handleSchoolChange = (event: SelectChangeEvent<any>, field: ControllerRenderProps<any, "school">) => {
+    const handleSchoolChange = (event: SelectChangeEvent<any>, field: ControllerRenderProps<any, "schoolId">) => {
         const selectedSchool = schools.find(s => s.id === event.target.value)
         if (prevSchool !== undefined && prevSchool !== event.target.value) {
             const prevSchoolName = schools.find(s => s.id === prevSchool)?.name
@@ -103,10 +98,10 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
                     <Grid container justifyContent='center' sx={{mt: 2}}>
                         <Grid container item xs={12} sm={11} md={9} spacing={2}>
                             <Grid item xs={6}>
-                                <FormControl fullWidth error={!!errors.school} size={isMobile ? "small" : "medium"}>
+                                <FormControl fullWidth error={!!errors.schoolId} size={isMobile ? "small" : "medium"}>
                                     <InputLabel id="school-helper-label">School</InputLabel>
                                     <Controller
-                                        name="school"
+                                        name="schoolId"
                                         control={control}
                                         render={({ field }) => (
                                             <Select
@@ -121,7 +116,7 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
                                             </Select>
                                         )}
                                     />
-                                    <FormHelperText>{errors.school?.message?.toString()}</FormHelperText>
+                                    <FormHelperText>{errors.schoolId?.message?.toString()}</FormHelperText>
                                 </FormControl>
                             </Grid>
                             <Grid item xs={6}>

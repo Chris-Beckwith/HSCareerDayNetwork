@@ -5,24 +5,28 @@ using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
 using CareerDayApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Controllers
 {
     public class SurveysController(CareerDayContext context, ExcelService excelService,
-        ILogger<SurveysController> logger) : BaseApiController
+        UserManager<User> userManager, ILogger<SurveysController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
         private readonly ExcelService _excelService = excelService;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly ILogger<SurveysController> _logger = logger;
         
         [HttpGet("{eventId}")]
-        [Authorize(Roles = "Admin, SchoolUser")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser, SchoolUser")]
         public async Task<ActionResult<List<Survey>>> GetSurveysByEvent(int eventId)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             return await _context.Surveys
-                .Where(s => s.Student.EventId == eventId)
+                .Where(s => s.Student.EventId == eventId && s.Student.Event.LicenseId == currentUser.LicenseId)
                 .Include(s => s.PrimaryCareers)
                 .Include(s => s.AlternateCareers)
                 .Include(s => s.Student)
@@ -30,27 +34,38 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<Survey>> UpdateSurvey([FromForm] UpdateSurveyDto surveyDto)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             var survey = await _context.Surveys
                 .Include(s => s.Student)
                 .Include(s => s.PrimaryCareers)
                 .Include(s => s.AlternateCareers)
-                .FirstOrDefaultAsync(s => s.Id == surveyDto.Id);
+                .FirstOrDefaultAsync(s => s.Id == surveyDto.Id && s.Student.Event.LicenseId == currentUser.LicenseId);
 
             if (survey == null) return NotFound();
 
             var primaryCareerIds = surveyDto.PrimaryCareers.Select(pc => pc.Id).ToList();
             var alternateCareerIds = surveyDto.AlternateCareers.Select(ac => ac.Id).ToList();
 
-            List<Career> primaryCareers = await _context.Careers.Where(c => primaryCareerIds.Contains(c.Id)).ToListAsync();
-            List<Career> alternateCareers = await _context.Careers.Where(c => alternateCareerIds.Contains(c.Id)).ToListAsync();
-
-            if (primaryCareers == null || alternateCareers == null)
+            if (primaryCareerIds.Count != primaryCareerIds.Distinct().Count() ||
+                alternateCareerIds.Count != alternateCareerIds.Distinct().Count() ||
+                primaryCareerIds.Intersect(alternateCareerIds).Any())
             {
-                return BadRequest(new ProblemDetails { Title = "Problem updating survey: Careers not found" });
+                return BadRequest(new ProblemDetails { Title = "A career cannot be selected more than once." });
             }
+
+            List<Career> primaryCareers = await _context.Careers
+                .Where(c => primaryCareerIds.Contains(c.Id) && c.LicenseId == currentUser.LicenseId)
+                .ToListAsync();
+            List<Career> alternateCareers = await _context.Careers
+                .Where(c => alternateCareerIds.Contains(c.Id) && c.LicenseId == currentUser.LicenseId)
+                .ToListAsync();
+
+            if (primaryCareers.Count != primaryCareerIds.Count || alternateCareers.Count != alternateCareerIds.Count)
+                return BadRequest(new ProblemDetails { Title = "Problem updating survey: Careers not found" });
 
             var primaryCareersToRemove = survey.PrimaryCareers.Except(primaryCareers).ToList();
             foreach (var career in primaryCareersToRemove)
@@ -83,27 +98,31 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails { Title = "Problem updating survey" });
         }
 
+        /**
+         * Currently unused
+         */
         [HttpDelete("{eventId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult> DeleteSurveysByEvent(int eventId)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             var surveys = await _context.Surveys
-                .Where(s => s.Student.EventId == eventId).ToListAsync();
+                .Where(s => s.Student.EventId == eventId && s.Student.Event.LicenseId == currentUser.LicenseId)
+                .ToListAsync();
 
             var students = await _context.Students
-                .Where(s => s.EventId == eventId && s.SurveyComplete == true).ToListAsync();
-
-            if (surveys == null) return NotFound();
+                .Where(s => s.EventId == eventId && s.SurveyComplete == true
+                    && s.Event.LicenseId == currentUser.LicenseId)
+                .ToListAsync();
 
             if (surveys.Count == 0) return Ok();
 
             _context.Surveys.RemoveRange(surveys);
 
-            if (students != null && students.Count > 0) {
-                foreach(Student s in students)
-                {
-                    s.SurveyComplete = false;
-                }
+            foreach(Student s in students)
+            {
+                s.SurveyComplete = false;
             }
 
             var result = await _context.SaveChangesAsync() > 0;
@@ -116,19 +135,24 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails { Title = "Problem deleting surveys for event" });
         }
 
+        /**
+         * Export excel of all surveys taken for event.
+         */
         [HttpGet("export")]
-        [Authorize(Roles = "Admin, SchoolUser")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser, SchoolUser")]
         public async Task<ActionResult> ExportSurvey([FromQuery] SurveyParams surveyParams)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             var surveyResults = await _context.Surveys
-                .Where(s => s.Student.EventId == surveyParams.EventId)
+                .Where(s => s.Student.EventId == surveyParams.EventId && s.Student.Event.LicenseId == currentUser.LicenseId)
                 .Include(s => s.PrimaryCareers)
                 .Include(s => s.AlternateCareers)
                 .Include(s => s.Student)
                 .ToListAsync();
 
             var careerEvent = await _context.Events.getEventDetails()
-                .FirstOrDefaultAsync(e => e.Id == surveyParams.EventId);
+                .FirstOrDefaultAsync(e => e.Id == surveyParams.EventId && e.LicenseId == currentUser.LicenseId);
 
             if (surveyResults.Count == 0)
                 return NotFound("No surveys found for event: " + surveyParams.EventId);
@@ -255,13 +279,16 @@ namespace CareerDayApi.Controllers
             return File(stream, _excelService.excelMimeType, fileName);
         }
 
+        /**
+         * Generate Test Surveys for event.
+         */
         [HttpPost("TestData")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> CreateTestSurveyData([FromBody] EventIdDto eventIdDto)
         {
             var eventId = eventIdDto.EventId;
             var careerEvent = await _context.Events.Include(c => c.Careers)
-                .FirstOrDefaultAsync(e => e.Id == eventId);
+                .FirstOrDefaultAsync(e => e.Id == eventId && e.LicenseId == null); //Admin LicenseId is null
             var students = await _context.Students.Where(s => s.EventId == eventId).ToListAsync();
             var surveys = new List<Survey>();
 

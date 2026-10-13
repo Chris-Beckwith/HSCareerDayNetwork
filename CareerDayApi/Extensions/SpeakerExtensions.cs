@@ -25,10 +25,10 @@ namespace CareerDayApi.Extensions
         public static IQueryable<Speaker> GetSpeakerDetails(this IQueryable<Speaker> query)
         {
             return query
-                    .Include(s => s.Address)
-                    .Include(s => s.Careers)
-                    .Include(s => s.PhoneNumbers)
-                    .Include(s => s.SchoolLastSpokeAt);
+                .Include(s => s.Address)
+                .Include(s => s.Careers)
+                .Include(s => s.PhoneNumbers)
+                .Include(s => s.SchoolLastSpokeAt);
         }
     }
 }

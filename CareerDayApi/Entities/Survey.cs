@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CareerDayApi.Entities
 {
+    //License Unbound
     public class Survey
     {
         public int Id { get; set; }

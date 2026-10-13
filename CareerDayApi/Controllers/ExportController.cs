@@ -5,22 +5,20 @@ using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
 using CareerDayApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, FullLicenseUser")]
     public class ExportController(CareerDayContext context, ExcelService excelService,
-        ILogger<ExportController> logger) : BaseApiController
+        UserManager<User> userManager, ILogger<ExportController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
         private readonly ExcelService _excelService = excelService;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly ILogger<ExportController> _logger = logger;
-
-        /**
-         * In the future add parameters to allow customization of excels
-         */
 
         /**
          * Exports the primary student schedule to .xlsx file.
@@ -31,15 +29,21 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult> ExportPrimarySchedule([FromQuery] EventIdDto eventIdDto)
         {
             var careerEvent = await _context.Events.FindAsync(eventIdDto.EventId);
+            if (careerEvent == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser.LicenseId != careerEvent.LicenseId) return Forbid();
             
             var students = await _context.Students
-                .Where(s => s.EventId == eventIdDto.EventId)
+                .Where(s => s.EventId == careerEvent.Id)
                 .Include(s => s.Sessions).ThenInclude(s => s.Classroom)
                 .Include(s => s.Sessions).ThenInclude(s => s.Speakers)
                 .Include(s => s.Sessions).ThenInclude(s => s.Subject)
                 .ToListAsync();
 
-            // Find MAX session count
+            if (students.Count == 0) return NotFound();
+
+            // Find MAX session count, TODO should be passed as parameter
             var numOfSessions = students.Max(s => s.Sessions.Count);
 
             var headers = new List<string>(){
@@ -53,7 +57,7 @@ namespace CareerDayApi.Controllers
 
             for (var i = 1; i <= numOfSessions; i++)
             {
-                headers.Add("Career " + i);
+                headers.Add("Session " + i);
                 headers.Add("Room " + i);
             }
 
@@ -62,9 +66,9 @@ namespace CareerDayApi.Controllers
             foreach(var student in students)
             {
                 var sessions = student.Sessions.OrderBy(s => s.Period).ToList();
-                var rowIndex = 6;
+                var rowIndex = 5;
 
-                var row = new object[rowIndex + sessions.Count * 2];
+                var row = new object[rowIndex + numOfSessions * 2];
                 row[0] = student.StudentNumber;
                 row[1] = student.LastFirstName;
                 row[2] = student.Gender;
@@ -74,12 +78,11 @@ namespace CareerDayApi.Controllers
 
                 foreach(var session in sessions)
                 {
-                    row[rowIndex++] = session.Subject.Name;
+                    var sessionRowIndex = (session.Period - 1) * 2 + 1 + rowIndex;
+                    row[sessionRowIndex] = session.Subject.Name;
                     if (session.Classroom != null)
-                        row[rowIndex++] = session.Classroom.Building?[..Math.Min(session.Classroom.Building.Length, 8)]
+                        row[sessionRowIndex + 1] = session.Classroom.Building?[..Math.Min(session.Classroom.Building.Length, 8)]
                             + session.Classroom.RoomNumber?[..Math.Min(session.Classroom.RoomNumber.Length, 8)];
-                    else
-                        rowIndex++;
                 }
 
                 rows.Add(row);
@@ -106,13 +109,19 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult> ExportStudentsSchedule([FromQuery] EventIdDto eventIdDto)
         {
             var careerEvent = await _context.Events.FindAsync(eventIdDto.EventId);
+            if (careerEvent == null) return NotFound();
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser.LicenseId != careerEvent.LicenseId) return Forbid();
 
             var students = await _context.Students
-                .Where(s => s.EventId == eventIdDto.EventId)
+                .Where(s => s.EventId == careerEvent.Id)
                 .Include(s => s.Sessions).ThenInclude(s => s.Classroom)
                 .Include(s => s.Sessions).ThenInclude(s => s.Speakers)
                 .Include(s => s.Sessions).ThenInclude(s => s.Subject)
                 .ToListAsync();
+
+            if (students.Count == 0) return NotFound();
 
             string fileName = $"{careerEvent.Name}_{careerEvent.EventDate.ToString("MM-dd-yyy")}_StudentSchedules.xlsx";
 
@@ -127,14 +136,21 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult> ExportRoomsSchedule([FromQuery] EventIdDto eventIdDto)
         {
             var careerEvent = await _context.Events.FindAsync(eventIdDto.EventId);
+            if (careerEvent == null) return NotFound();
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser.LicenseId != careerEvent.LicenseId) return Forbid();
+
             var sessions = await _context.Sessions
-                .Where(s => s.EventId == eventIdDto.EventId)
+                .Where(s => s.EventId == careerEvent.Id)
                 .Include(s => s.Classroom)
                 .Include(s => s.Students)
                 .Include(s => s.Speakers)
                 .Include(s => s.Subject)
                 .OrderBy(s => s.Classroom.RoomNumber).ThenBy(s => s.Period)
                 .ToListAsync();
+
+            if (sessions.Count == 0) return NotFound();
 
             var headers = new List<string>()
             {
@@ -159,6 +175,7 @@ namespace CareerDayApi.Controllers
                 var rowIndex = 5;
                 var row = new object[headers.Count];
 
+                //Sessions Don't have a teacher associated to it.
                 row[0] = "Placeholder teacher";
                 if (session.Classroom != null)
                 {
@@ -196,15 +213,19 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult> ExportSpeakersSchedule([FromQuery] EventIdDto eventIdDto)
         {
             var careerEvent = await _context.Events.FindAsync(eventIdDto.EventId);
+            if (careerEvent == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser.LicenseId != careerEvent.LicenseId) return Forbid();
 
             var speakers = await _context.Events
-                .Where(e => e.Id == eventIdDto.EventId)
+                .Where(e => e.Id == careerEvent.Id)
                 .SelectMany(e => e.Speakers)
-                .Include(s => s.Sessions.Where(session => session.EventId == eventIdDto.EventId))
+                .Include(s => s.Sessions.Where(session => session.EventId == careerEvent.Id))
                     .ThenInclude(session => session.Classroom)
-                .Include(s => s.Sessions.Where(session => session.EventId == eventIdDto.EventId))
+                .Include(s => s.Sessions.Where(session => session.EventId == careerEvent.Id))
                     .ThenInclude(session => session.Subject)
-                .Include(s => s.Sessions.Where(session => session.EventId == eventIdDto.EventId))
+                .Include(s => s.Sessions.Where(session => session.EventId == careerEvent.Id))
                     .ThenInclude(session => session.Students)
                 .OrderBy(s => s.LastName).ThenBy(s => s.FirstName)
                 .ToListAsync();
@@ -229,12 +250,20 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult> ExportSpeakers([FromQuery] SpeakerExportParams speakerExportParams)
         {
             List<Speaker> speakers;
+            Event careerEvent = null;
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
 
             if (speakerExportParams.EventId != null)
             {
                 //Export Event Speakers
+                careerEvent = await _context.Events
+                    .FirstOrDefaultAsync(e => e.Id == speakerExportParams.EventId && e.LicenseId == currentLicenseId);
+
+                if (careerEvent == null) return NotFound();
+
                 speakers = await _context.Events
-                    .Where(e => e.Id == speakerExportParams.EventId)
+                    .Where(e => e.Id == speakerExportParams.EventId && e.LicenseId == currentLicenseId)
                     .SelectMany(e => e.Speakers)
                     .GetSpeakerDetails()
                     .ToListAsync();
@@ -245,6 +274,7 @@ namespace CareerDayApi.Controllers
                 if (!string.IsNullOrEmpty(speakerExportParams.SearchTerm))
                 {
                     speakers = await _context.Speakers
+                        .Where(s => s.LicenseId == currentLicenseId)
                         .Search(speakerExportParams.SearchTerm)
                         .GetSpeakerDetails()
                         .ToListAsync();
@@ -252,6 +282,7 @@ namespace CareerDayApi.Controllers
                 else
                 {
                     speakers = await _context.Speakers
+                        .Where(s => s.LicenseId == currentLicenseId)
                         .GetSpeakerDetails()
                         .ToListAsync();
                 }
@@ -266,6 +297,7 @@ namespace CareerDayApi.Controllers
                     .ToList();
             }
             
+            //Populate Headers
             var headers = new List<String>();
             var colCount = 0;
             
@@ -319,6 +351,7 @@ namespace CareerDayApi.Controllers
                 colCount++;
             }
 
+            //Populate Rows
             var rows = new List<object[]>();
 
             foreach(var speaker in speakers)
@@ -378,15 +411,11 @@ namespace CareerDayApi.Controllers
                 centeredCols.Add(true);
             }
 
-
+            //Populate Filename
             string fileName;
 
-            if (speakerExportParams.EventId != null)
+            if (careerEvent != null)
             {
-                Event careerEvent = await _context.Events
-                    .Where(e => e.Id == speakerExportParams.EventId)
-                    .FirstOrDefaultAsync();
-
                 fileName = $"{careerEvent.Name}_Event_Speakers_{careerEvent.EventDate.ToString("MM-dd-yyy")}.xlsx";
             }
             else

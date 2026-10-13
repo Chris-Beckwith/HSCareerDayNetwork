@@ -5,6 +5,7 @@ import { useAppDispatch } from "../../app/store/configureStore";
 import { reloadStudents } from "./studentSlice";
 import { LoadingButton } from "@mui/lab";
 import { Student } from "../../app/models/student";
+import { reloadEvents } from "../careerEvents/careerEventSlice";
 
 interface Props {
     open: boolean
@@ -42,6 +43,7 @@ export default function ImportStudents({ open, eventId, setResponse, setIncomple
                         }
                     })
                 dispatch(reloadStudents())
+                dispatch(reloadEvents())
                 handleClose()
             }
         } catch (e: any) {
@@ -70,7 +72,7 @@ export default function ImportStudents({ open, eventId, setResponse, setIncomple
                 <DialogContentText id="alert-dialog-description">
                     <Typography>Drag or Select file to upload, file type must be .xlsx or .xls</Typography>
                     <Typography mt={1}>Please ensure the following headers are included:</Typography>
-                    <Typography mx={2} fontStyle='italic'>Number/Id, LastFirst, Last, First, Gender, Grade, Email, Teacher, Room/Homeroom</Typography>
+                    <Typography mx={2} fontStyle='italic'>Number/Id, LastFirst, Last, First, Gender, Grade, Email, Teacher/Instructor, Room/Homeroom</Typography>
                 </DialogContentText>
                 <Box sx={{ mt: 2 }}>
                     <input style={{ padding: 2, width: 450 }} type="file" accept=".xlsx, .xls" onChange={(event) => onFileChange(event)} />

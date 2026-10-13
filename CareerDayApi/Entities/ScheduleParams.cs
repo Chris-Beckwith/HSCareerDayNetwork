@@ -3,6 +3,7 @@ using System.Text.Json;
 
 namespace CareerDayApi.Entities
 {
+    //Unbound
     public class ScheduleParams
     {
         public int Id { get; set; }

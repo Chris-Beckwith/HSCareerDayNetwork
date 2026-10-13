@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CareerDayApi.Entities
 {
+    //License Bound
     public class Event
     {
         public int Id { get; set; }
@@ -23,6 +24,8 @@ namespace CareerDayApi.Entities
         public string QRCodeUrl { get; set; }
         public string PublicId { get; set; }
         public bool IsDeleted { get; set; } = false;
+        public int? LicenseId { get; set; }
+        public License License { get; set; }
 
         //TODO AddAllSpeakers, RemoveAllSpeakers
 

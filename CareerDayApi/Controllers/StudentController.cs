@@ -6,6 +6,7 @@ using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
 using CareerDayApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
@@ -13,18 +14,22 @@ using OfficeOpenXml;
 namespace CareerDayApi.Controllers
 {
     public class StudentController(CareerDayContext context, ExcelService excelService,
-        IMapper mapper, ILogger<StudentController> logger) : BaseApiController
+        UserManager<User> userManager, IMapper mapper, ILogger<StudentController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
         private readonly ExcelService _excelService = excelService;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly IMapper _mapper = mapper;
         private readonly ILogger<StudentController> _logger = logger;
 
         [HttpGet]
-        [Authorize(Roles = "Admin, SchoolUser")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser, SchoolUser")]
         public async Task<ActionResult<PagedList<Student>>> GetStudents([FromQuery] StudentParams studentParams)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             var query = _context.Students
+                .Where(s => s.Event.LicenseId == currentUser.LicenseId)
                 .Search(studentParams.SearchTerm)
                 .Filter(studentParams.Gender, studentParams.Grades,
                     studentParams.SurveyComplete, studentParams.EventId)
@@ -41,59 +46,64 @@ namespace CareerDayApi.Controllers
             return students;
         }
 
+        /**
+         * Unused
+         */
         [HttpGet("{id}", Name = "GetStudent")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<Student>> GetStudent(int id)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             return await _context.Students
+                .Where(s => s.Event.LicenseId == currentUser.LicenseId)
                 .Include(s => s.School)
                 .Include(s => s.Event)
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
 
         [AllowAnonymous]
-        [HttpGet("{eventId}/{studentNumber}")]
-        public async Task<ActionResult<Student>> GetStudentByNumber(int eventId, string studentNumber)
+        [HttpGet("{guid}/{studentNumber}")]
+        public async Task<ActionResult<Student>> GetStudentByNumber(string guid, string studentNumber)
         {
-            return await _context.Students
-                .Where(s => s.EventId == eventId && s.StudentNumber == studentNumber)
+            var surveyEvent = await _context.Events.FirstOrDefaultAsync(e => e.GUID == guid);
+            if (surveyEvent == null) return NotFound();
+
+            var student = await _context.Students
+                .AsNoTracking()
+                .Where(s => s.EventId == surveyEvent.Id && s.StudentNumber == studentNumber)
                 .FirstOrDefaultAsync();
-        }
-
-        [HttpGet("GetSurveys")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<List<Survey>>> GetSurveys(int eventId, int pageNumber, int pageSize)
-        {
-            var query = _context.Surveys
-                .Where(s => s.Student.EventId == eventId)
-                .AsQueryable()
-                .Include(s => s.Student)
-                .Include(s => s.PrimaryCareers)
-                .Include(s => s.AlternateCareers);
-
-            var surveys = await PagedList<Survey>.ToPagedList(query, pageNumber, pageSize);
-
-            Response.AddPaginationHeader(surveys.MetaData);
-
-            return surveys;
+            return student;
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<Student>> CreateStudent(Student student)
         {
-            if (await IsDuplicateStudentAsync(student.StudentNumber, student.Event, null))
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
+            var studentEvent = await _context.Events
+                .Include(e => e.School)
+                .FirstOrDefaultAsync(e => e.Id == student.Event.Id && e.LicenseId == currentLicenseId);
+            var school = await _context.Schools
+                .FirstOrDefaultAsync(s => s.Id == student.School.Id && s.Id == studentEvent.School.Id
+                    && s.LicenseId == currentLicenseId);
+
+            if (studentEvent == null || school == null)
+                return BadRequest(new ProblemDetails { Title = "Failed to create student, could not find school or event." });
+
+            if (await IsDuplicateStudentAsync(student.StudentNumber, studentEvent, null))
             {
                 return Conflict(new { 
                     message = $"A student with student Id Number ({student.StudentNumber}) already exists for this event: {student.Event.Name}" 
                 });
             }
 
-            var school = await _context.Schools.FindAsync(student.School.Id);
-            var studentEvent = await _context.Events.FindAsync(student.Event.Id);
-
             student.School = school;
             student.Event = studentEvent;
+            student.SurveyComplete = false;
+            student.Sessions = [];
 
             _context.Students.Add(student);
 
@@ -108,13 +118,15 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<Student>> UpdateStudent([FromForm] UpdateStudentDto studentDto)
         {
             try
             {
-                var student = await _context.Students.FindAsync(studentDto.Id);
+                var currentUser = await _userManager.GetUserAsync(User);
 
+                var student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.Id == studentDto.Id && s.Event.LicenseId == currentUser.LicenseId);
                 if (student == null) return NotFound();
 
                 _mapper.Map(studentDto, student);
@@ -131,6 +143,10 @@ namespace CareerDayApi.Controllers
             return BadRequest(new ProblemDetails { Title = "Problem updating student" });
         }
 
+        /**
+         * How students submit survey from survey url
+         * TODO: Update to not use entity, check to ensure survey not submitted for student.
+         */
         [AllowAnonymous]
         [HttpPost("SubmitSurvey")]
         public async Task<ActionResult> SubmitSurvey(Survey survey)
@@ -141,20 +157,20 @@ namespace CareerDayApi.Controllers
             if (survey.PrimaryCareers != null && survey.PrimaryCareers.Count != 0)
             {
                 primaryCareers = await _context.Careers
-                                            .Where(s => survey.PrimaryCareers
-                                                            .Select(dto => dto.Id)
-                                                            .Contains(s.Id))
-                                            .ToListAsync();
+                    .Where(s => survey.PrimaryCareers
+                                    .Select(dto => dto.Id)
+                                    .Contains(s.Id))
+                    .ToListAsync();
             }
 
             List<Career> alternateCareers = [];
             if (survey.AlternateCareers != null && survey.AlternateCareers.Count != 0)
             {
                 alternateCareers = await _context.Careers
-                                            .Where(s => survey.AlternateCareers
-                                                            .Select(dto => dto.Id)
-                                                            .Contains(s.Id))
-                                            .ToListAsync();
+                    .Where(s => survey.AlternateCareers
+                                    .Select(dto => dto.Id)
+                                    .Contains(s.Id))
+                    .ToListAsync();
             }
 
             if (student == null)
@@ -163,13 +179,13 @@ namespace CareerDayApi.Controllers
                     survey.Student, survey.Student.Id);
                 return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Student not found" });
             }
-            if (primaryCareers == null || primaryCareers.Count == 0)
+            if (primaryCareers.Count == 0)
             {
                 _logger.LogError("Error submitting survey: Primary Careers not found: {careers}",
                     survey.PrimaryCareers);
                 return BadRequest(new ProblemDetails { Title = "Problem submitting survey: Careers not found" });
             }
-            if (alternateCareers == null || alternateCareers.Count == 0)
+            if (alternateCareers.Count == 0)
             {
                 _logger.LogError("Error submitting survey: Alternate Careers not found: {careers}",
                     survey.AlternateCareers);
@@ -210,11 +226,13 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult> DeleteStudent(int id)
         {
-            var student = await _context.Students.FindAsync(id);
+            var currentUser = await _userManager.GetUserAsync(User);
 
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.Id == id && s.Event.LicenseId == currentUser.LicenseId);
             if (student == null) return NotFound();
 
             _context.Students.Remove(student);
@@ -230,12 +248,16 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpDelete("DeleteAll/{eventId}", Name = "DeleteAll")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult> DeleteAllStudents(int eventId)
         {
-            var students = await _context.Students.Where(s => s.EventId == eventId).ToListAsync();
+            var currentUser = await _userManager.GetUserAsync(User);
 
-            if (students == null) return NotFound();
+            var students = await _context.Students
+                .Where(s => s.EventId == eventId && s.Event.LicenseId == currentUser.LicenseId)
+                .ToListAsync();
+
+            if (students.Count == 0) return NotFound();
 
             _context.Students.RemoveRange(students);
 
@@ -250,7 +272,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPost("ImportStudents", Name = "ImportStudents")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult> ImportStudents([FromForm] ImportStudentsDto importStudentsDto)
         {
             var careerEvent = await _context.Events
@@ -260,6 +282,10 @@ namespace CareerDayApi.Controllers
                 .Include(e => e.Speakers)
                 .Include(e => e.School)
                 .FirstOrDefaultAsync();
+            if (careerEvent == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (careerEvent.LicenseId != currentUser.LicenseId) return Forbid();
 
             if (importStudentsDto.File == null || importStudentsDto.File.Length == 0)
                 return BadRequest(new ProblemDetails { Title = "No File found for student import" });
@@ -332,10 +358,13 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpGet("export")]
-        [Authorize(Roles = "Admin, SchoolUser")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser, SchoolUser")]
         public async Task<ActionResult> ExportStudents([FromQuery] StudentParams studentParams)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             var students = await _context.Students
+                .Where(s => s.Event.LicenseId == currentUser.LicenseId)
                 .Search(studentParams.SearchTerm)
                 .Filter(studentParams.Gender, studentParams.Grades,
                     studentParams.SurveyComplete, studentParams.EventId)
@@ -343,8 +372,7 @@ namespace CareerDayApi.Controllers
                 .Include(s => s.Event)
                 .ToListAsync();
 
-
-            if (!students.Any())
+            if (students.Count == 0)
                 return NotFound("No students found matching the specified criteria.");
 
             var headers = new List<string>
@@ -506,7 +534,7 @@ namespace CareerDayApi.Controllers
                     }
                     emailColumn = col;
                 }
-                else if (header.Contains("teacher"))
+                else if (header.Contains("teacher") || header.Contains("instructor"))
                 {
                     if (teacherColumn != 0)
                     {

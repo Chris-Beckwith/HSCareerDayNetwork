@@ -80,6 +80,10 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
     
     useEffect(() => {
+        window.scrollTo(0, 0)
+    }, [])
+
+    useEffect(() => {
         localStorage.setItem("isPinned", String(isPinned))
     }, [isPinned])
 
@@ -365,7 +369,6 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     {careerEvent.name}
                 </Typography>
                 <Grid item xs={12} position='absolute' sx={{ right: 4 }}>
-
                     {open && 
                         <IconButton onClick={() => setIsPinned(prev => !prev)} title={isPinned ? "Unpin menu" : "Pin menu"}
                             aria-label={isPinned ? "Unpin menu" : "Pin menu"}
@@ -384,6 +387,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     <Popover open={open} anchorEl={anchorEl} onClose={() => toggleMenu()} 
                         disableEnforceFocus={isPinned}
                         disableAutoFocus={isPinned}
+                        disableScrollLock
                         disableRestoreFocus
                         anchorOrigin={{
                             vertical: 'bottom',

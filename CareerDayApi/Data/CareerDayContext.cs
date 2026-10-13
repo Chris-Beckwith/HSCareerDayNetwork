@@ -20,14 +20,22 @@ namespace CareerDayApi.Data
         public DbSet<Session> Sessions { get; set; }
         public DbSet<ScheduleParams> ScheduleParams { get; set; }
         public DbSet<PhoneNumber> PhoneNumbers { get; set; }
+        public DbSet<License> Licenses { get; set; }
+        public DbSet<LicenseInvitation> LicenseInvitations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
             builder.Entity<School>()
-                .HasIndex(c => c.Name)
+                .HasIndex(s => new { s.LicenseId, s.Name })
                 .IsUnique();
+
+            //For GlobalAdmin to retain uniqueness
+            builder.Entity<School>()
+                .HasIndex(s => s.Name)
+                .IsUnique()
+                .HasFilter("\"LicenseId\" IS NULL");
 
             builder.Entity<Event>()
                 .HasMany(s => s.Speakers)
@@ -48,20 +56,32 @@ namespace CareerDayApi.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Career>()
-                .HasIndex(c => c.CourseId)
+                .HasIndex(c => new { c.LicenseId, c.Name })
                 .IsUnique();
+
+            //For GlobalAdmin to retain uniqueness
+            builder.Entity<Career>()
+                .HasIndex(c => c.Name)
+                .IsUnique()
+                .HasFilter("\"LicenseId\" IS NULL");
 
             builder.Entity<Career>()
                 .HasIndex(c => c.Name)
                 .IsUnique();
 
             builder.Entity<CareerSet>()
-                .HasMany(cs => cs.Careers)
-                .WithMany();
+                .HasIndex(cs => new { cs.LicenseId, cs.Name })
+                .IsUnique();
 
+            //For GlobalAdmin to retain uniqueness
             builder.Entity<CareerSet>()
                 .HasIndex(cs => cs.Name)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("\"LicenseId\" IS NULL");
+                
+            builder.Entity<CareerSet>()
+                .HasMany(cs => cs.Careers)
+                .WithMany();
 
             builder.Entity<Student>()
                 .HasIndex(s => new { s.StudentNumber, s.EventId })
@@ -102,24 +122,95 @@ namespace CareerDayApi.Data
                 .HasIndex(sp => sp.EventId)
                 .IsUnique();
 
+            builder.Entity<User>()
+                .Property(u => u.Email)
+                .HasMaxLength(254);
+
+            builder.Entity<User>()
+                .Property(u => u.UserName)
+                .HasMaxLength(50);
+
+            // builder.Entity<IdentityRole>()
+            //     .HasData(
+            //         new IdentityRole{
+            //             Id = "26a8eac8-f02a-46e3-923a-11ccd8a42cb1",
+            //             Name = "Admin",
+            //             NormalizedName = "ADMIN"
+            //         }
+            //     );
+
+            // builder.Entity<IdentityRole>()
+            //     .HasData(
+            //         new IdentityRole{
+            //             Id = "28f040ce-d05d-4996-b30f-674ed9e3eda4",
+            //             Name = "SchoolUser",
+            //             NormalizedName = "SCHOOLUSER"
+            //         }
+            //     );
+
             builder.Entity<IdentityRole>()
                 .HasData(
-                    new IdentityRole{
+                    new IdentityRole
+                    {
                         Id = "26a8eac8-f02a-46e3-923a-11ccd8a42cb1",
                         Name = "Admin",
                         NormalizedName = "ADMIN"
-                    }
-                );
-
-            builder.Entity<IdentityRole>()
-                .HasData(
-                    new IdentityRole{
+                    },
+                    new IdentityRole
+                    {
                         Id = "28f040ce-d05d-4996-b30f-674ed9e3eda4",
                         Name = "SchoolUser",
                         NormalizedName = "SCHOOLUSER"
+                    },
+                    new IdentityRole
+                    {
+                        Id = "2afe299e-84ba-4abb-bb60-cee87e35ceab",
+                        Name = "FullLicenseUser",
+                        NormalizedName = "FULLLICENSEUSER"
+                    },
+                    new IdentityRole
+                    {
+                        Id = "2c4f6fc3-fa99-4d40-a2da-84e76e30f303",
+                        Name = "SurveyLicenseUser",
+                        NormalizedName = "SURVEYLICENSEUSER"
                     }
                 );
-        }
 
+            builder.Entity<School>()
+                .HasOne(s => s.License)
+                .WithMany(l => l.Schools)
+                .HasForeignKey(s => s.LicenseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Event>()
+                .HasOne(e => e.License)
+                .WithMany(l => l.Events)
+                .HasForeignKey(e => e.LicenseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Career>()
+                .HasOne(c => c.License)
+                .WithMany(l => l.Careers)
+                .HasForeignKey(c => c.LicenseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<CareerSet>()
+                .HasOne(cs => cs.License)
+                .WithMany(l => l.CareerSets)
+                .HasForeignKey(cs => cs.LicenseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Speaker>()
+                .HasOne(s => s.License)
+                .WithMany(l => l.Speakers)
+                .HasForeignKey(s => s.LicenseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<User>()
+                .HasOne(u => u.License)
+                .WithMany(l => l.Users)
+                .HasForeignKey(u => u.LicenseId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

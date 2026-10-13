@@ -100,14 +100,17 @@ export default function SessionView({ event, setShowParamsOverride }: Props) {
     async function SaveSchedule() {
         setLoading(true)
 
-        try {
-            await agent.Schedule.updateSessions(sessions)
-        } catch (error) {
-            console.log(error)
-        } finally {
-            dispatch(reloadEvents())
-            setLoading(false)
+        const updateParams = {
+            eventId: event.id,
+            sessions: sessions
         }
+        await agent.Schedule.updateSessions(updateParams)
+            .catch(error => console.log(error))
+            .finally(() => {
+                dispatch(reloadEvents())
+                setInitialSessions(sessions)
+                setLoading(false)
+            })
     }
     
     const triggerRefresh = () => {

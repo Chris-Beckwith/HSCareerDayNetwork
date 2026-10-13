@@ -8,7 +8,7 @@ namespace CareerDayApi.DTOs
         public int Id { get; set; }
 
         [Required]
-        public School School { get; set; }
+        public int SchoolId { get; set; }
         public string Building { get; set; }
 
         [Required]

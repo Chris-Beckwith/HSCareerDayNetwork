@@ -44,7 +44,7 @@ export default function Register() {
     }
 
     async function handleRegister(data: FieldValues) {
-        agent.Account.register(data)
+        agent.Account.registerSchoolUser(data)
             .then(() => {
                 toast.success('Registration Successful')
                 dispatch(reloadUsers())
@@ -77,6 +77,7 @@ export default function Register() {
                     autoComplete='email'
                     {...register('email', {
                         required: 'Email is required',
+                        maxLength: { value: 254, message: 'Email cannot exceed 254 characters' },
                         pattern: {
                             value: /^\w+[\w-.]*@\w+((-\w+)|(\w*))\.[a-z]{2,3}$/,
                             message: 'Not a valid email address'
@@ -91,7 +92,14 @@ export default function Register() {
                     fullWidth
                     label="Username"
                     autoComplete="username"
-                    {...register('username', {required: 'Username is required'})}
+                    {...register('username', {
+                        required: 'Username is required',
+                        maxLength: { value: 50, message: 'Username cannot exceed 50 characters' },
+                        pattern: {
+                            value: /^[a-zA-Z0-9\-._@+]+$/,
+                            message: "Usernames can only cantain letters, numbers, and the symbols: - . _ @ +"
+                        }
+                    })}
                     error={!!errors.username}
                     helperText={errors?.username?.message as string}
                     size={isMobile ? 'small' : 'medium'}
@@ -104,6 +112,7 @@ export default function Register() {
                     autoComplete='new-password'
                     {...register('password', {
                         required: 'Password is required',
+                        maxLength: { value: 128, message: 'Password cannot exceed 128 characters' },
                         pattern: {
                             value: /(?=^.{6,10}$)(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&amp;*()_+}{&quot;:;'?/&gt;.&lt;,])(?!.*\s).*$/,
                             message: 'Password does not meet requirements'
@@ -121,6 +130,7 @@ export default function Register() {
                     autoComplete='new-password'
                     {...register('confirmPassword', {
                         required: 'Confirm password is required',
+                        maxLength: { value: 128, message: 'Password cannot exceed 128 characters' },
                         validate: value =>
                             value === watch('password') || 'Passwords do not match'
                     })}

@@ -6,6 +6,7 @@ using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
 using CareerDayApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;
@@ -14,20 +15,25 @@ namespace CareerDayApi.Controllers
 {
     public class EventsController(CareerDayContext context, IConfiguration config,
         IMapper mapper, ILogger<EventsController> logger, ImageService imageService, 
-        DbContextOptions<CareerDayContext> dbContextOptions) : BaseApiController
+        UserManager<User> userManager, DbContextOptions<CareerDayContext> dbContextOptions) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
         private readonly IConfiguration _config = config;
         private readonly IMapper _mapper = mapper;
         private readonly ImageService _imageService = imageService;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly ILogger<EventsController> _logger = logger;
         private readonly DbContextOptions _dbContextOptions = dbContextOptions;
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<PagedList<Event>>> GetEvents([FromQuery]CareerEventParams careerEventParams)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var userLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
             var query = _context.Events
+                .Where(e => e.LicenseId == userLicenseId)
                 .Sort(careerEventParams.OrderBy)
                 .Search(careerEventParams.SearchTerm)
                 .Filter(careerEventParams.EventPhases, careerEventParams.SurveyCompletePercent, careerEventParams.IsDeleted)
@@ -42,14 +48,20 @@ namespace CareerDayApi.Controllers
             return events;
         }
 
+        /**
+         * Unused
+         */
         [HttpGet("{id}", Name = "GetEvent")]
-        [Authorize(Roles = "Admin, SchoolUser")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser, SchoolUser")]
         public async Task<ActionResult<Event>> GetEvent(int id)
         {
             var singleEvent = await _context.Events.getEventDetails()
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (singleEvent == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (singleEvent.LicenseId != currentUser.LicenseId) return Forbid();
             
             var cookieOptions = new CookieOptions{IsEssential = true, Expires = DateTime.Now.AddDays(30)};
             Response.Cookies.Append("eventId", singleEvent.Id.ToString(), cookieOptions);
@@ -57,11 +69,17 @@ namespace CareerDayApi.Controllers
             return singleEvent;
         }
 
+        /**
+         * How students get event details when going to survey url
+         */
         [HttpGet("GetEventByGuid/{guid}")]
         [AllowAnonymous]
         public async Task<ActionResult<Event>> GetEventByGuid(string guid)
         {
-            var singleEvent = await _context.Events.getEventDetails()
+            var singleEvent = await _context.Events
+                .Include(p => p.EventPhase)
+                .Include(s => s.School).ThenInclude(a => a.Address)
+                .Include(c => c.Careers)
                 .FirstOrDefaultAsync(e => e.GUID == guid);
 
             if (singleEvent == null) return NotFound();
@@ -70,18 +88,22 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<Event>> CreateEvent([FromForm] EventDto eventDto)
         {
-            EventPhase eventPhase = await _context.EventPhases.FindAsync(eventDto.EventPhase.Id);
-            School school = await _context.Schools.FindAsync(eventDto.School.Id);
+            var currentUser = await _userManager.GetUserAsync(User);
+            var userLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
+            EventPhase eventPhase = await _context.EventPhases.FindAsync((int)EventPhaseId.Setup);
+            School school = await _context.Schools
+                .FirstOrDefaultAsync(s => s.Id == eventDto.SchoolId && s.LicenseId == userLicenseId);
 
             if (eventPhase == null) {
-                _logger.LogError("Error creating new Event: Event Phase not found: {eventPhase}", eventDto.EventPhase);
+                _logger.LogError("Error creating new Event: Event Phase not found: Setup");
                 return BadRequest(new ProblemDetails{Title = "Problem creating new event: Event Phase not found"});
             }
             if (school == null) {
-                _logger.LogError("Error creating new Event: School not found: {school}", eventDto.School);
+                _logger.LogError("Error creating new Event: School not found: {schoolId}", eventDto.SchoolId);
                 return BadRequest(new ProblemDetails{Title = "Problem creating new event: School not found"});
             }
 
@@ -94,6 +116,7 @@ namespace CareerDayApi.Controllers
                 Description = eventDto.Description,
                 SurveyCompletePercent = 0,
                 EventPhase = eventPhase,
+                LicenseId = userLicenseId
             };
             _context.Events.Add(newEvent);
             
@@ -109,11 +132,14 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut("updatePhase")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<Event>> UpdateEventPhase([FromForm] UpdateEventPhaseDto updateEventPhaseDto)
         {
             var updateEvent = await _context.Events.FindAsync(updateEventPhaseDto.EventId);
             if (updateEvent == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (updateEvent.LicenseId != currentUser.LicenseId) return Forbid();
             
             EventPhase eventPhase = await _context.EventPhases.FindAsync(updateEventPhaseDto.PhaseId);
 
@@ -163,31 +189,47 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut("update")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<Event>> UpdateEvent([FromForm] UpdateEventDto updateEventDto)
         {
             var updateEvent = await _context.Events
-                                            .Include(e => e.Speakers)
-                                            .Include(e => e.Careers)
-                                            .FirstOrDefaultAsync(e => e.Id == updateEventDto.Id);
+                .Include(e => e.Speakers)
+                .Include(e => e.Careers)
+                .FirstOrDefaultAsync(e => e.Id == updateEventDto.Id);
             if (updateEvent == null) return NotFound();
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (updateEvent.LicenseId != currentUser.LicenseId) return Forbid();
 
-            School school = await _context.Schools.FindAsync(updateEventDto.School.Id);
+            School school = await _context.Schools
+                .FirstOrDefaultAsync(s => s.Id == updateEventDto.School.Id && s.LicenseId == currentUser.LicenseId);
             List<Speaker> newSpeakers = [];
             if (updateEventDto.Speakers != null && updateEventDto.Speakers.Count != 0) {
                 newSpeakers = await _context.Speakers
-                                            .Where(s => updateEventDto.Speakers
-                                                            .Select(dto => dto.Id)
-                                                            .Contains(s.Id))
-                                            .ToListAsync();
+                    .Where(s => updateEventDto.Speakers.Select(dto => dto.Id).Contains(s.Id)
+                        && s.LicenseId == currentUser.LicenseId)
+                    .ToListAsync();
+
+                if (newSpeakers.Count != updateEventDto.Speakers.Count)
+                {
+                    _logger.LogError("Error updating new Event: Speakers not found: {speakers}, {eventName}, {eventId}",
+                        updateEventDto.Speakers, updateEventDto.Name, updateEventDto.Id);
+                    return BadRequest(new ProblemDetails { Title = "Problem updating event: Speakers not found"});
+                }
             }
             List<Career> newCareers = [];
             if (updateEventDto.Careers != null && updateEventDto.Careers.Count != 0) {
                 newCareers = await _context.Careers
-                                            .Where(c => updateEventDto.Careers
-                                                            .Select(dto => dto.Id)
-                                                            .Contains(c.Id))
-                                            .ToListAsync();
+                    .Where(c => updateEventDto.Careers.Select(dto => dto.Id).Contains(c.Id)
+                        && c.LicenseId == currentUser.LicenseId)
+                    .ToListAsync();
+
+                if (newCareers.Count != updateEventDto.Careers.Count)
+                {
+                    _logger.LogError("Error updating new Event: Careers not found: {careers}, {eventName}, {eventId}",
+                        updateEventDto.Careers, updateEventDto.Name, updateEventDto.Id);
+                    return BadRequest(new ProblemDetails { Title = "Problem updating event: Careers not found" });
+                }
             }
 
             if (school == null) {
@@ -195,22 +237,10 @@ namespace CareerDayApi.Controllers
                     updateEventDto.School, updateEventDto.Name, updateEventDto.Id);
                 return BadRequest(new ProblemDetails { Title = "Problem updating event: School not found"});
             }
-            if (newSpeakers == null) {
-                _logger.LogError("Error updating new Event: Speakers not found: {speakers}, {eventName}, {eventId}",
-                    updateEventDto.Speakers, updateEventDto.Name, updateEventDto.Id);
-                return BadRequest(new ProblemDetails { Title = "Problem updating event: Speakers not found"});
-            }
-            if (newCareers == null) {
-                _logger.LogError("Error updating new Event: Careers not found: {careers}, {eventName}, {eventId}",
-                    updateEventDto.Careers, updateEventDto.Name, updateEventDto.Id);
-                return BadRequest(new ProblemDetails { Title = "Problem updating event: Careers not found" });
-            }
 
             // Update Speakers
             var existingSpeakerIds = updateEvent.Speakers.Select(s => s.Id).ToHashSet();
             var newSpeakerIds = newSpeakers.Select(s => s.Id).ToHashSet();
-            _logger.LogWarning("Existing Speakers: {existingSpeakers}", updateEvent.Speakers.ToList());
-            _logger.LogWarning("New Speakers: {newSpeakers}", newSpeakers.ToList());
 
             var speakersToRemove = updateEvent.Speakers.Where(s => !newSpeakerIds.Contains(s.Id)).ToList();
             foreach (var speaker in speakersToRemove)
@@ -219,7 +249,6 @@ namespace CareerDayApi.Controllers
             }
 
             var speakersToAdd = newSpeakers.Where(s => !existingSpeakerIds.Contains(s.Id)).ToList();
-            _logger.LogWarning("Speakers to add: {speakersToAdd}", speakersToAdd);
             foreach (var speaker in speakersToAdd)
             {
                 updateEvent.Speakers.Add(speaker);
@@ -255,10 +284,13 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut("{eventId}/{isDeleted}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<Event>> DeleteEvent(int eventId, bool isDeleted)
         {
             var singleEvent = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId);
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (singleEvent.LicenseId != currentUser.LicenseId) return Forbid();
 
             if (singleEvent != null) {
                 singleEvent.IsDeleted = isDeleted;
@@ -273,7 +305,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpGet("phases")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<EventPhase[]>> GetEventPhases()
         {
             var eventPhases = await _context.EventPhases
@@ -286,10 +318,15 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPost("scheduleParams")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<ScheduleParams>> SaveScheduleParams([FromBody] ScheduleParams scheduleParams)
         {
             var existing = await _context.ScheduleParams.FirstOrDefaultAsync(sp => sp.EventId == scheduleParams.EventId);
+
+            var eventCheck = await _context.Events.FindAsync(scheduleParams.EventId);
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (eventCheck == null) return NotFound();
+            if (eventCheck.LicenseId != currentUser.LicenseId) return Forbid();
             
             if (existing != null) {
                 existing.MaxClassSize = scheduleParams.MaxClassSize;
@@ -312,6 +349,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpGet("scheduleParams/{id}", Name = "getScheduleParams")]
+        [Authorize(Roles = "Admin, FullLicenseUser")]
         public async Task<ActionResult<GenerateScheduleParamsDto>> GetScheduleParams(int id)
         {
             var scheduleParams = await _context.ScheduleParams.FirstOrDefaultAsync(sp => sp.EventId == id);

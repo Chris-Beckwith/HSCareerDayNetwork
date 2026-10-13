@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react"
-import { Box, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 import AppPagination from "../../app/components/AppPagination"
 import AppTextSearch from "../../app/components/AppTextSearch"
 import { getSchoolUsersAsync, reloadUsers, setPagination, setUserParams, userSelectors } from "./userSlice"
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
 import SchoolUserSkeleton from "./SchoolUserSkeleton"
-import { AddCircleOutline, Edit, Save } from "@mui/icons-material"
+import { AddCircleOutline } from "@mui/icons-material"
 import { User } from "../../app/models/user"
 import useEvents from "../../app/hooks/useEvents"
 import agent from "../../app/api/agent"
 import { useNavigate } from "react-router-dom"
+import AppEditButton from "../../app/components/AppEditButton"
+import AppSaveButton from "../../app/components/AppSaveButton"
 
 /**
  * Component to display school adminstrator users.
@@ -75,12 +77,14 @@ export default function SchoolUsers() {
                             <TableCell>Username</TableCell>
                             <TableCell>Event</TableCell>
                             <TableCell align="right" width={50}>
-                                <IconButton
-                                    color="success"
-                                    size="small"
-                                    onClick={() => handleNavigateToRegister()}>
-                                        <AddCircleOutline fontSize="small" />
-                                </IconButton>
+                                <Tooltip title="Register Admin">
+                                    <IconButton
+                                        color="success"
+                                        size="small"
+                                        onClick={() => handleNavigateToRegister()}>
+                                            <AddCircleOutline fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -124,20 +128,17 @@ export default function SchoolUsers() {
                                         }
                                         <TableCell align="right">
                                             {selectedUser && selectedUser === user
-                                                ? <IconButton
-                                                    color="primary"
-                                                    size="small"
-                                                    onClick={() => handleSaveUser(user)}
-                                                >
-                                                    <Save fontSize="small" />
-                                                </IconButton>
-                                                : <IconButton
-                                                    color='primary'
-                                                    size="small"
-                                                    disabled={selectedUser && selectedUser !== user}
-                                                    onClick={() => handleEditUser(user)}>
-                                                        <Edit fontSize="small" />
-                                                </IconButton>
+                                                ? <AppSaveButton onClick={() => handleSaveUser(user)} />
+                                                // <IconButton
+                                                //     color="primary"
+                                                //     size="small"
+                                                //     onClick={() => handleSaveUser(user)}
+                                                // >
+                                                //     <Save fontSize="small" />
+                                                // </IconButton>
+                                                : <AppEditButton 
+                                                    onClick={() => handleEditUser(user)} 
+                                                    disabled={selectedUser && selectedUser !== user} />
                                             }
                                         </TableCell>
                                     </>

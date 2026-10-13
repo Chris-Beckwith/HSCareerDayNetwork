@@ -5,32 +5,29 @@ using CareerDayApi.Entities;
 using CareerDayApi.Extensions;
 using CareerDayApi.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Controllers
 {
-    [Authorize(Roles = "Admin")]
-    public class RoomsController(CareerDayContext context,
+    [Authorize(Roles = "Admin, FullLicenseUser")]
+    public class RoomsController(CareerDayContext context, UserManager<User> userManager,
         ILogger<RoomsController> logger, IMapper mapper) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly ILogger<RoomsController> _logger = logger;
         private readonly IMapper _mapper = mapper;
-
-        [HttpGet]
-        public async Task<ActionResult<List<Classroom>>> GetClassrooms()
-        {
-            return await _context.Classrooms
-                .OrderBy(c => c.Building).ThenBy(c => c.RoomNumber)
-                .ToListAsync();
-        }
 
         [HttpGet("BySchool")]
         public async Task<ActionResult<List<Classroom>>> GetClassroomsBySchool([FromQuery]ClassroomParams classroomParams)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
             var query = _context.Classrooms
-                .Where(c => c.School.Id == classroomParams.SchoolId)
+                .Where(c => c.SchoolId == classroomParams.SchoolId && c.School.LicenseId == currentLicenseId)
                 .OrderBy(c => c.Building).ThenBy(c => c.RoomNumber)
                 .Search(classroomParams.SearchTerm)
                 .Include(c => c.School);
@@ -46,8 +43,13 @@ namespace CareerDayApi.Controllers
         [HttpGet("LargeBySchool")]
         public async Task<ActionResult<List<Classroom>>> GetLargeRoomsBySchool([FromQuery]ClassroomParams classroomParams)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
             var largeRooms = await _context.Classrooms
-                .Where(c => c.School.Id == classroomParams.SchoolId && c.Capacity > classroomParams.MaxClassSize)
+                .Where(c => c.SchoolId == classroomParams.SchoolId 
+                    && c.Capacity > classroomParams.MaxClassSize
+                    && c.School.LicenseId == currentLicenseId)
                 .OrderBy(c => c.Building).ThenBy(c => c.RoomNumber)
                 .ToListAsync();
 
@@ -64,25 +66,44 @@ namespace CareerDayApi.Controllers
             return largeRooms;
         }
 
+        /**
+         * Unused
+         */
         [HttpGet("{id}", Name = "GetClassroomById")]
         public async Task<ActionResult<Classroom>> GetClassroomById(int id)
         {
-            return await _context.Classrooms.FindAsync(id);
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
+            return await _context.Classrooms
+                .FirstOrDefaultAsync(c => c.Id == id && c.School.LicenseId == currentLicenseId);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Classroom>> CreateClassroom(Classroom classroom)
+        public async Task<ActionResult<Classroom>> CreateClassroom(CreateClassroomDto classroomDto)
         {
-            var school = await _context.Schools.FindAsync(classroom.School.Id);
-            classroom.School = school;
+            var school = await _context.Schools.FindAsync(classroomDto.SchoolId);
+            if (school == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (school.LicenseId != currentUser.LicenseId) return Forbid();
+
+            var newClassroom = new Classroom
+            {
+                School = school,
+                Building = classroomDto.Building,
+                RoomNumber = classroomDto.RoomNumber,
+                Capacity = classroomDto.Capacity,
+                Overflow = classroomDto.Overflow
+            };
 
             try
             {
-                _context.Classrooms.Add(classroom);
+                _context.Classrooms.Add(newClassroom);
 
                 var result = await _context.SaveChangesAsync() > 0;
 
-                if (result) return CreatedAtRoute("GetClassroomById", new { Id = classroom.Id }, classroom);
+                if (result) return CreatedAtRoute("GetClassroomById", new { Id = newClassroom.Id }, newClassroom);
             }
             catch (DbUpdateException e) when (IsUniqueConstraintException(e))
             {
@@ -95,7 +116,11 @@ namespace CareerDayApi.Controllers
         [HttpPut]
         public async Task<ActionResult<Classroom>> UpdateClassroom([FromForm] UpdateClassroomDto classroomDto)
         {
-            var classroom = await _context.Classrooms.FindAsync(classroomDto.Id);
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            var classroom = await _context.Classrooms.
+                FirstOrDefaultAsync(c => c.Id == classroomDto.Id && c.School.LicenseId == currentUser.LicenseId);
+            
             if (classroom == null) return NotFound();
 
             try {
@@ -116,7 +141,10 @@ namespace CareerDayApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteClassroom(int id)
         {
-            var classroom = await _context.Classrooms.FindAsync(id);
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            var classroom = await _context.Classrooms
+                .FirstOrDefaultAsync(c => c.Id == id && c.School.LicenseId == currentUser.LicenseId);
 
             if (classroom == null) return NotFound();
 

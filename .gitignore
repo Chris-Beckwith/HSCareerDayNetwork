@@ -489,3 +489,4 @@ CareerDayApi/bin/
 CareerDayApi/obj/
 Client/.env.development
 Client/.env.production
+CareerDayApi/Controllers/DevelopmentController.cs
