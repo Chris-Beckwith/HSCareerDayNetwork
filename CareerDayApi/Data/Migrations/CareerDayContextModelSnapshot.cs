@@ -55,16 +55,20 @@ namespace CareerDayApi.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<int?>("LicenseId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourseId")
-                        .IsUnique();
-
                     b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("\"LicenseId\" IS NULL");
+
+                    b.HasIndex("LicenseId", "Name")
                         .IsUnique();
 
                     b.ToTable("Careers");
@@ -78,12 +82,19 @@ namespace CareerDayApi.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("LicenseId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("\"LicenseId\" IS NULL");
+
+                    b.HasIndex("LicenseId", "Name")
                         .IsUnique();
 
                     b.ToTable("CareerSets");
@@ -144,6 +155,9 @@ namespace CareerDayApi.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("LicenseId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
@@ -162,6 +176,8 @@ namespace CareerDayApi.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EventPhaseId");
+
+                    b.HasIndex("LicenseId");
 
                     b.HasIndex("SchoolId");
 
@@ -182,6 +198,70 @@ namespace CareerDayApi.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EventPhases");
+                });
+
+            modelBuilder.Entity("CareerDayApi.Entities.License", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("MaxEvents")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaxSchools")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Licenses");
+                });
+
+            modelBuilder.Entity("CareerDayApi.Entities.LicenseInvitation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ExpirationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("LicenseId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TokenHash")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LicenseId");
+
+                    b.ToTable("LicenseInvitations");
                 });
 
             modelBuilder.Entity("CareerDayApi.Entities.PhoneNumber", b =>
@@ -271,6 +351,9 @@ namespace CareerDayApi.Data.Migrations
                     b.Property<int>("EstimatedNumOfStudents")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("LicenseId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -278,6 +361,10 @@ namespace CareerDayApi.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("\"LicenseId\" IS NULL");
+
+                    b.HasIndex("LicenseId", "Name")
                         .IsUnique();
 
                     b.ToTable("Schools");
@@ -332,6 +419,9 @@ namespace CareerDayApi.Data.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
+                    b.Property<int?>("LicenseId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("MiddleName")
                         .HasColumnType("text");
 
@@ -348,6 +438,8 @@ namespace CareerDayApi.Data.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LicenseId");
 
                     b.HasIndex("SchoolLastSpokeAtId");
 
@@ -473,13 +565,16 @@ namespace CareerDayApi.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
                     b.Property<int?>("EventId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LicenseId")
                         .HasColumnType("integer");
 
                     b.Property<bool>("LockoutEnabled")
@@ -512,12 +607,14 @@ namespace CareerDayApi.Data.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("LicenseId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -641,6 +738,18 @@ namespace CareerDayApi.Data.Migrations
                             Id = "28f040ce-d05d-4996-b30f-674ed9e3eda4",
                             Name = "SchoolUser",
                             NormalizedName = "SCHOOLUSER"
+                        },
+                        new
+                        {
+                            Id = "2afe299e-84ba-4abb-bb60-cee87e35ceab",
+                            Name = "FullLicenseUser",
+                            NormalizedName = "FULLLICENSEUSER"
+                        },
+                        new
+                        {
+                            Id = "2c4f6fc3-fa99-4d40-a2da-84e76e30f303",
+                            Name = "SurveyLicenseUser",
+                            NormalizedName = "SURVEYLICENSEUSER"
                         });
                 });
 
@@ -795,6 +904,26 @@ namespace CareerDayApi.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CareerDayApi.Entities.Career", b =>
+                {
+                    b.HasOne("CareerDayApi.Entities.License", "License")
+                        .WithMany("Careers")
+                        .HasForeignKey("LicenseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("License");
+                });
+
+            modelBuilder.Entity("CareerDayApi.Entities.CareerSet", b =>
+                {
+                    b.HasOne("CareerDayApi.Entities.License", "License")
+                        .WithMany("CareerSets")
+                        .HasForeignKey("LicenseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("License");
+                });
+
             modelBuilder.Entity("CareerDayApi.Entities.Classroom", b =>
                 {
                     b.HasOne("CareerDayApi.Entities.School", "School")
@@ -814,6 +943,11 @@ namespace CareerDayApi.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CareerDayApi.Entities.License", "License")
+                        .WithMany("Events")
+                        .HasForeignKey("LicenseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CareerDayApi.Entities.School", "School")
                         .WithMany()
                         .HasForeignKey("SchoolId")
@@ -822,7 +956,20 @@ namespace CareerDayApi.Data.Migrations
 
                     b.Navigation("EventPhase");
 
+                    b.Navigation("License");
+
                     b.Navigation("School");
+                });
+
+            modelBuilder.Entity("CareerDayApi.Entities.LicenseInvitation", b =>
+                {
+                    b.HasOne("CareerDayApi.Entities.License", "License")
+                        .WithMany()
+                        .HasForeignKey("LicenseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("License");
                 });
 
             modelBuilder.Entity("CareerDayApi.Entities.PhoneNumber", b =>
@@ -836,6 +983,11 @@ namespace CareerDayApi.Data.Migrations
 
             modelBuilder.Entity("CareerDayApi.Entities.School", b =>
                 {
+                    b.HasOne("CareerDayApi.Entities.License", "License")
+                        .WithMany("Schools")
+                        .HasForeignKey("LicenseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.OwnsOne("CareerDayApi.Entities.SchoolAddress", "Address", b1 =>
                         {
                             b1.Property<int>("SchoolId")
@@ -869,6 +1021,8 @@ namespace CareerDayApi.Data.Migrations
 
                     b.Navigation("Address")
                         .IsRequired();
+
+                    b.Navigation("License");
                 });
 
             modelBuilder.Entity("CareerDayApi.Entities.Session", b =>
@@ -888,9 +1042,16 @@ namespace CareerDayApi.Data.Migrations
 
             modelBuilder.Entity("CareerDayApi.Entities.Speaker", b =>
                 {
+                    b.HasOne("CareerDayApi.Entities.License", "License")
+                        .WithMany("Speakers")
+                        .HasForeignKey("LicenseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CareerDayApi.Entities.School", "SchoolLastSpokeAt")
                         .WithMany()
                         .HasForeignKey("SchoolLastSpokeAtId");
+
+                    b.Navigation("License");
 
                     b.Navigation("SchoolLastSpokeAt");
                 });
@@ -938,7 +1099,14 @@ namespace CareerDayApi.Data.Migrations
                         .WithMany()
                         .HasForeignKey("EventId");
 
+                    b.HasOne("CareerDayApi.Entities.License", "License")
+                        .WithMany("Users")
+                        .HasForeignKey("LicenseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Event");
+
+                    b.Navigation("License");
                 });
 
             modelBuilder.Entity("CareerEvent", b =>
@@ -1095,6 +1263,21 @@ namespace CareerDayApi.Data.Migrations
                         .HasForeignKey("StudentsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("CareerDayApi.Entities.License", b =>
+                {
+                    b.Navigation("CareerSets");
+
+                    b.Navigation("Careers");
+
+                    b.Navigation("Events");
+
+                    b.Navigation("Schools");
+
+                    b.Navigation("Speakers");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("CareerDayApi.Entities.Speaker", b =>

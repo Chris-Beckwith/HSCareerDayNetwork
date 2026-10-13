@@ -16,6 +16,20 @@ export interface CareerEvent {
     qrCodeUrl: string
     isDeleted: boolean
   }
+
+  export interface SurveyEvent {
+    id: number
+    school: School
+    eventDate: string
+    name: string
+    description: string
+    surveyCompletePercent: number
+    eventPhase: EventPhase
+    careers: Career[]
+    guid: string
+    qeCodeUrl: string
+    isDeleted: boolean
+  }
   
   export interface EventPhase {
     id: number

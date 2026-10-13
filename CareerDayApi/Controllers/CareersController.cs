@@ -3,37 +3,53 @@ using CareerDayApi.Data;
 using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
     public class CareersController(CareerDayContext context, IMapper mapper,
-        ILogger<CareersController> logger) : BaseApiController
+        UserManager<User> userManager, ILogger<CareersController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
         private readonly IMapper _mapper = mapper;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly ILogger<CareersController> _logger = logger;
 
         [HttpGet]
         public async Task<ActionResult<List<Career>>> GetCareers()
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
             return await _context.Careers
+                .Where(c => c.LicenseId == currentLicenseId)
                 .OrderBy(c => c.CourseId)
                 .ToListAsync();
         }
 
+        /**
+         * Unused
+         */
         [HttpGet("{id}", Name = "GetCareer")]
         public async Task<ActionResult<Career>> GetCareer(int id)
         {
-            return await _context.Careers.FindAsync(id);
+            var currentUser = await _userManager.GetUserAsync(User);
+            var userLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
+            return await _context.Careers.FirstOrDefaultAsync(c => c.Id == id && c.LicenseId == userLicenseId);
         }
 
         [HttpGet("CareerCategories")]
         public async Task<ActionResult<List<string>>> GetCareerCategories()
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
             return await _context.Careers
+                .Where(c => c.LicenseId == currentLicenseId)
                 .Select(c => c.Category)
                 .Distinct()
                 .OrderBy(c => c)
@@ -41,14 +57,19 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<School>> CreateCareer(Career career)
+        public async Task<ActionResult<Career>> CreateCareer(Career career)
         {
             try {
+                var currentUser = await _userManager.GetUserAsync(User);
+
+                career.LicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+                career.License = null;
+
                 _context.Careers.Add(career);
 
                 var result = await _context.SaveChangesAsync() > 0;
                 
-                if (result) return CreatedAtRoute("GetCareer", new { Id = career.Id }, career);
+                if (result) return CreatedAtRoute("GetCareer", new { id = career.Id }, career);
 
             } catch (DbUpdateException e) when (IsUniqueConstraintException(e)) {
                 return Conflict(new { message = GetAndLogErrorMsg(e)});
@@ -62,6 +83,9 @@ namespace CareerDayApi.Controllers
         {
             var career = await _context.Careers.FindAsync(careerDto.Id);
             if (career == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (career.LicenseId != currentUser.LicenseId) return Forbid();
 
             try {
                 _mapper.Map(careerDto, career);
@@ -81,8 +105,10 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult> DeleteCareer(int id)
         {
             var career = await _context.Careers.FindAsync(id);
-
             if (career == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (career.LicenseId != currentUser.LicenseId) return Forbid();
 
             _context.Careers.Remove(career);
 

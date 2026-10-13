@@ -1,5 +1,7 @@
 namespace CareerDayApi.Entities
 {
+    //License Unbound
+    //Tied to Event
     public class Student
     {
         public int Id { get; set; }

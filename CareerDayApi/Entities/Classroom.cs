@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CareerDayApi.Entities
 {
+    //Unbound
     public class Classroom
     {
         public int Id { get; set; }

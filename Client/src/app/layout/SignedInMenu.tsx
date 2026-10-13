@@ -59,7 +59,7 @@ export default function SignedInMenu() {
             >
                 {user?.roles?.includes("Admin") && (
                     [
-                        <MenuItem key="1" onClick={handleRegister}>Register</MenuItem>,
+                        <MenuItem key="1" onClick={handleRegister}>Register Admins</MenuItem>,
                         <MenuItem key="2" onClick={handleSchoolAdmins}>School Admins</MenuItem>
                     ]
                 )}

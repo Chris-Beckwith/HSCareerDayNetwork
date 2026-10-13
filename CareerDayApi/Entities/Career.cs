@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CareerDayApi.Entities
 {
+    //License Bound
     public class Career
     {
         public int Id { get; set; }
@@ -15,5 +16,7 @@ namespace CareerDayApi.Entities
         [Required]
         public string Category { get; set; }
         public string Description { get; set; }
+        public int? LicenseId { get; set; }
+        public License License { get; set; }
     }
 }

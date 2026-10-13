@@ -4,26 +4,35 @@ using CareerDayApi.Data;
 using CareerDayApi.DTOs;
 using CareerDayApi.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerDayApi.Controllers
 {
-    [Authorize(Roles = "Admin")]
-    public class SchedulingController(CareerDayContext context, IMapper mapper, ILogger<SchedulingController> logger) : BaseApiController
+    [Authorize(Roles = "Admin, FullLicenseUser")]
+    public class SchedulingController(CareerDayContext context, IMapper mapper,
+        UserManager<User> userManager, ILogger<SchedulingController> logger) : BaseApiController
     {
         private readonly CareerDayContext _context = context;
         private readonly IMapper _mapper = mapper;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly ILogger<SchedulingController> _logger = logger;
 
         [HttpPost]
         public async Task<ActionResult<List<Session>>> GenerateSchedule([FromForm] GenerateScheduleParamsDto generateScheduleParamsDto)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var selectedEvent = await _context.Events
+                .FirstOrDefaultAsync(e => e.Id == generateScheduleParamsDto.EventId && e.LicenseId == currentUser.LicenseId);
+            if (selectedEvent == null) return NotFound();
+
             var surveys = await _context.Surveys
-                                        .Include(s => s.Student)
-                                        .Include(s => s.PrimaryCareers)
-                                        .Include(s => s.AlternateCareers)
-                                        .Where(s => s.Student.EventId == generateScheduleParamsDto.EventId).ToListAsync();
+                .Include(s => s.Student)
+                .Include(s => s.PrimaryCareers)
+                .Include(s => s.AlternateCareers)
+                .Where(s => s.Student.EventId == selectedEvent.Id)
+                .ToListAsync();
 
             var maxClassSize = generateScheduleParamsDto.MaxClassSize;
             var minClassSize = generateScheduleParamsDto.MinClassSize;
@@ -753,7 +762,13 @@ namespace CareerDayApi.Controllers
         [HttpGet("{eventId}")]
         public async Task<ActionResult<List<Session>>> GetSessionsAndUnplaced(int eventId)
         {
-            var sessions = await _context.Sessions.Where(s => s.EventId == eventId)
+            var currentUser = await _userManager.GetUserAsync(User);
+            var selectedEvent = await _context.Events
+                .FirstOrDefaultAsync(e => e.Id == eventId && e.LicenseId == currentUser.LicenseId);
+            if (selectedEvent == null) return NotFound();
+
+            var sessions = await _context.Sessions
+                .Where(s => s.EventId == selectedEvent.Id)
                 .Include(s => s.Classroom).ThenInclude(c => c.School)
                 .Include(s => s.Students).ThenInclude(st => st.School)
                 .Include(s => s.Speakers).ThenInclude(sp => sp.SchoolLastSpokeAt)
@@ -764,7 +779,7 @@ namespace CareerDayApi.Controllers
 
             var unplacedStudents = new List<SessionUnplacedStudentDto>();
 
-            var students = await _context.Students.Where(s => s.EventId == eventId)
+            var students = await _context.Students.Where(s => s.EventId == selectedEvent.Id)
                 .Include(s => s.Sessions).ThenInclude(s => s.Subject)
                 .Where(s => s.Sessions.Count < _context.Surveys
                     .Where(sv => sv.Student.Id == s.Id)
@@ -776,7 +791,7 @@ namespace CareerDayApi.Controllers
                 .Include(s => s.Student)
                 .Include(s => s.PrimaryCareers)
                 .Include(s => s.AlternateCareers)
-                .Where(s => s.Student.EventId == eventId).ToListAsync();
+                .Where(s => s.Student.EventId == selectedEvent.Id).ToListAsync();
 
             foreach (var student in students)
             {
@@ -828,49 +843,51 @@ namespace CareerDayApi.Controllers
             return Ok(result);
         }
 
+        /**
+        * Save sessions after they are generated,
+        * not saving classrooms or speakers since they are added afterwards.
+        */
         [HttpPost("save")]
         public async Task<ActionResult<List<Session>>> SaveSessions([FromBody] SessionsDto sessionsDto)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var careerEvent = await _context.Events
+                .Include(e => e.Careers)
+                .Include(e => e.School)
+                .Include(e => e.Speakers)
+                .FirstOrDefaultAsync(e => e.Id == sessionsDto.EventId && e.LicenseId == currentUser.LicenseId);
+            if (careerEvent == null) return NotFound();
+
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
+
             List<Session> sessions = [];
+            var careerIds = careerEvent.Careers.Select(c => c.Id).ToList();
 
-            foreach(var session in sessionsDto.Sessions)
+            foreach(var sessionDto in sessionsDto.Sessions)
             {
-                Classroom classroom = null;
-                if (session.Classroom != null) {
-                    classroom = await _context.Classrooms.FindAsync(session.Classroom.Id);
-                    if (classroom == null) {
-                        return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Classroom not found"});
-                    }
-                }
-                List<Speaker> speakers = [];
-                if (session.Speakers.Count > 0) {
-                    var speakerIds = session.Speakers.Select(sp => sp.Id).ToList();
-                    speakers = await _context.Speakers.Where(s => speakerIds.Contains(s.Id)).ToListAsync();
-                    if (speakers == null) {
-                        return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Speakers not found"});
-                    }
-                }
-
-                var studentIds = session.Students.Select(st => st.Id).ToList();
-                List<Student> students = await _context.Students.Where(s => studentIds.Contains(s.Id)).ToListAsync();
                 //TODO if I create custom subject, I would need to handle that here.
-                Career subject = await _context.Careers.FindAsync(session.Subject.Id);
-                
-                if (students == null) {
-                    return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Students not found"});
-                }
-                if (subject == null) {
+                Career subject = await _context.Careers
+                    .FirstOrDefaultAsync(c => c.Id == sessionDto.Subject.Id
+                        && careerIds.Contains(c.Id)
+                        && c.LicenseId == currentLicenseId);
+
+                if (subject == null)
                     return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Subject not found"});
-                }
+                
+                var studentIds = sessionDto.Students.Select(st => st.Id).ToList();
+                List<Student> students = await _context.Students
+                    .Where(s => studentIds.Contains(s.Id) && s.EventId == careerEvent.Id)
+                    .ToListAsync();
+                
+                if (students.Count != sessionDto.Students.Count)
+                    return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Students not found"});
 
                 Session newSession = new()
                 {
-                    Classroom = classroom,
                     Students = students,
-                    Speakers = speakers,
-                    Period = session.Period,
+                    Period = sessionDto.Period,
                     Subject = subject,
-                    EventId = session.EventId
+                    EventId = careerEvent.Id
                 };
                 sessions.Add(newSession);
             }
@@ -887,66 +904,99 @@ namespace CareerDayApi.Controllers
         [HttpPut]
         public async Task<ActionResult> UpdateSessions([FromBody] SessionsDto sessionsDto)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var careerEvent = await _context.Events
+                .Include(e => e.Careers)
+                .Include(e => e.School)
+                .Include(e => e.Speakers)
+                .FirstOrDefaultAsync(e => e.Id == sessionsDto.EventId && e.LicenseId == currentUser.LicenseId);
+            if (careerEvent == null) return NotFound();
+
+            var sessionIds = sessionsDto.Sessions.Select(s => s.Id).ToList();
+
             var sessions = await _context.Sessions
-                .Where(s => sessionsDto.Sessions.Select(se => se.Id).ToList().Contains(s.Id))
-                .Include(s => s.Classroom)
-                .Include(s => s.Students)
-                .Include(s => s.Speakers)
+                .Where(s => sessionIds.Contains(s.Id) && s.EventId == careerEvent.Id)
                 .Include(s => s.Subject)
+                .Include(s => s.Classroom)
+                .Include(s => s.Speakers)
+                .Include(s => s.Students)
                 .ToListAsync();
 
             if (sessions.Count != sessionsDto.Sessions.Count)
                 return BadRequest(new ProblemDetails { Title = "Problem finding all sessions. "});
+
+            var eventCareerIds = careerEvent.Careers.Select(c => c.Id).ToList();
+            var eventSpeakerIds = careerEvent.Speakers.Select(s => s.Id).ToList();
 
             foreach(var sessionDto in sessionsDto.Sessions)
             {
                 var session = sessions.FirstOrDefault(s => s.Id == sessionDto.Id);
                 if (session == null) continue;
 
+                if (sessionDto.Subject == null)
+                    return BadRequest(new ProblemDetails { Title = "Session subject not set" });
+
+                Career subject = await _context.Careers
+                    .FirstOrDefaultAsync(c => c.Id == sessionDto.Subject.Id
+                        && eventCareerIds.Contains(c.Id)
+                        && c.LicenseId == currentUser.LicenseId);
+                        
+                if (subject == null)
+                    return BadRequest(new ProblemDetails { Title = "Problem updating sessions: Subject not found"});
+
                 if (sessionDto.Classroom != null) {
-                    var classroom = await _context.Classrooms.FindAsync(sessionDto.Classroom.Id);
-                    if (classroom == null) {
-                        return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Classroom not found"});
-                    }
+                    var classroom = await _context.Classrooms
+                        .FirstOrDefaultAsync(c => c.Id  == sessionDto.Classroom.Id
+                            && c.SchoolId == careerEvent.School.Id);
+
+                    if (classroom == null)
+                        return BadRequest(new ProblemDetails { Title = "Problem updating sessions: Classroom not found"});
+
                     session.Classroom = classroom;
                 }
-                
-                if (sessionDto.Speakers.Count > 0) {
-                    var speakers = await _context.Speakers
-                        .Where(s => sessionDto.Speakers.Select(sp => sp.Id).ToList().Contains(s.Id))
-                        .ToListAsync();
-                    session.Speakers = speakers;
+                else
+                {
+                    session.Classroom = null;
                 }
-
-                List<Student> students = await _context.Students
-                    .Where(s => sessionDto.Students.Select(st => st.Id).ToList().Contains(s.Id))
+                
+                var speakers = await _context.Speakers
+                    .Where(s => sessionDto.Speakers.Select(sp => sp.Id).Contains(s.Id)
+                        && eventSpeakerIds.Contains(s.Id)
+                        && s.LicenseId == currentUser.LicenseId)
                     .ToListAsync();
 
-                Career subject = await _context.Careers.FindAsync(sessionDto.Subject.Id);
-                
-                if (students == null) {
-                    return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Students not found"});
-                }
-                if (subject == null) {
-                    return BadRequest(new ProblemDetails { Title = "Problem creating sessions: Subject not found"});
-                }
+                if (speakers.Count != sessionDto.Speakers.Count)
+                    return BadRequest(new ProblemDetails { Title = "Problem updating sessions: Not all speakers not found"});
 
+                List<Student> students = await _context.Students
+                    .Where(s => sessionDto.Students.Select(st => st.Id).Contains(s.Id)
+                        && s.EventId == careerEvent.Id)
+                    .ToListAsync();
+                
+                if (students.Count != sessionDto.Students.Count)
+                    return BadRequest(new ProblemDetails { Title = "Problem updating sessions: Not all students not found"});
+
+                session.Subject = subject;
+                session.Speakers = speakers;
                 session.Students = students;
                 session.Period = sessionDto.Period;
-                session.Subject = subject;
-                session.EventId = sessionDto.EventId;
             }
 
             var result = await _context.SaveChangesAsync() > 0;
 
             if (result) return Ok(new { message = "Successfully Saved Sessions" });
 
-            return BadRequest(new ProblemDetails { Title = "Problem creating sessions" });
+            return BadRequest(new ProblemDetails { Title = "Problem updating sessions" });
         }
 
         [HttpDelete("{eventId}")]
         public async Task<ActionResult> DeleteSessions(int eventId)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var selectedEvent = await _context.Events
+                .FirstOrDefaultAsync(e => e.Id == eventId && e.LicenseId == currentUser.LicenseId);
+            if (selectedEvent == null) return NotFound();
+
             var sessions = await _context.Sessions.Where(s => s.EventId == eventId).ToListAsync();
 
             _context.Sessions.RemoveRange(sessions);
