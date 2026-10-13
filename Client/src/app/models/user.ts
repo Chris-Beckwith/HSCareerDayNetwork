@@ -1,4 +1,5 @@
 import { CareerEvent } from "./event"
+import { License } from "./license"
 
 export interface User {
     id: string
@@ -6,6 +7,8 @@ export interface User {
     userName: string
     event?: CareerEvent
     eventId?: number
+    license?: License
+    licenseId?: number
     token: string
     roles?: string[]
 }

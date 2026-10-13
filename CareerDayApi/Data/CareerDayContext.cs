@@ -130,24 +130,6 @@ namespace CareerDayApi.Data
                 .Property(u => u.UserName)
                 .HasMaxLength(50);
 
-            // builder.Entity<IdentityRole>()
-            //     .HasData(
-            //         new IdentityRole{
-            //             Id = "26a8eac8-f02a-46e3-923a-11ccd8a42cb1",
-            //             Name = "Admin",
-            //             NormalizedName = "ADMIN"
-            //         }
-            //     );
-
-            // builder.Entity<IdentityRole>()
-            //     .HasData(
-            //         new IdentityRole{
-            //             Id = "28f040ce-d05d-4996-b30f-674ed9e3eda4",
-            //             Name = "SchoolUser",
-            //             NormalizedName = "SCHOOLUSER"
-            //         }
-            //     );
-
             builder.Entity<IdentityRole>()
                 .HasData(
                     new IdentityRole

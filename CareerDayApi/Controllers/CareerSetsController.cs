@@ -22,19 +22,11 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult<List<CareerSet>>> GetCareerSets()
         {
             var currentUser = await _userManager.GetUserAsync(User);
+            var currentLicenseId = User.IsInRole("Admin") ? null : currentUser.LicenseId;
 
-            if (User.IsInRole("Admin"))
-            {
-                return await _context.CareerSets
-                    .Where(cs => cs.LicenseId == null)
-                    .Include(cs => cs.Careers).ToListAsync();
-            }
-            else
-            {
-                return await _context.CareerSets
-                    .Where(cs => cs.LicenseId == currentUser.LicenseId)
-                    .Include(cs => cs.Careers).ToListAsync();
-            }
+            return await _context.CareerSets
+                .Where(cs => cs.LicenseId == currentLicenseId)
+                .Include(cs => cs.Careers).ToListAsync();
         }
 
         /**

@@ -129,13 +129,6 @@ export default function SchoolUsers() {
                                         <TableCell align="right">
                                             {selectedUser && selectedUser === user
                                                 ? <AppSaveButton onClick={() => handleSaveUser(user)} />
-                                                // <IconButton
-                                                //     color="primary"
-                                                //     size="small"
-                                                //     onClick={() => handleSaveUser(user)}
-                                                // >
-                                                //     <Save fontSize="small" />
-                                                // </IconButton>
                                                 : <AppEditButton 
                                                     onClick={() => handleEditUser(user)} 
                                                     disabled={selectedUser && selectedUser !== user} />

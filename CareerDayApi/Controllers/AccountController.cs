@@ -232,7 +232,7 @@ namespace CareerDayApi.Controllers
             return StatusCode(201);
         }
 
-        [Authorize(Roles = "Admin, FullLicenseUser")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         [HttpPost("registerSchoolUser")]
         public async Task<ActionResult> RegisterSchoolUser([FromForm]RegisterDto registerDto)
         {
@@ -297,7 +297,7 @@ namespace CareerDayApi.Controllers
             return currentUser;
         }
 
-        [Authorize(Roles = "Admin, FullLicenseUser")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         [HttpGet("schoolUsers")]
         public async Task<ActionResult<List<User>>> GetSchoolUsers([FromQuery]UserParams userParams)
         {
@@ -335,7 +335,7 @@ namespace CareerDayApi.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin, FullLicenseUser")]
+        [Authorize(Roles = "Admin, FullLicenseUser, SurveyLicenseUser")]
         public async Task<ActionResult<User>> UpdateSchoolUser([FromForm] UpdateSchoolUserDto updateSchoolUserDto)
         {
             var user = await _userManager.FindByIdAsync(updateSchoolUserDto.Id);

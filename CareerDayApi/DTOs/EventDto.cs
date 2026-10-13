@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using CareerDayApi.Entities;
 
 namespace CareerDayApi.DTOs
 {
