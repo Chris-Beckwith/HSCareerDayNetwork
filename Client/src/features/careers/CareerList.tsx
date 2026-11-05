@@ -1,4 +1,4 @@
-import { Box, Button, FormControl, Grid, IconButton, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, FormControl, Grid, IconButton, InputAdornment, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { Career } from "../../app/models/career"
 import CareerCard from "./CareerCard"
 import { useEffect, useMemo, useState } from "react"
@@ -9,10 +9,13 @@ import LoadingComponent from "../../app/components/LoadingComponent"
 import { Delete, Edit } from "@mui/icons-material"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import agent from "../../app/api/agent"
-import { useAppDispatch } from "../../app/store/configureStore"
+import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
 import { reloadCareers, reloadCareerSets } from "./careerSlice"
 import { LoadingButton } from "@mui/lab"
 import { CareerSet } from "../../app/models/careerSet"
+import { canManageCareerSets } from "../../app/util/permissions"
+import { upgradeText } from "../../app/util/constants"
+import { Lock } from "@mui/icons-material"
 
 interface Props {
     handleSelectCareer: (career: Career) => void
@@ -31,6 +34,7 @@ interface Props {
 export default function CareerList({ handleSelectCareer, hideDescription, hideDelete, hideEdit, blockUpdate,
         selectedCareers, handleSetCareerSet, selectedCareerSetId }: Props) {
     const dispatch = useAppDispatch()
+    const { user } = useAppSelector(state => state.account)
     const { careers, categories, careerSets, careerSetsLoaded } = useCareers()
     const [hiddenCategories, setHiddenCategories] = useState<string[]>([])
     const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false)
@@ -141,7 +145,7 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
         setEditCategory('')
     }
 
-    if (!careerSetsLoaded) return <LoadingComponent message="Loading Career Sets..." />
+    if (!careerSetsLoaded && canManageCareerSets(user)) return <LoadingComponent message="Loading Career Sets..." />
 
     return (
         <Grid container spacing={2} sx={{ pb: 2 }}>
@@ -161,29 +165,49 @@ export default function CareerList({ handleSelectCareer, hideDescription, hideDe
                     </Grid>
                     <Grid item xs={11}>
                         {selectedCareers &&
-                            <FormControl fullWidth size="small">
-                                <InputLabel>Career Sets</InputLabel>
-                                <Controller
-                                    name="careerSets"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select label="Career Sets"
-                                            {...field}
-                                            value={field.value ?? 0}
-                                            fullWidth
-                                            onChange={(event) => handleCareerSetChange(event, field.onChange)}
-                                        >
-                                            {careerSetsWithNew?.map((careerSet, index) => (
-                                                <MenuItem key={careerSet.id} value={careerSet.id} 
-                                                    sx={{ fontStyle: index === 0 ? 'italic' : 'normal' }}
-                                                >
-                                                    {careerSet.name}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    )}
-                                />
-                            </FormControl>
+                            <Tooltip title={canManageCareerSets(user) ? '' : upgradeText }>
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>
+                                        Career Sets
+                                    </InputLabel>
+                                    <Controller
+                                        name="careerSets"
+                                        disabled={!canManageCareerSets(user)}
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select label="Career Sets"
+                                                {...field}
+                                                value={field.value ?? 0}
+                                                fullWidth
+                                                onChange={(event) => handleCareerSetChange(event, field.onChange)}
+                                                endAdornment={canManageCareerSets(user) ? <></> :
+                                                    <InputAdornment position="end">
+                                                        <Lock
+                                                            sx={{
+                                                                position: 'absolute',
+                                                                right: '32px',
+                                                                bottom: isMobile ? '6px' : '4px',
+                                                                fontSize: isMobile ? '1.7rem' : '2rem',
+                                                                opacity: 0.4,
+                                                                color: 'inherit',
+                                                                pointerEvents: 'none',
+                                                            }}
+                                                        />
+                                                    </InputAdornment>
+                                                }
+                                            >
+                                                {careerSetsWithNew?.map((careerSet, index) => (
+                                                    <MenuItem key={careerSet.id} value={careerSet.id} 
+                                                        sx={{ fontStyle: index === 0 ? 'italic' : 'normal' }}
+                                                    >
+                                                        {careerSet.name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        )}
+                                    />
+                                </FormControl>
+                            </Tooltip>
                         }
                     </Grid>
                 </Grid>

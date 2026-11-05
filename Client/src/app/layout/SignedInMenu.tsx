@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "../store/configureStore";
 import { signOut } from "../../features/account/accountSlice";
 import { useNavigate } from "react-router-dom";
 import { AccountCircle, ArrowDropDown } from "@mui/icons-material";
+import { ADMIN_FULL_SURVEY_ROLES, ADMIN_ROLE } from "../util/permissions";
 
 /**
  * Drop down menu for signed in users, only available for admins.
@@ -35,9 +36,15 @@ export default function SignedInMenu() {
         navigate('/schoolAdmins')
         handleClose()
     }
+
+    const handleLicensing = () => {
+        navigate('/licensing')
+        handleClose()
+    }
     
     const handleSignOut = () => {
         dispatch(signOut())
+        
         navigate('/')
     }
 
@@ -56,14 +63,20 @@ export default function SignedInMenu() {
                 open={open}
                 onClose={handleClose}
                 TransitionComponent={Fade}
+                sx={{ zIndex: theme => theme.zIndex.modal + 10 }}
             >
-                {user?.roles?.includes("Admin") && (
+                {user?.roles?.some(role => ADMIN_FULL_SURVEY_ROLES.includes(role)) && (
                     [
-                        <MenuItem key="1" onClick={handleRegister}>Register Admins</MenuItem>,
-                        <MenuItem key="2" onClick={handleSchoolAdmins}>School Admins</MenuItem>
+                        <MenuItem key="1" onClick={handleRegister}>Register Administrators</MenuItem>,
+                        <MenuItem key="2" onClick={handleSchoolAdmins}>School Administrators</MenuItem>,
                     ]
                 )}
-                <MenuItem onClick={handleSignOut}>Logout</MenuItem>
+                {user?.roles?.includes(ADMIN_ROLE) && (
+                    [
+                        <MenuItem key="3" onClick={handleLicensing}>Licensing</MenuItem>
+                    ]
+                )}
+                <MenuItem key="0" onClick={handleSignOut}>Logout</MenuItem>
             </Menu>
         </>
     );

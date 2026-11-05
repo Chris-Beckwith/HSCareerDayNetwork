@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CareerDayApi.Entities
 {
@@ -25,6 +26,8 @@ namespace CareerDayApi.Entities
         public string PublicId { get; set; }
         public bool IsDeleted { get; set; } = false;
         public int? LicenseId { get; set; }
+
+        [JsonIgnore]
         public License License { get; set; }
 
         //TODO AddAllSpeakers, RemoveAllSpeakers

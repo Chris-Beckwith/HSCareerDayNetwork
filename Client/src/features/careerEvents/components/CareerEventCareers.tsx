@@ -8,11 +8,12 @@ import AppButton from "../../../app/components/AppButton"
 import AppBackButton from "../../../app/components/AppBackButton"
 import { blue } from "@mui/material/colors"
 import { CareerEvent } from "../../../app/models/event"
-import { EVENT_PHASES } from "../../../app/util/constants"
+import { EVENT_PHASES, upgradeText } from "../../../app/util/constants"
 import { CareerSet } from "../../../app/models/careerSet"
 import agent from "../../../app/api/agent"
-import { useAppDispatch } from "../../../app/store/configureStore"
+import { useAppDispatch, useAppSelector } from "../../../app/store/configureStore"
 import { reloadCareerSets } from "../../careers/careerSlice"
+import { canManageCareerSets } from "../../../app/util/permissions"
 
 interface Props {
     careerEvent: CareerEvent
@@ -25,6 +26,7 @@ interface Props {
  */
 export default function CareerEventCareers({ careerEvent, updateCareerEvent, back }: Props) {
     const dispatch = useAppDispatch()
+    const { user } = useAppSelector(state => state.account)
     const [eventCareers, setEventCareers] = useState<Career[]>([])
     const [saveCareerSet, setSaveCareerSet] = useState(false)
     const [openSaveCareerSet, setOpenSaveCareerSet] = useState(false)
@@ -150,10 +152,16 @@ export default function CareerEventCareers({ careerEvent, updateCareerEvent, bac
                     <Typography variant="body1" align="center">Selected Careers will be highlighted</Typography>
                 </Paper>
             </Box>
-            <Box display='flex' justifyContent='flex-end' sx={{ mr: -1, my: isMobile ? 1 : 0 }}>
-                <Typography variant="body1" display='flex' alignItems='center'>{careerSet?.id === 0 ? 'Save' : 'Update'} Career Set</Typography>
-                <Switch onChange={handleSaveCareerSet} size={isMobile ? "small" : "medium"} />
-            </Box>
+                <Box display='flex' justifyContent='flex-end' sx={{ mr: -1, my: isMobile ? 1 : 0 }}>
+                    <Tooltip title={canManageCareerSets(user) ? '' : upgradeText}>
+                        <Box display='flex'>
+                            <Typography variant="body1" display='flex' alignItems='center' color={canManageCareerSets(user) ? 'inherit' : 'action.disabled' }>
+                                {careerSet?.id === 0 ? 'Save' : 'Update'} Career Set
+                            </Typography>
+                            <Switch onChange={handleSaveCareerSet} disabled={!canManageCareerSets(user)} size={isMobile ? "small" : "medium"} />
+                        </Box>
+                    </Tooltip>
+                </Box>
 
             <CareerList handleSelectCareer={handleSelectCareer} selectedCareers={eventCareers} handleSetCareerSet={handleSetCareerSet}
                 hideDescription={true} hideDelete={true} hideEdit={true} selectedCareerSetId={careerSet?.id}

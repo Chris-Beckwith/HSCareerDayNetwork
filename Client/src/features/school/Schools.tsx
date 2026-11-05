@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useAppDispatch } from "../../app/store/configureStore"
 import { reloadSchools, setPagination, setSchoolSearchParams } from "./schoolSlice"
 import { MouseEvent, useState } from "react"
@@ -11,6 +11,7 @@ import useSchools from "../../app/hooks/useSchools"
 import AppTextSearch from "../../app/components/AppTextSearch"
 import ConfirmDelete from "../../app/components/ConfirmDelete"
 import SchoolSkeleton from "./SchoolSkeleton"
+import AppButton from "../../app/components/AppButton"
 
 /**
  * Component to display the list of schools added.
@@ -92,11 +93,11 @@ export default function Schools() {
                         stateSearchTerm={schoolParams.searchTerm} setParams={setSchoolSearchParams} />
                 </Box>
                 <Box display='flex' justifyContent='flex-end' flex={1}>
-                    <Button variant="contained" onClick={() => setEditMode(true)}
+                    <AppButton variant="contained" onClick={() => setEditMode(true)}
                         sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem', lineHeight: isMobile ? 1.2 : 1.7 }}
                     >
                         New School
-                    </Button>
+                    </AppButton>
                 </Box>
             </Box>
             <TableContainer component={Paper}>
@@ -148,7 +149,7 @@ export default function Schools() {
                     <AppPagination
                         metaData={metaData}
                         onPageChange={(page: number) => dispatch(setPagination({ pageNumber: page }))}
-                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize }))}
+                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize, pageNumber: 1 }))}
                     />
                 }
             </Box>

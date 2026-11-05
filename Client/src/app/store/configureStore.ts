@@ -1,4 +1,4 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore, UnknownAction } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { careerEventSlice } from "../../features/careerEvents/careerEventSlice";
 import { schoolSlice } from "../../features/school/schoolSlice";
@@ -11,21 +11,36 @@ import { surveySlice } from "../../features/survey/surveySlice";
 import { userSlice } from "../../features/account/userSlice";
 import { speakerPickerSlice } from "../../features/speaker/speakerPickerSlice";
 import { classroomPickerSlice } from "../../features/classroom/classroomPickerSlice";
+import { licenseSlice } from "../../features/licensing/licenseSlice";
+
+const appReducer = combineReducers({
+    careerEvents: careerEventSlice.reducer,
+    schools: schoolSlice.reducer,
+    classrooms: classroomSlice.reducer,
+    classroomPicker: classroomPickerSlice.reducer,
+    students: studentSlice.reducer,
+    surveys: surveySlice.reducer,
+    speakers: speakerSlice.reducer,
+    speakerPicker: speakerPickerSlice.reducer,
+    careers: careerSlice.reducer,
+    account: accountSlice.reducer,
+    user: userSlice.reducer,
+    licenses: licenseSlice.reducer
+})
+
+const rootReducer = (
+    state: ReturnType<typeof appReducer> | undefined,
+    action: UnknownAction
+) => {
+    if (accountSlice.actions.signOut.match(action)) {
+        state = undefined
+    }
+
+    return appReducer(state, action)
+}
 
 export const store = configureStore({
-    reducer: {
-        careerEvents: careerEventSlice.reducer,
-        schools: schoolSlice.reducer,
-        classrooms: classroomSlice.reducer,
-        classroomPicker: classroomPickerSlice.reducer,
-        students: studentSlice.reducer,
-        surveys: surveySlice.reducer,
-        speakers: speakerSlice.reducer,
-        speakerPicker: speakerPickerSlice.reducer,
-        careers: careerSlice.reducer,
-        account: accountSlice.reducer,
-        user: userSlice.reducer
-    }
+    reducer: rootReducer
 })
 
 export type RootState = ReturnType<typeof store.getState>

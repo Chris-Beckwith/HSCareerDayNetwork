@@ -13,7 +13,7 @@ export default function LoadingComponent({message = 'Loading...'}: Props) {
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
     return (
-        <Backdrop open={true} invisible={true}>
+        <Backdrop open={true} invisible={true} sx={{ pointerEvents: 'none' }}>
             <Box display='flex' justifyContent='center' alignItems='center' height='100vh'>
                 <img src="/images/Loading.gif" height={isTablet ? isMobile ? '156px' : '176px' : '196px'} />
                 <Typography variant={isTablet ? isMobile ? "h6" : "h5" : "h4"} sx={{justifyContent: 'center', position: 'fixed', top: '75%'}}>

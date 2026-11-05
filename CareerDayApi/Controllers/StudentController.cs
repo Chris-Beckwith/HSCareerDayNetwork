@@ -152,6 +152,7 @@ namespace CareerDayApi.Controllers
         public async Task<ActionResult> SubmitSurvey(Survey survey)
         {
             Student student = await _context.Students.FindAsync(survey.Student.Id);
+            if (student.SurveyComplete) return BadRequest(new ProblemDetails { Title = "Survey already completed" });
 
             List<Career> primaryCareers = [];
             if (survey.PrimaryCareers != null && survey.PrimaryCareers.Count != 0)

@@ -5,12 +5,18 @@ import SignedInMenu from "./SignedInMenu";
 import { DarkMode, LightMode } from "@mui/icons-material";
 import MenuIcon from '@mui/icons-material/Menu';
 import { useState } from "react";
+import { ADMIN_FULL_SURVEY_ROLES } from "../util/permissions";
 
 const midLinks = [
     { title: 'Events', path: '/' },
     { title: 'Schools', path: '/schools' },
     { title: 'Careers', path: '/careers' },
     { title: 'Speakers', path: '/speakers' },
+]
+
+const midLinksNoUser = [
+    { title: 'About Product', path: '/about' },
+    { title: 'License Inquiry', path: '/inquiry' }
 ]
 
 const rightLinks = [
@@ -52,6 +58,8 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
         switch(path) {
             case '/schoolAdmins': return 'School Admins'
             case '/register' : return 'Register'
+            case '/about' : return 'About Product'
+            case '/inquery' : return 'License Inquiry'
         }
     }
 
@@ -71,32 +79,45 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
                     <img src="/images/NHSCDN-logo.png" alt="logo" 
                         style= {{ height: isTablet ? isMobile ? 70 : 90 : 110, marginTop: 5, marginBottom: 5 }} />
                 </Box>
-
-                {user?.roles?.includes("Admin") &&
-                    (isMobile ? (
-                        <Box>
-                            <Button
-                                onClick={handleClick}
-                                sx={{typography: 'h6', color: 'text.secondary', '&:hover': { backgroundColor: '#757575' } }}
-                            >
-                                <MenuIcon sx={{ mr: .5 }}/>
-                                {currentLink?.title || handlePathTransform(location.pathname)}
-                            </Button>
-                            <Menu anchorEl={anchorEl} open={open} onClose={handleClose} TransitionComponent={Fade}>
-                                {midLinks.map(({ title, path }) => (
+                {isMobile ? (
+                    <Box>
+                        <Button
+                            onClick={handleClick}
+                            sx={{typography: 'h6', color: 'text.secondary', '&:hover': { backgroundColor: '#757575' } }}
+                        >
+                            <MenuIcon sx={{ mr: .5 }}/>
+                            {currentLink?.title || handlePathTransform(location.pathname)}
+                        </Button>
+                        <Menu anchorEl={anchorEl} open={open} onClose={handleClose} TransitionComponent={Fade}>
+                            {user?.roles?.some(role => ADMIN_FULL_SURVEY_ROLES.includes(role)) ? (
+                                midLinks.map(({ title, path }) => (
                                     title != currentLink?.title &&
-                                        <MenuItem key={path}
-                                            onClick={() => {
-                                                navigate(path);
-                                                handleClose();
-                                            }}
-                                        >
-                                            {title}
-                                        </MenuItem>
-                                ))}
-                            </Menu>
-                        </Box>
-                    ) : (
+                                    <MenuItem key={path}
+                                        onClick={() => {
+                                            navigate(path);
+                                            handleClose();
+                                        }}
+                                    >
+                                        {title}
+                                    </MenuItem>
+                                ))
+                            ) : (
+                                midLinksNoUser.map(({ title, path }) => (
+                                    title != currentLink?.title &&
+                                    <MenuItem key={path}
+                                        onClick={() => {
+                                            navigate(path);
+                                            handleClose();
+                                        }}
+                                    >
+                                        {title}
+                                    </MenuItem>
+                                ))
+                            )}
+                        </Menu>
+                    </Box>
+                ) : (
+                    (user?.roles?.some(role => ADMIN_FULL_SURVEY_ROLES.includes(role)) ? (
                         <List sx={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
                             {midLinks.map(({ title, path }) => (
                                 <ListItem key={path} component={NavLink} to={path} sx={navStyles}>
@@ -104,7 +125,16 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
                                 </ListItem>
                             ))}
                         </List>
-                    ))}
+                    ) : (
+                        <List sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+                            {midLinksNoUser.map(({ title, path }) => (
+                                <ListItem key={path} component={NavLink} to={path} sx={{...navStyles, width: 'auto'}}>
+                                    {title.toUpperCase()}
+                                </ListItem>
+                            ))}
+                        </List>
+                    ))
+                )}
                 
                 <Box sx={{ position: 'absolute', top: isMobile ? 20 : 0, right: isMobile ? (user ? 50 : 80) : 24 }}>
                     <IconButton onClick={handleThemeChange}>

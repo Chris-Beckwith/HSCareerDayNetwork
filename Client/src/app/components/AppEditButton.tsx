@@ -7,7 +7,7 @@ export default function AppEditButton(props: Props) {
 
     return (
         <Tooltip title="Edit">
-            <IconButton title="Edit"
+            <IconButton
                 color="primary"
                 size="small"
                 disabled={props.disabled}
