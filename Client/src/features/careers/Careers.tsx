@@ -10,13 +10,16 @@ import { CareerSet } from "../../app/models/careerSet";
 import agent from "../../app/api/agent";
 import AppButton from "../../app/components/AppButton";
 import AppLoadingButton from "../../app/components/AppLoadingButton";
-import { useAppDispatch } from "../../app/store/configureStore";
+import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { reloadCareerSets } from "./careerSlice";
+import { canManageCareerSets } from "../../app/util/permissions";
+import AppLockButton from "../../app/components/AppLockButton";
 
 /**
  * Display list of careers.
  */
 export default function Careers() {
+    const { user } = useAppSelector(state => state.account)
     const { status } = useCareers()
     const dispatch = useAppDispatch()
     const [editMode, setEditMode] = useState(false)
@@ -122,9 +125,7 @@ export default function Careers() {
                         <AppButton variant="contained" sx={{ ml: 2 }} onClick={() => setEditMode(true)} size={isMobile ? "small" : "medium"}>
                             New Career
                         </AppButton>
-                        <AppButton variant="contained" sx={{ ml: 2 }} onClick={handleCreateCareerSet} size={isMobile ? "small" : "medium"}>
-                            Career Sets
-                        </AppButton>
+                        <AppLockButton label="Career Sets" onClick={handleCreateCareerSet} canManage={canManageCareerSets(user)} sx={{ ml: 2 }} />
                     </Grid>
                 }
             </Box>

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CareerDayApi.Entities
 {
@@ -17,6 +18,8 @@ namespace CareerDayApi.Entities
         public string ContactEmail { get; set; }
         public int EstimatedNumOfStudents { get; set; }
         public int? LicenseId { get; set; }
+        
+        [JsonIgnore]
         public License License { get; set; }
     }
 }

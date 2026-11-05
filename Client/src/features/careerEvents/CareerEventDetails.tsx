@@ -2,7 +2,7 @@ import { Box, Button, Grid, IconButton, Link, MenuItem, Paper, Popover, Tooltip,
 import NotFound from "../../app/errors/NotFound";
 import { CareerEvent } from "../../app/models/event";
 import LinearProgressWithLabel from "../../app/components/LinearProgressWithLabel";
-import { EVENT_PHASES } from "../../app/util/constants";
+import { EVENT_PHASES, upgradeText } from "../../app/util/constants";
 import { toast } from "react-toastify";
 import agent from "../../app/api/agent";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
@@ -30,8 +30,10 @@ import AppLoadingButton from "../../app/components/AppLoadingButton";
 import { useLocation } from "react-router-dom";
 import AppBackButton from "../../app/components/AppBackButton";
 import MenuIcon from '@mui/icons-material/Menu';
-import { PushPin } from "@mui/icons-material";
+import { Lock, PushPin } from "@mui/icons-material";
 import ConfirmCloseSurvey from "./components/ConfirmCloseSurvey";
+import AppLockButton from "../../app/components/AppLockButton";
+import { canManageRooms, canManageSchedule } from "../../app/util/permissions";
 
 interface Props {
     careerEvent: CareerEvent
@@ -47,6 +49,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
     const dispatch = useAppDispatch()
     const { careerEventsLoaded } = useEvents()
     const { eventPhases } = useAppSelector(state => state.careerEvents)
+    const { user } = useAppSelector(state => state.account)
     const [editMode, setEditMode] = useState(false)
     const [deleteMode, setDeleteMode] = useState(false)
     const [speakerMode, setSpeakerMode] = useState(false)
@@ -244,9 +247,33 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
         setLoading(false)
     }
 
+    //If survey only user and on survey closed, next phase is completed
+    async function progressEventPhaseSurveyOnly() {
+        if (!careerEvent) return;
+
+        toggleMenu()
+
+        setLoading(true)
+        const completedPhaseId = eventPhases.find(e => e.phaseName === EVENT_PHASES.COMPLETED)?.id
+        await agent.Event.updatePhase(careerEvent.id, completedPhaseId ?? -1)
+        dispatch(reloadEvents())
+        setLoading(false)
+    }
+
+    const isSchedulePhaseNext = () => {
+        return careerEvent.eventPhase.phaseName === (EVENT_PHASES.SURVEYCLOSED || EVENT_PHASES.SCHEDULEGENERATED)
+    }
+
     const handlePreviousPhaseConfirm = () => {
         const prevEventPhase = eventPhases.find(e => e.id === findPrevEventPhaseId(eventPhases, careerEvent.eventPhase.phaseName))
         toggleMenu()
+
+        if (!canManageSchedule(user) && prevEventPhase?.phaseName === EVENT_PHASES.SCHEDULELOCKED) {
+            setPrevEventPhaseName(EVENT_PHASES.SURVEYCLOSED)
+            setConfirmPrevMessage("Would you like to reopen event?")
+            setConfirmPreviousPhase(true)
+            return;
+        }
 
         if (prevEventPhase) {
             setPrevEventPhaseName(prevEventPhase.phaseName)
@@ -287,7 +314,13 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                 break;
         }
         
-        const eventPhaseId = findPrevEventPhaseId(eventPhases, careerEvent.eventPhase.phaseName)
+        let eventPhaseId = findPrevEventPhaseId(eventPhases, careerEvent.eventPhase.phaseName)
+
+        if(!canManageSchedule(user) && careerEvent.eventPhase.phaseName === (EVENT_PHASES.COMPLETED || EVENT_PHASES.CANCELLED) ) {
+            const eventPhase = eventPhases.find(e => e.phaseName === EVENT_PHASES.SURVEYCLOSED)
+            eventPhaseId = eventPhase ? eventPhase.id : -1
+        }
+
         await agent.Event.updatePhase(careerEvent.id, eventPhaseId)
         dispatch(reloadEvents())
         setLoading(false)
@@ -316,27 +349,78 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                 </Tooltip>
             }
             {careerEvent.eventPhase.phaseName != (EVENT_PHASES.COMPLETED || EVENT_PHASES.CANCELLED) &&
+                <Tooltip title={!canManageSchedule(user) && isSchedulePhaseNext() ? upgradeText : "Next Phase"} placement="left">
+                    <span>
+                        <MenuItem sx={menuItemSx} disabled={!canManageSchedule(user) && isSchedulePhaseNext()}
+                            onClick={careerEvent.eventPhase.phaseName === EVENT_PHASES.SURVEYINPROGRESS
+                                ? () => setConfirmCloseSurvey(true)
+                                : progressEventPhaseAction
+                            }>
+                            {!canManageSchedule(user) &&
+                                <Lock sx={{
+                                    position: 'absolute',
+                                    right: '10px',
+                                    top: '3px',
+                                    fontSize: isMobile ? '1.7rem' : '2rem',
+                                    opacity: 0.4,
+                                    color: 'inherit',
+                                    pointerEvents: 'none',
+                                }} />
+                            }
+                            {nextEventPhaseText()}
+                        </MenuItem>
+                    </span>
+                </Tooltip>
+            }
+            {!canManageSchedule(user) && (careerEvent.eventPhase.phaseName === EVENT_PHASES.SURVEYCLOSED) &&
                 <Tooltip title="Next Phase" placement="left">
-                    <MenuItem sx={menuItemSx} onClick={careerEvent.eventPhase.phaseName === EVENT_PHASES.SURVEYINPROGRESS
-                        ? () => setConfirmCloseSurvey(true)
-                        : progressEventPhaseAction
-                    }>
-                        {nextEventPhaseText()}
+                    <MenuItem sx={menuItemSx} onClick={progressEventPhaseSurveyOnly}>
+                        Event Completed
                     </MenuItem>
                 </Tooltip>
             }
             {isScheduleAvailable(careerEvent.eventPhase.phaseName) &&
-                <MenuItem sx={menuItemSx} onClick={() => setScheduleMode(true)}>
-                    View Schedule
-                </MenuItem>
+                <Tooltip title={canManageSchedule(user) ? '' : upgradeText} placement="left">
+                    <span>
+                        <MenuItem sx={menuItemSx} onClick={() => setScheduleMode(true)} disabled={!canManageSchedule(user)}>
+                            {!canManageSchedule(user) &&
+                                <Lock sx={{
+                                    position: 'absolute',
+                                    right: '10px',
+                                    top: '3px',
+                                    fontSize: isMobile ? '1.7rem' : '2rem',
+                                    opacity: 0.4,
+                                    color: 'inherit',
+                                    pointerEvents: 'none',
+                                }} />
+                            }
+                            View Schedule
+                        </MenuItem>
+                    </span>
+                </Tooltip>
             }
             {isScheduleAvailable(careerEvent.eventPhase.phaseName) &&
-                <MenuItem sx={menuItemSx} onClick={() => {
-                    setExportMode(true)
-                    toggleMenu()
-                }}>
-                    Export Schedules
-                </MenuItem>
+                <Tooltip title={canManageSchedule(user) ? '' : upgradeText} placement="left">
+                    <span>
+                        <MenuItem sx={menuItemSx} disabled={!canManageSchedule(user)} onClick={() => {
+                            setExportMode(true)
+                            toggleMenu()
+                        }}>
+                            {!canManageSchedule(user) &&
+                                <Lock sx={{
+                                    position: 'absolute',
+                                    right: '10px',
+                                    top: '3px',
+                                    fontSize: isMobile ? '1.7rem' : '2rem',
+                                    opacity: 0.4,
+                                    color: 'inherit',
+                                    pointerEvents: 'none',
+                                }} />
+                            }
+                            Export Schedules
+                        </MenuItem>
+                    </span>
+                </Tooltip>
             }
             {careerEvent.eventPhase.phaseName != EVENT_PHASES.SETUP &&
                 <MenuItem sx={menuItemSx} onClick={() => {
@@ -373,7 +457,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                         <IconButton onClick={() => setIsPinned(prev => !prev)} title={isPinned ? "Unpin menu" : "Pin menu"}
                             aria-label={isPinned ? "Unpin menu" : "Pin menu"}
                             sx={{ zIndex: theme => theme.zIndex.modal + 1 }}
-                            >
+                        >
                             <PushPin sx={{ mt: .5, transform: isPinned ? 'none' : 'rotate(45deg)' }}/>
                         </IconButton>
                     }
@@ -387,6 +471,7 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                     <Popover open={open} anchorEl={anchorEl} onClose={() => toggleMenu()} 
                         disableEnforceFocus={isPinned}
                         disableAutoFocus={isPinned}
+                        hideBackdrop={isPinned}
                         disableScrollLock
                         disableRestoreFocus
                         anchorOrigin={{
@@ -503,11 +588,8 @@ export default function CareerEventDetails({ careerEvent, cancelView, updateCare
                                 color="primary">
                                 Students
                             </AppButton>
-                            <AppButton onClick={() => setRoomMode(true)}
-                                variant="contained"
-                                color="primary">
-                                Classrooms
-                            </AppButton>
+                            <AppLockButton onClick={() => setRoomMode(true)}
+                                label="Classrooms" canManage={canManageRooms(user)} />
                             <AppButton onClick={() => setSpeakerMode(true)}
                                 variant="contained"
                                 color="primary">

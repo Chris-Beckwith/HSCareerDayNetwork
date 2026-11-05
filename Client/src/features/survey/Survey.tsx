@@ -176,9 +176,9 @@ export default function Survey() {
                 }
 
                 await agent.Student.submitSurvey(dataWithStudent)
+                    .then(() => setActiveStep(activeStep + 1))
                     .catch(error => console.log(error))
                     .finally(() => setLoadingStep(false))
-                setActiveStep(activeStep + 1)
             }
         }
         setLoadingStep(false)

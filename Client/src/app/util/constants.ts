@@ -33,3 +33,5 @@ export enum LicenseStatus {
     Expired,
     Cancelled
 }
+
+export const upgradeText = "Upgrade to a Full license to use this feature"

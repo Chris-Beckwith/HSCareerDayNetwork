@@ -1,5 +1,7 @@
+import dayjs from "dayjs";
 import { EventPhase } from "../models/event";
-import { EVENT_PHASES } from "./constants";
+import { EVENT_PHASES, LicenseStatus, LicenseType } from "./constants";
+import { FieldValues, UseFormSetError } from "react-hook-form";
 
 export function getCookie(key: string) {
     const b = document.cookie.match("(^|;)\\s*" + key + "\\s*=\\s*([^;]+)");
@@ -84,4 +86,40 @@ export function findPrevEventPhaseId(eventPhases: EventPhase[], phaseName: strin
     }
     if (eventPhase === undefined) return -1
     return eventPhase.id
+}
+
+export function getLicenseTypeText(type: number) {
+    switch(type) {
+        case LicenseType.Full: return "Full License"
+        case LicenseType.SurveyOnly: return "Survey Only"
+    }
+}
+
+export function getLicenseStatusText(status: number) {
+    switch(status) {
+        case LicenseStatus.Active: return "Active"
+        case LicenseStatus.Expired: return "Expired"
+        case LicenseStatus.Cancelled: return "Cancelled"
+    }
+}
+
+export function formatDate(date: string) {
+    if (!date) return '-'
+    const parsed = dayjs(date)
+    return parsed.isValid() ? parsed.format('MMM D, YYYY') : 'N/A'
+}
+
+export function handleApiErrors(errors: any, setError: UseFormSetError<FieldValues>) {
+    if (errors && Array.isArray(errors)) {
+        errors.forEach((error: string) => {
+            console.log("Registration Error: ", error)
+            if (error.includes('Password')) {
+                setError('password', {message: error})
+            } else if (error.includes('Email')) {
+                setError('email', {message: error})
+            } else if (error.includes('Username')) {
+                setError('username', {message: error})
+            }
+        });
+    }
 }

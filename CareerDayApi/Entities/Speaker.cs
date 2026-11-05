@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace CareerDayApi.Entities
 {
     //License Bound
@@ -18,6 +20,8 @@ namespace CareerDayApi.Entities
         public string PublicId { get; set; }
         public List<Session> Sessions { get; set; } = [];
         public int? LicenseId { get; set; }
+
+        [JsonIgnore]
         public License License { get; set; }
     }
 }

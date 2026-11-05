@@ -66,7 +66,10 @@ axios.interceptors.response.use(async response => {
                         modelStateErrors.push(data.errors[key])
                     }
                 }
-                toast.error("Bad Request")
+                if (data.title)
+                    toast.error(data.title)
+                else
+                    toast.error("Bad Request")
                 throw modelStateErrors.flat()
             }
             toast.error(data.title)
@@ -211,9 +214,10 @@ const CareerSet = {
 
 const Account = {
     login: (values: any) => requests.post('account/login', values),
-    registerSchoolUser: (user: any) => requests.postForm('account/registerSchoolUser', createFormData(user)),
-    update: (user: any) => requests.putForm('account', createFormData(user)),
     currentUser: () => requests.get('account/currentUser'),
+    registerSchoolUser: (user: any) => requests.postForm('account/registerSchoolUser', createFormData(user)),
+    updateSchoolUser: (user: any) => requests.putForm('account/updateSchoolUser', createFormData(user)),
+    deleteSchoolUser: (id: string) => requests.delete(`account/deleteSchoolUser/${id}`),
     schoolUsers: (params: URLSearchParams) => requests.get('account/schoolUsers', params)
 }
 
@@ -227,7 +231,6 @@ const Survey = {
 
 const Schedule = {
     generateSessions: (generationParams: any) => requests.postForm('scheduling', createFormData(generationParams)),
-    // getSessions: (eventId: number) => requests.get(`scheduling/${eventId}`),
     getSessionsAndUnplaced: (eventId: number) => requests.get(`scheduling/${eventId}`),
     saveSessions: (params: any) => requests.postJson('scheduling/save', params),
     updateSessions: (params: any) => requests.putJson('scheduling', params),
@@ -240,6 +243,14 @@ const Export = {
     exportSpeakerSchedule: (params: URLSearchParams) => requests.getBlob('export/speakersSchedule', params),
     exportRoomSchedule: (params: URLSearchParams) => requests.getBlob('export/roomsSchedule', params),
     exportSpeakers: (params: any) => requests.getBlob('export/speakers', params)
+}
+
+const License = {
+    list: (params: URLSearchParams) => requests.get('license', params),
+    create: (params: any) => requests.postForm('license/createLicense', params),
+    inviteOnly: (params: any) => requests.postForm('license/inviteOnly', params),
+    licenseInvite: (tokenHash: string) => requests.get(`license/licenseInvite/${tokenHash}`),
+    registerUser: (params: any) => requests.postForm('license/registerLicenseUserFromInvite', params)
 }
 
 const TestErrors = {
@@ -262,6 +273,7 @@ const agent = {
     Survey,
     Schedule,
     Export,
+    License,
     TestErrors
 }
 

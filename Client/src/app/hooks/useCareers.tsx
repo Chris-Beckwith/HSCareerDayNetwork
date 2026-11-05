@@ -1,8 +1,10 @@
 import { useEffect } from "react"
 import { careerSelectors, getAllCareerCategoriesAsync, getAllCareersAsync, getAllCareerSetsAsync } from "../../features/careers/careerSlice"
 import { useAppSelector, useAppDispatch } from "../store/configureStore"
+import { canManageCareerSets } from "../util/permissions"
 
 export default function useCareers() {
+    const { user } = useAppSelector(state => state.account)
     const careers = useAppSelector(careerSelectors.selectAll)
     const { careersLoaded, categoriesLoaded, categories, careerSetsLoaded, careerSets, status } = useAppSelector(state => state.careers)
     const dispatch = useAppDispatch()
@@ -16,8 +18,9 @@ export default function useCareers() {
     }, [categoriesLoaded, dispatch])
 
     useEffect(() => {
+        if (!canManageCareerSets(user)) return
         if (!careerSetsLoaded) dispatch(getAllCareerSetsAsync())
-    }, [careerSetsLoaded, dispatch])
+    }, [careerSetsLoaded, dispatch, user])
 
     return {
         careers,

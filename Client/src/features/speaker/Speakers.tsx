@@ -200,7 +200,7 @@ export default function Speakers() {
                     <AppPagination
                         metaData={metaData}
                         onPageChange={(page: number) => dispatch(setPagination({ pageNumber: page }))}
-                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize }))}
+                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize, pageNumber: 1 }))}
                     />
                 }
             </Box>
