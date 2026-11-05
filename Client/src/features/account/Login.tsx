@@ -14,6 +14,7 @@ import { signInUser } from './accountSlice';
 import { useEffect } from 'react';
 import AppLoadingButton from '../../app/components/AppLoadingButton';
 import { DEFAULT_FONT_SIZE } from '../../app/util/constants';
+import { SCHOOL_USER_ROLE } from "../../app/util/permissions";
 
 /**
  * Login component
@@ -42,7 +43,7 @@ export default function Login() {
 
     useEffect(() => {
         if (user) {
-            if (user.roles?.includes("SchoolUser")) navigate('/event-details')
+            if (user.roles?.includes(SCHOOL_USER_ROLE)) navigate('/event-details')
             else navigate(location.state?.from || '/')
         }
     }, [location.state?.from, navigate, user])

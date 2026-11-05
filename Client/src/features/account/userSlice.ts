@@ -25,6 +25,7 @@ export const getSchoolUsersAsync = createAsyncThunk<User[], void, {state: RootSt
     'user/getSchoolUsersAsync',
     async (_, thunkAPI) => {
         const params = getAxiosParams(thunkAPI.getState().user.userParams)
+        console.log("Params: ", params)
         try {
             const response = await agent.Account.schoolUsers(params)
             thunkAPI.dispatch(setMetaData(response.metaData))

@@ -1,3 +1,4 @@
+using CareerDayApi.Entities;
 using CareerDayApi.Models;
 using FluentEmail.Core;
 using FluentEmail.Core.Models;
@@ -8,11 +9,19 @@ namespace CareerDayApi.Services
     {
         private readonly IFluentEmail _fluentEmail = fluentEmail;
 
-        public async Task<SendResponse> SendLicenseInvitation(string email, string registrationUrl, DateTime expirationDate)
+        public async Task<SendResponse> SendLicenseInvitation(string email, string registrationUrl, LicenseType licenseType, DateTime expirationDate)
         {
+            string licenseTypeString = "";
+            switch (licenseType)
+            {
+                case LicenseType.Full: licenseTypeString = "Full Access"; break;
+                case LicenseType.SurveyOnly: licenseTypeString = "Survey Only"; break;
+            }
+
             var model = new LicenseInvitationEmailModel
             {
                 RegistrationUrl = registrationUrl,
+                LicenseType = licenseTypeString,
                 ExpirationDate = expirationDate
             };
 
@@ -23,7 +32,7 @@ namespace CareerDayApi.Services
 
             return await _fluentEmail
                 .To(email)
-                .Subject("You're invited to High School Career Day Survey")
+                .Subject("Thank You For Your National High School Career Day Purchase")
                 .UsingTemplateFromFile(templatePath, model)
                 .SendAsync();
         }

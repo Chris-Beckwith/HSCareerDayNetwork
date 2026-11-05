@@ -5,24 +5,28 @@ import AppTextSearch from "../../app/components/AppTextSearch"
 import { getSchoolUsersAsync, reloadUsers, setPagination, setUserParams, userSelectors } from "./userSlice"
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
 import SchoolUserSkeleton from "./SchoolUserSkeleton"
-import { AddCircleOutline } from "@mui/icons-material"
+import { AddCircleOutline, Delete } from "@mui/icons-material"
 import { User } from "../../app/models/user"
 import useEvents from "../../app/hooks/useEvents"
 import agent from "../../app/api/agent"
 import { useNavigate } from "react-router-dom"
 import AppEditButton from "../../app/components/AppEditButton"
 import AppSaveButton from "../../app/components/AppSaveButton"
+import ConfirmDelete from "../../app/components/ConfirmDelete"
 
 /**
  * Component to display school adminstrator users.
  */
-export default function SchoolUsers() {
+export default function SchoolAdmins() {
     const users = useAppSelector(userSelectors.selectAll)
     const {usersLoaded, metaData, userParams} = useAppSelector(state => state.user)
     const dispatch = useAppDispatch()
     const { careerEvents, careerEventsLoaded } = useEvents()
     const [selectedEvent, setSelectedEvent] = useState('')
     const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined)
+    const [deleteUser, setDeleteUser] = useState<User | undefined>(undefined)
+    const [showDeletePopup, setShowDeletePopup] = useState(false)
+    const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false)
     const navigate = useNavigate()
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -41,12 +45,12 @@ export default function SchoolUsers() {
 
     async function handleSaveUser(user: User) {
         try {
-            if (user.eventId !== parseInt(selectedEvent)) {
+            if (selectedEvent && user.eventId !== parseInt(selectedEvent)) {
                 const updateUser = {
                     Id: user.id,
                     EventId: parseInt(selectedEvent)
                 }
-                await agent.Account.update(updateUser)
+                await agent.Account.updateSchoolUser(updateUser)
                 dispatch(reloadUsers())
             }
         } catch (error) {
@@ -54,6 +58,19 @@ export default function SchoolUsers() {
         }
         setSelectedUser(undefined)
         setSelectedEvent('')
+    }
+
+    async function handleDeleteSchoolUser() {
+        setConfirmDeleteLoading(true)
+        if (deleteUser)
+            await agent.Account.deleteSchoolUser(deleteUser.id)
+                .then(() => setDeleteUser(undefined))
+                .catch(error => console.log(error))
+                .finally(() => {
+                    setConfirmDeleteLoading(false)
+                    setShowDeletePopup(false)
+                    dispatch(reloadUsers())
+                })
     }
 
     async function handleNavigateToRegister() {
@@ -76,7 +93,8 @@ export default function SchoolUsers() {
                             <TableCell>Email</TableCell>
                             <TableCell>Username</TableCell>
                             <TableCell>Event</TableCell>
-                            <TableCell align="right" width={50}>
+                            <TableCell width={1} padding="none"></TableCell>
+                            <TableCell align="right" width={1} sx={{ p: '0 5px 0 0' }}>
                                 <Tooltip title="Register Admin">
                                     <IconButton
                                         color="success"
@@ -126,12 +144,24 @@ export default function SchoolUsers() {
                                             </TableCell>
                                             : <TableCell sx={{ width: 300 }}>{user.event?.name}</TableCell>
                                         }
-                                        <TableCell align="right">
+                                        <TableCell align="right" padding="none">
                                             {selectedUser && selectedUser === user
                                                 ? <AppSaveButton onClick={() => handleSaveUser(user)} />
                                                 : <AppEditButton 
                                                     onClick={() => handleEditUser(user)} 
                                                     disabled={selectedUser && selectedUser !== user} />
+                                            }
+                                        </TableCell>
+                                        <TableCell align="right" sx={{ p: '0 5px 0 0' }}>
+                                            {!selectedUser &&
+                                                <IconButton size="small" color="error" 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setDeleteUser(user)
+                                                        setShowDeletePopup(true)
+                                                    }}>
+                                                    <Delete fontSize="small" />
+                                                </IconButton>
                                             }
                                         </TableCell>
                                     </>
@@ -141,15 +171,18 @@ export default function SchoolUsers() {
                     </TableBody>
                 </Table>
             </TableContainer>
-            <Box sx={{ mt: 2 }}>
+            <Box sx={{ my: 2 }}>
                 {metaData &&
                     <AppPagination
                         metaData={metaData}
                         onPageChange={(page: number) => dispatch(setPagination({ pageNumber: page }))}
-                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize }))}
+                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize, pageNumber: 1 }))}
                     />
                 }
             </Box>
+
+            <ConfirmDelete open={showDeletePopup} itemType="School Admin" itemName={deleteUser?.email || ''}
+                handleClose={() => setShowDeletePopup(false)} confirmDelete={handleDeleteSchoolUser} loading={confirmDeleteLoading} />
         </>
     )
 }

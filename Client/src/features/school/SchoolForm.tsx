@@ -4,15 +4,18 @@ import { FieldValues, useForm } from "react-hook-form"
 import { School } from "../../app/models/school"
 import { schoolValidationSchema } from "./schoolValidiation"
 import agent from "../../app/api/agent"
-import { useAppDispatch } from "../../app/store/configureStore"
+import { useAppDispatch, useAppSelector } from "../../app/store/configureStore"
 import { reloadSchools } from "./schoolSlice"
-import { LoadingButton } from "@mui/lab"
-import { Paper, Typography, Grid, Button, useTheme, useMediaQuery } from "@mui/material"
+import { Paper, Typography, Grid, useTheme, useMediaQuery } from "@mui/material"
 import AddressInputs from "../../app/components/AddressInputs"
 import AppTextInput from "../../app/components/AppTextInput"
 import Classrooms from "../classroom/Classrooms"
 import AppBackButton from "../../app/components/AppBackButton"
 import AppNumberInput from "../../app/components/AppNumberInput"
+import { canManageRooms } from "../../app/util/permissions"
+import AppButton from "../../app/components/AppButton"
+import AppLoadingButton from "../../app/components/AppLoadingButton"
+import AppLockButton from "../../app/components/AppLockButton"
 
 interface Props {
     school?: School,
@@ -23,6 +26,7 @@ interface Props {
  * Form component to add or edit schools.
  */
 export default function SchoolForm({ school, cancelEdit }: Props) {
+    const { user } = useAppSelector(state => state.account)
     const dispatch = useAppDispatch()
     const { control, reset, handleSubmit, formState: { isDirty, isSubmitting } } = useForm({
         resolver: yupResolver<any>(schoolValidationSchema)
@@ -112,10 +116,11 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
 
                         <Grid container justifyContent="center" sx={{ mt: 2 }}>
                             <Grid item display='flex' justifyContent='space-between' xs={12} sm={10} md={8}>
-                                <Button onClick={cancelEdit} variant="contained" color="inherit">Cancel</Button>
-                                {school &&
-                                    <Button onClick={() => setAddRooms(true)} variant="contained" color="primary">View Rooms</Button>}
-                                <LoadingButton
+                                <AppButton onClick={cancelEdit} variant="contained" color="inherit">Cancel</AppButton>
+                                {school && (
+                                    <AppLockButton label="View Rooms" onClick={() => setAddRooms(true)} canManage={canManageRooms(user)} />
+                                )}
+                                <AppLoadingButton
                                     loading={isSubmitting}
                                     variant="contained"
                                     type="submit"
@@ -123,7 +128,7 @@ export default function SchoolForm({ school, cancelEdit }: Props) {
                                     disabled={!isDirty}
                                 >
                                     {school ? "Save" : "Add School"}
-                                </LoadingButton>
+                                </AppLoadingButton>
                             </Grid>
                         </Grid>
                     </Grid>

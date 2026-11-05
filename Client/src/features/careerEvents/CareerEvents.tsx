@@ -181,7 +181,7 @@ export default function CareerEvents() {
                     <AppPagination
                         metaData={metaData}
                         onPageChange={(page: number) => dispatch(setPagination({ pageNumber: page }))}
-                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize }))}
+                        onPageSizeChange={(pageSize: number) => dispatch(setPagination({ pageSize: pageSize, pageNumber: 1 }))}
                         customPageSizes={[9,18,27,36,45]}
                     />
                 }

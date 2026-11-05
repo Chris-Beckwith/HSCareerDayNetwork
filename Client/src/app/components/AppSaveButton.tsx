@@ -6,7 +6,7 @@ interface Props extends ButtonProps {}
 export default function AppSaveButton(props: Props) {
     return (
         <Tooltip title="Save">
-            <IconButton title="Save"
+            <IconButton
                 color="primary"
                 size="small"
                 onClick={props.onClick}

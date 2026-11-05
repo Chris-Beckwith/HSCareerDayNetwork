@@ -1,7 +1,7 @@
 import { Box, Typography, Grid, Paper, Divider, Switch, useTheme, useMediaQuery } from "@mui/material";
 import useSurveys from "../../app/hooks/useSurveys";
 import { CareerEvent } from "../../app/models/event";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import SurveyResultLineItem from "./SurveyResultLineItem";
 import SurveyStudentLineItem from "./SurveyStudentLineItem";
 import { downloadExcel } from "../../app/util/util";
@@ -11,6 +11,7 @@ import EditSurvey from "./EditSurvey";
 import AppButton from "../../app/components/AppButton";
 import AppLoadingButton from "../../app/components/AppLoadingButton";
 import AppBackButton from "../../app/components/AppBackButton";
+import LoadingComponent from "../../app/components/LoadingComponent";
 
 interface Props {
     event: CareerEvent
@@ -22,7 +23,7 @@ interface Props {
  * Component to display the survey results as a graph of totals and individual.
  */
 export default function SurveyResults({ event, back, schoolUser }: Props) {
-    const { surveys } = useSurveys(event.id)
+    const { surveys, status } = useSurveys(event.id)
     const [loading, setLoading] = useState(false)
     const [sortOption, setSortOption] = useState(false)
     const [viewOption, setViewOption] = useState(false)
@@ -34,63 +35,39 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
     const darkMode = theme.palette.mode === 'dark'
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const isTablet = useMediaQuery(theme.breakpoints.down('md'))
-    const [primaryCounts, setPrimaryCounts] = useState<{
-        name: string; category: string; courseId: number; value: number;
-    }[]>([])
-    const [alternateCounts, setAlternateCounts] = useState<{
-        name: string; category: string; courseId: number; value: number;
-    }[]>([])
 
-    useEffect(() => {
-        const initialCareers = event.careers.map(career => ({
+    const { primaryCounts, alternateCounts } = useMemo(() => {
+        const primary = event.careers.map(career => ({
             name: career.name,
             category: career.category,
             courseId: career.courseId,
             value: 0
         }))
 
-        setPrimaryCounts([...initialCareers])
-        setAlternateCounts([...initialCareers])
-    }, [event.careers])
+        const alternate = event.careers.map(career => ({
+            name: career.name,
+            category: career.category,
+            courseId: career.courseId,
+            value: 0
+        }))
 
-    useEffect(() => {
-        setPrimaryCounts(prevCareerCounts => {
-            const updatedCounts = prevCareerCounts.map(career => ({
-                ...career,
-                value: 0
-            }))
-
-            surveys.forEach((survey: { primaryCareers: any[]; }) => {
-                survey.primaryCareers.forEach(selectedCareer => {
-                    const careerToUpdate = updatedCounts.find(c => c.name === selectedCareer.name)
-                    if (careerToUpdate) {
-                        careerToUpdate.value += 1
-                    }
-                })
+        surveys.forEach(survey => {
+            survey.primaryCareers.forEach(selectedCareer => {
+                const career = primary.find(c => c.name === selectedCareer.name)
+                if (career) career.value++
             })
 
-            return updatedCounts
-        })
-
-        setAlternateCounts(prevCareerCounts => {
-            const updatedCounts = prevCareerCounts.map(career => ({
-                ...career,
-                value: 0
-            }))
-
-            surveys.forEach((survey: { alternateCareers: any[]; }) => {
-                survey.alternateCareers.forEach(selectedCareer => {
-                    const careerToUpdate = updatedCounts.find(c => c.name === selectedCareer.name)
-                    if (careerToUpdate) {
-                        careerToUpdate.value += 1
-                    }
-                })
+            survey.alternateCareers.forEach(selectedCareer => {
+                const career = alternate.find(c => c.name === selectedCareer.name)
+                if (career) career.value++
             })
-
-            return updatedCounts
         })
-    }, [surveys])
 
+        return {
+            primaryCounts: primary,
+            alternateCounts: alternate
+        }
+    }, [event.careers, surveys])
 
     const handleSortOption = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSortOption(event.target.checked)
@@ -180,81 +157,86 @@ export default function SurveyResults({ event, back, schoolUser }: Props) {
             </Grid>
 
             <Grid item xs={12}>
-                {!isEditing && (
-                    viewOption ? (
-                        <Paper sx={{ px: { xs: 0.5, md: 2 }, mx: { xs: 0, md: 2 }, py: 1, my: 2 }}>
-                            <Grid container item xs={12}>
-                                <Grid container item xs={5} sm={4} alignItems="center">
-                                    <Switch onChange={(e) => setShowAlternate(e.target.checked)} color="default" size={isMobile ? "small" : "medium"} />
-                                    <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>{showAlternate ? "Show Primary" : "Show Alternate"}</Typography>
-                                </Grid>
-                                <Grid container item xs={5} sm={4} justifyContent="center">
-                                    <Typography variant="h6">{showAlternate ? "Alternate Choices" : "Primary Choices"}</Typography>
-                                </Grid>
-                                <Grid item xs={2} sm={4}></Grid>
-                            </Grid>
-                            {surveys.sort((a: any,b: any) => a.student.lastFirstName.localeCompare(b.student.lastFirstName)).map((item: any) => (
-                                <Box key={item.id}>
-                                    <SurveyStudentLineItem item={item} showAlternate={showAlternate} onEdit={() => setEditSurvey(item)} schoolUser={schoolUser} />
-                                </Box>
-                            ))}
-                        </Paper>
-                    ) : (
-                        <Paper sx={{ px: { xs: 0.5, md: 2 }, mx: { xs: 0, md: 2 }, py: 0, my: 2 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
-                                    <Switch onChange={handleSortOption} color="default" size={isMobile ? "small" : "medium"} />
-                                    <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>{sortOption ? "Sort by Category" : "Sort by Value"}</Typography>
-                                    <Switch onChange={(e) => setIncludeAlternate(e.target.checked)} color="default" size={isMobile ? "small" : "medium"} />
-                                    <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>{includeAlternate ? "Exclude Alternate" : "Include Alternate"}</Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                    <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>
-                                        Total Surveys: {surveys.length} || Complete: {event.surveyCompletePercent}%
-                                    </Typography>
-                                </Box>
-                            </Box>
-                            {sortOption ? (
-                                primaryCounts.sort((c, d) => d.value - c.value).map((item, index) => {
-                                    const altItem = includeAlternate && alternateCounts.find(c => c.name === item.name)
-                                    return (
-                                        <Box key={item.courseId}>
-                                            <SurveyResultLineItem item={item} maxValue={maxValue} altItem={altItem} />
-                                            {index !== primaryCounts.length - 1 &&
-                                                <Divider sx={{ mb: 0.5 }} />
-                                            }
+                {status != 'idle' ?
+                    <LoadingComponent message="Loading Survey Results..." />
+                    : <>
+                        {!isEditing && (
+                            viewOption ? (
+                                <Paper sx={{ px: { xs: 0.5, md: 2 }, mx: { xs: 0, md: 2 }, py: 1, my: 2 }}>
+                                    <Grid container item xs={12}>
+                                        <Grid container item xs={5} sm={4} alignItems="center">
+                                            <Switch onChange={(e) => setShowAlternate(e.target.checked)} color="default" size={isMobile ? "small" : "medium"} />
+                                            <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>{showAlternate ? "Show Primary" : "Show Alternate"}</Typography>
+                                        </Grid>
+                                        <Grid container item xs={5} sm={4} justifyContent="center">
+                                            <Typography variant="h6">{showAlternate ? "Alternate Choices" : "Primary Choices"}</Typography>
+                                        </Grid>
+                                        <Grid item xs={2} sm={4}></Grid>
+                                    </Grid>
+                                    {surveys.sort((a: any,b: any) => a.student.lastFirstName.localeCompare(b.student.lastFirstName)).map((item: any) => (
+                                        <Box key={item.id}>
+                                            <SurveyStudentLineItem item={item} showAlternate={showAlternate} onEdit={() => setEditSurvey(item)} schoolUser={schoolUser} />
                                         </Box>
-                                    )
-                                })
+                                    ))}
+                                </Paper>
                             ) : (
-                                primaryCounts.sort((a, b) => {
-                                    const categoryComparison = a.category.localeCompare(b.category);
-                                    if (categoryComparison !== 0) return categoryComparison;
-
-                                    return a.courseId - b.courseId;
-                                }).map(item => {
-                                    const showCategory = item.category !== currentCategory
-                                    const isFirst = currentCategory === ''
-                                    if (showCategory) currentCategory = item.category
-                                    const altItem = includeAlternate && alternateCounts.find(c => c.name === item.name)
-
-                                    return (
-                                        <Box key={item.courseId}>
-                                            {showCategory &&
-                                                <Divider sx={{ mb: 0.5, mt: isFirst ? 0 : 1 }} textAlign="left">
-                                                    <Typography variant="body2" sx={{ color: "gray" }}>
-                                                        {item.category}
-                                                    </Typography>
-                                                </Divider>
-                                            }
-                                            <SurveyResultLineItem item={item} maxValue={maxValue} altItem={altItem} />
+                                <Paper sx={{ px: { xs: 0.5, md: 2 }, mx: { xs: 0, md: 2 }, py: 0, my: 2 }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '100%' }}>
+                                            <Switch onChange={handleSortOption} color="default" size={isMobile ? "small" : "medium"} />
+                                            <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>{sortOption ? "Sort by Category" : "Sort by Value"}</Typography>
+                                            <Switch onChange={(e) => setIncludeAlternate(e.target.checked)} color="default" size={isMobile ? "small" : "medium"} />
+                                            <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>{includeAlternate ? "Exclude Alternate" : "Include Alternate"}</Typography>
                                         </Box>
-                                    )
-                                })
-                            )}
-                        </Paper>
-                    )
-                )}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                            <Typography sx={{ fontSize: { xs: '.9rem', md: '1rem', } }}>
+                                                Total Surveys: {surveys.length} || Complete: {event.surveyCompletePercent}%
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                    {sortOption ? (
+                                        primaryCounts.sort((c, d) => d.value - c.value).map((item, index) => {
+                                            const altItem = includeAlternate && alternateCounts.find(c => c.name === item.name)
+                                            return (
+                                                <Box key={item.courseId}>
+                                                    <SurveyResultLineItem item={item} maxValue={maxValue} altItem={altItem} />
+                                                    {index !== primaryCounts.length - 1 &&
+                                                        <Divider sx={{ mb: 0.5 }} />
+                                                    }
+                                                </Box>
+                                            )
+                                        })
+                                    ) : (
+                                        primaryCounts.sort((a, b) => {
+                                            const categoryComparison = a.category.localeCompare(b.category);
+                                            if (categoryComparison !== 0) return categoryComparison;
+
+                                            return a.courseId - b.courseId;
+                                        }).map(item => {
+                                            const showCategory = item.category !== currentCategory
+                                            const isFirst = currentCategory === ''
+                                            if (showCategory) currentCategory = item.category
+                                            const altItem = includeAlternate && alternateCounts.find(c => c.name === item.name)
+
+                                            return (
+                                                <Box key={item.courseId}>
+                                                    {showCategory &&
+                                                        <Divider sx={{ mb: 0.5, mt: isFirst ? 0 : 1 }} textAlign="left">
+                                                            <Typography variant="body2" sx={{ color: "gray" }}>
+                                                                {item.category}
+                                                            </Typography>
+                                                        </Divider>
+                                                    }
+                                                    <SurveyResultLineItem item={item} maxValue={maxValue} altItem={altItem} />
+                                                </Box>
+                                            )
+                                        })
+                                    )}
+                                </Paper>
+                            )
+                        )}
+                    </>
+                }
             </Grid>
 
             {editSurvey && (

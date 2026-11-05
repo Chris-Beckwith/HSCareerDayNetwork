@@ -132,7 +132,6 @@ export default function CareerEventForm({ selectedEvent, cancelEdit, saveEdit }:
                                             render={({ field }) => (
                                                 <DatePicker label="Event Date"
                                                     {...field}
-                                                    disablePast
                                                     slotProps={{
                                                         textField: {
                                                             size: isMobile ? 'small' : 'medium',
