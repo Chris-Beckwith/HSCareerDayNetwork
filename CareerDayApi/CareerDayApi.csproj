@@ -27,11 +27,15 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="EmailTemplates/**/*.cshtml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
+  <Target Name="CopyEmailTemplates" AfterTargets="Publish">
+    <ItemGroup>
+      <EmailTemplateFiles Include="$(MSBuildProjectDirectory)\EmailTemplates\**\*.cshtml" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(EmailTemplateFiles)"
+      DestinationFiles="@(EmailTemplateFiles->'$(PublishDir)EmailTemplates\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>
